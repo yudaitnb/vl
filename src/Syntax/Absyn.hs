@@ -1,18 +1,29 @@
-module ASTPrinter (
-  pp
+module Syntax.Absyn (
+  module Language.Haskell.Exts.SrcLoc,
+  module Language.Haskell.Exts.Syntax,
+  HasName(..)
 ) where
 
 import Language.Haskell.Exts.Syntax
 import Language.Haskell.Exts.SrcLoc
 
-import Prettyprinter.Render.Text
 import Prettyprinter
 
-class Pretty a => PrettyLoc a where
-  prettyLoc :: Bool -> a -> Doc ann
+class HasName a where
+  getName :: a -> String
 
-pp :: Pretty a => a -> IO ()
-pp ast = putDoc $ pretty ast <+> line
+instance HasName (Name l) where
+  getName (Ident _ str) = str
+  getName (Symbol _ str) = str
+
+instance HasName (QName l) where
+  getName (Qual _ _ name) = getName name
+  getName (UnQual _ name) = getName name
+  getName (Special _ _)   = error "SpecialCon does not have a name field."
+
+instance HasName (Pat l) where
+  getName (PVar _ name) = getName name
+  getName _             = "Patterns without PVar do not have a name field."
 
 instance Pretty l => Pretty (Module l) where
   pretty (Module srcLocInfo moduleHead _ importDecl decl) = 
@@ -21,7 +32,7 @@ instance Pretty l => Pretty (Module l) where
     <+> pretty moduleHead <> line 
     <+> pretty importDecl <> line 
     <+> pretty decl <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Module)"
 
 instance Pretty l => Pretty (ModuleHead l) where
   pretty (ModuleHead srcLocInfo moduleName _ exportSpecList) = 
@@ -50,7 +61,7 @@ instance Pretty l => Pretty (ExportSpec l) where
         nest 2 $ pretty "(EModuleContents" <> line 
     <+> pretty srcLocInfo <> line 
     <+> pretty moduleName <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - ExportSpec)"
 
 instance Pretty l => Pretty (ModuleName l) where
   pretty (ModuleName srcLocInfo str) = 
@@ -87,7 +98,7 @@ instance Pretty l => Pretty (ImportSpec l) where
     <+> pretty srcLocInfo <> line 
     <+> pretty namespace <> line 
     <+> pretty name <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown- ImportSpec)"
 
 instance Pretty l => Pretty (Namespace l)  where
   pretty (NoNamespace srcLocInfo) = 
@@ -113,7 +124,7 @@ instance Pretty l => Pretty (QName l) where
         nest 2 $ pretty "(UnQual" <> line 
     <+> pretty srcLocInfo <> line 
     <+> pretty name <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - QName)"
 
 instance Pretty l => Pretty (Name l) where
   pretty (Ident srcLocInfo string) = 
@@ -136,7 +147,7 @@ instance Pretty l => Pretty (Decl l) where
     <+> pretty pat <> line 
     <+> pretty rhd <> line 
     <+> pretty binds <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Decl)"
 
 instance Pretty l => Pretty (Pat l) where
   pretty (PVar srcLocInfo name) = 
@@ -152,7 +163,7 @@ instance Pretty l => Pretty (Pat l) where
         nest 2 $ pretty "(PWildCard" <> line 
     <+> pretty srcLocInfo
     <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Pat)"
 
 instance Pretty l => Pretty (Match l) where
   pretty (Match srcLocInfo name pat rhs binds) =
@@ -162,21 +173,21 @@ instance Pretty l => Pretty (Match l) where
     <+> pretty pat <> line 
     <+> pretty rhs <> line 
     <+> pretty binds <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Match)"
 
 instance Pretty l => Pretty (Rhs l) where
   pretty (UnGuardedRhs srcLocInfo exp) = 
         nest 2 $ pretty "(UnGuardedRhs" <> line 
     <+> pretty srcLocInfo <> line 
     <+> pretty exp <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Rhs)"
 
 instance Pretty l => Pretty (Binds l) where
   pretty (BDecls srcLocInfo decl) = 
         nest 2 $ pretty "(BDecls" <> line 
     <+> pretty srcLocInfo <> line 
     <+> pretty decl <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Binds)"
 
 instance Pretty l => Pretty (Sign l) where
   pretty (Signless srcLocInfo) = 
@@ -202,7 +213,7 @@ instance Pretty l => Pretty (Literal l) where
     <+> pretty srcLocInfo <> line 
     <+> pretty integer 
     <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty _ = pretty "(Unknown - Literal)"
 
 instance Pretty l => Pretty (Exp l) where
   pretty (Var srcLocInfo qname) = 
@@ -233,7 +244,18 @@ instance Pretty l => Pretty (Exp l) where
     <+> pretty exp1 <> line 
     <+> pretty exp2 <> line 
     <+> pretty exp3  <> pretty ")"
-  pretty _ = pretty "(Unknown)"
+  pretty (Lambda srcLocInfo pats exp) = 
+        nest 2 $ pretty "(Lambda" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty pats <> line 
+    <+> pretty exp <> pretty ")"
+  pretty (InfixApp srcLocInfo exp1 qOp exp2) =
+        nest 2 $ pretty "(InfixApp" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty exp1 <> line 
+    <+> pretty qOp <> line 
+    <+> pretty exp2 <> pretty ")"
+  pretty _ = pretty "(Unknown - Exp)"
 
 instance Pretty SrcSpanInfo where
   pretty (SrcSpanInfo srcInfoSpan srcInfoPoints@[]) = 
@@ -252,3 +274,13 @@ instance Pretty SrcSpan where
     <> pretty "@(" <> pretty srcSpanStartLine <> pretty ":" <> pretty srcSpanStartColumn <> pretty ")-"
     <> pretty "(" <> pretty srcSpanEndLiine <> pretty ":" <> pretty srcSpanEndColumn <> pretty ")"
     <> pretty ")"
+
+instance Pretty l => Pretty (QOp l) where
+  pretty (QVarOp srcLocInfo qName) =
+        nest 2 $ pretty "(QVarOp" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty qName <> pretty ")"
+  pretty (QConOp srcLocInfo qName) =
+        nest 2 $ pretty "(QConOp" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty qName <> pretty ")"

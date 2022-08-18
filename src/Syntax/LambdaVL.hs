@@ -1,8 +1,23 @@
-module VL where
+module Syntax.LambdaVL where
 
 import qualified Language.Haskell.Exts.Syntax as S
 import Language.Haskell.Exts.SrcLoc
 import Prettyprinter
+
+class HasName a where
+  getName :: a -> String
+
+instance HasName (Name l) where
+  getName (Ident _ str) = str
+  getName (Symbol _ str) = str
+
+instance HasName (QName l) where
+  getName (Qual _ _ name) = getName name
+  getName (UnQual _ name) = getName name
+
+instance HasName (Pat l) where
+  getName (PVar _ name) = getName name
+  getName _             = "Patterns without PVar do not have a name field."
 
 -- | A complete Haskell source module.
 data Module l
@@ -151,6 +166,7 @@ data Exp l
     | Lambda l [Pat l] (Exp l)              -- ^ lambda expression
     | Let l (Binds l) (Exp l)               -- ^ local declarations with @let@ ... @in@ ...
     | If l (Exp l) (Exp l) (Exp l)          -- ^ @if@ /exp/ @then@ /exp/ @else@ /exp/
+    | InfixApp l (Exp l) (QOp l) (Exp l)    -- ^ infix application
     -- | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     -- | Paren l (Exp l)                       -- ^ parenthesised expression
 
@@ -180,6 +196,12 @@ data Literal l
 -- | An /alt/ alternative in a @case@ expression.
 data Alt l
     = Alt l (Pat l) (Rhs l) (Maybe (Binds l))
+  deriving (Eq,Ord,Show)
+
+-- | Possibly qualified infix operators (/qop/), appearing in expressions.
+data QOp l
+    = QVarOp l (QName l) -- ^ variable operator (/qvarop/)
+    | QConOp l (QName l) -- ^ constructor operator (/qconop/)
   deriving (Eq,Ord,Show)
 
 instance Pretty l => Pretty (Module l) where
@@ -391,6 +413,12 @@ instance Pretty l => Pretty (Exp l) where
     <+> pretty srcLocInfo <> line 
     <+> pretty pat <> line 
     <+> pretty exp <> pretty ")"
+  pretty (InfixApp srcLocInfo exp1 qOp exp2) =
+        nest 2 $ pretty "(InfixApp" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty exp1 <> line 
+    <+> pretty qOp <> line 
+    <+> pretty exp2 <> pretty ")"
   -- pretty (LCase srcLocInfo alt) =
   --       nest 2 $ pretty "(LCase" <> line 
   --   <+> pretty srcLocInfo <> line 
@@ -400,3 +428,13 @@ instance Pretty l => Pretty (Exp l) where
     <+> pretty srcLocInfo <> line 
     <+> pretty exp <> pretty ")"
   -- pretty _ = pretty "(Unknown)"
+
+instance Pretty l => Pretty (QOp l) where
+  pretty (QVarOp srcLocInfo qName) =
+        nest 2 $ pretty "(QVarOp" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty qName <> pretty ")"
+  pretty (QConOp srcLocInfo qName) =
+        nest 2 $ pretty "(QConOp" <> line 
+    <+> pretty srcLocInfo <> line 
+    <+> pretty qName <> pretty ")"

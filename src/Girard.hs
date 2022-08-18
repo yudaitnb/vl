@@ -6,7 +6,7 @@ module Girard (
 import qualified Language.Haskell.Exts.Syntax as S
 import Language.Haskell.Exts.SrcLoc ( SrcSpanInfo )
 
-import VL
+import Syntax.LambdaVL
 import Language.Haskell.Exts (Annotated)
 
 class GirardFwd ast where
@@ -16,7 +16,7 @@ class GirardFwd ast where
 instance GirardFwd (S.Module l) where
   type Girard (S.Module l) = (Module l)
   girardFwd (S.Module l moduleHead _ importDecl decl) = Module l (fmap girardFwd moduleHead) (fmap girardFwd importDecl) (fmap girardFwd decl)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd _ = error "[Module@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.ModuleHead l) where
   type Girard (S.ModuleHead l) = (ModuleHead l)
@@ -31,7 +31,7 @@ instance GirardFwd (S.ExportSpec l) where
   girardFwd (S.EVar l qName) = EVar l (girardFwd qName)
   girardFwd (S.EAbs l nameSpace qName) = EAbs l (girardFwd nameSpace) (girardFwd qName)
   girardFwd (S.EModuleContents l moduleName) = EModuleContents l (girardFwd moduleName)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd _ = error "[ExportSpec@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.ImportDecl l) where
   type Girard (S.ImportDecl l) = (ImportDecl l)
@@ -45,7 +45,7 @@ instance GirardFwd (S.ImportSpecList l) where
 instance GirardFwd (S.ImportSpec l) where
   type Girard (S.ImportSpec l) = (ImportSpec l)
   girardFwd (S.IVar l name) = IVar l (girardFwd name)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd _ = error "[ImportSpec@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.Exp l) where
   type Girard (S.Exp l) = (Exp l)
@@ -56,7 +56,8 @@ instance GirardFwd (S.Exp l) where
   girardFwd (S.Lambda l pat exp) = Lambda l (PBox <$> S.ann <*> girardFwd <$> pat) (girardFwd exp) -- girard $ S.Lambda l [x,y] t = Lambda l [[x],[y]] (girard t)
   -- girardFwd (S.Let l binds exp) = Let l (girardFwd binds) (girardFwd exp)
   girardFwd (S.If l exp1 exp2 exp3) = If l (girardFwd exp1) (girardFwd exp2) (girardFwd exp3)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd (S.InfixApp l e1 qOp e2) = InfixApp l (girardFwd e1) (girardFwd qOp) (girardFwd e2)
+  girardFwd _ = error "[Exp@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.Namespace l) where
   type Girard (S.Namespace l) = (Namespace l)
@@ -77,21 +78,21 @@ instance GirardFwd (S.QName l) where
   type Girard (S.QName l) = (QName l)
   girardFwd (S.Qual l moduleName name) = Qual l (girardFwd moduleName) (girardFwd name)
   girardFwd (S.UnQual l name) = UnQual l (girardFwd name)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd _ = error "[QName@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.Literal l) where
   type Girard (S.Literal l) = (Literal l)
   girardFwd (S.Char l char string) = Char l char string
   girardFwd (S.String l string1 string2) = String l string1 string2
   girardFwd (S.Int l integer string) = Int l integer string
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd _ = error "[Literal@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.Pat l) where
   type Girard (S.Pat l) = (Pat l)
   girardFwd (S.PVar l name) =  PVar l (girardFwd name)
   girardFwd (S.PLit l sign literal) = PLit l (girardFwd sign) (girardFwd literal)
   -- girardFwd (S.PWildCard l) = PWildCard l
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+  girardFwd _ = error "[Pat@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.Sign l) where
   type Girard (S.Sign l) = (Sign l)
@@ -111,10 +112,15 @@ instance GirardFwd (S.Binds l) where
 
 instance GirardFwd (S.Match l) where
   type Girard (S.Match l) = (Match l)
-  girardFwd (S.Match l name pat rhs maybeBind) = Match l (girardFwd name) (fmap girardFwd pat) (girardFwd rhs) (fmap girardFwd maybeBind)
+  girardFwd (S.Match l name pat rhs maybeBind) = Match l (girardFwd name) (PBox <$> S.ann <*> girardFwd <$> pat) (girardFwd rhs) (fmap girardFwd maybeBind)
   girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (S.Rhs l) where
   type Girard (S.Rhs l) = (Rhs l)
   girardFwd (S.UnGuardedRhs l exp) = UnGuardedRhs l (girardFwd exp)
   girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
+
+instance GirardFwd (S.QOp l) where
+  type Girard (S.QOp l) = (QOp l)
+  girardFwd (S.QVarOp srcLocInfo qName) = QVarOp srcLocInfo (girardFwd qName)
+  girardFwd (S.QConOp srcLocInfo qName) = QConOp srcLocInfo (girardFwd qName)

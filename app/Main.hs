@@ -2,13 +2,15 @@ module Main where
 
 import System.FilePath ( splitFileName )
 import System.Environment ( getArgs )
-import System.Directory ( createDirectoryIfMissing )
+import System.Directory ( createDirectoryIfMissing, removeFile )
 
 import Parser ( parseAST )
-import Language.Haskell.Exts.Pretty ( prettyPrint )
--- import VL
+import Language.Haskell.Exts.ExactPrint ( exactPrint )
+-- import Syntax.LambdaVL
+import Syntax.Absyn
+import Renamer
 import Girard ( girardFwd )
-import ASTPrinter ( pp )
+import Util
 
 -- from hint
 -- import qualified Language.Haskell.Interpreter as H
@@ -18,25 +20,28 @@ main :: IO ()
 main = do
   [path, func] <- getArgs
   let (dir, fn) = splitFileName path
-      tmpdir = dir ++ "tmp/"
-      tmpfn = tmpdir ++ fn
+      logdir = "./log/"
+      logfile = logdir ++ fn ++ ".log"
+      log :: Pretty a => a -> IO ()
+      log = logPpLn logfile
 
-  -- create temp directory 
-  createDirectoryIfMissing False tmpdir
+  -- create log directory 
+  createDirectoryIfMissing False logdir
+  removeFile logfile
 
   -- output
-  putStrLn "=== Parsing started ==="
   ast <- parseAST path
-  putStrLn "=== AST ==="
-  pp ast
-  -- putStrLn "=== Prettyprint ==="
-  -- let pretty = prettyPrint ast
-  -- putStrLn pretty
-  -- writeFile tmpfn pretty
-
-  putStrLn "=== VL Module ==="
-  let ast_vl = girardFwd ast
-  pp ast_vl
+  log "=== Exactprint ==="
+  log $ exactPrint ast []
+  log "=== AST (Syntax.Absyn) ==="
+  print ast
+  log ast
+  log "=== Alpha renaming ==="
+  let ast_renamed = alphaRename ast
+  log ast_renamed
+  log "=== AST (Syntax.VL) ==="
+  let ast_vl = girardFwd ast_renamed
+  log ast_vl
 
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func

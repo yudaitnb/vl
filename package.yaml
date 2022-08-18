@@ -28,6 +28,8 @@ dependencies:
 - filepath
 - directory
 # - ghc-lib-parser
+- mtl
+- containers
 
 library:
   source-dirs: src
