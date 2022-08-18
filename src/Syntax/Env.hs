@@ -23,7 +23,11 @@ contextConcat tenv1 tenv2 = unionWith concat tenv1 tenv2
     concat :: EnvType -> EnvType -> EnvType
     concat t1 t2 = if (getType t1) != (getType t2)
       then
-        let message = "type " ++ show t1 ++ " and " ++ show t2 ++ " is not equal"
+        let message = "type " ++ show t1 ++ " and " ++ show t2 ++ " is not equal" in
+        error message
+      else
+        case (t1,t2) of
+          (GrType t1 c1, GrType t2 c2) -> GrType t1 
 
 contextGrading :: TEnv -> TEnv
 contextGrading = Data.Map.map grade
