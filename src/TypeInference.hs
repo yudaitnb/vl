@@ -10,9 +10,10 @@ import Syntax.Type
 import Syntax.Kind
 import Syntax.Env
 import Syntax.Substitution
-import TypeSubstitution
 import TypeUnification
+import Kinding
 import Prelude hiding (lookup)
+import TypeSubstitution
 
 -- inferType :: Typable ast => ast -> (ast, SubstMap)
 -- inferType ast = evalState (infer ast) primEnv
@@ -76,7 +77,10 @@ instance Typable (VL.Exp l) where
         Nothing  -> error $ "[Exp - infer@TypeInference.hs] The variable " ++ str ++ " is not in the typing context."
         Just res -> case res of
           NType  ty   -> return (ty, empty)
-          GrType ty c -> return (TyBox c ty, empty) -- [TODO] cのwell-definedness checking
+          GrType ty c -> do
+            uenv <- getUEnv
+            isLabelsKind uenv c
+            return (TyBox c ty, empty)
     -- ^ ⇒_app
     VL.App _ e1 e2 -> do
       (funTy, theta_1) <- infer e1
@@ -85,16 +89,16 @@ instance Typable (VL.Exp l) where
       case funTy of
         TyFun tya tyb -> do
           uenv <- getUEnv
-          let theta_3 = typeUnification uenv tya tya'
+          let theta_3 = unify uenv tya tya'
               theta_4 = union theta_1 theta_2 `union` theta_3
               tyb' = typeSubstitution theta_4 tyb
           delta_2 <- getTEnv
-          setTEnv $ union delta_1 delta_2 -- [TODO] unionではなく、coeffectを考慮したcontext concatinationに要修正
+          setTEnv $ delta_1 .++ delta_2
           return (tyb', theta_4)
         _ -> error $ "[Exp - infer@TypeInference.hs] The variable " ++ show funTy ++ " is not a function type."
     -- ^ ⇒_pr
     VL.Pr _ exp -> do
-      () <- infer -- [TODO] 文脈変換関数が必要
+      error "" -- [TODO] 文脈変換関数が必要
     -- ^ ⇒_abs
     VL.Lambda _ pats exp -> error "[Exp - infer@TypeInference.hs] The function `infer` is not defined for a 'Lambda'."
     _              -> error "[Exp - infer@TypeInference.hs] The function `infer` is not defined for a given expression."

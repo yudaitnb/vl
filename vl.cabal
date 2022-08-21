@@ -26,7 +26,9 @@ source-repository head
 library
   exposed-modules:
       Girard
+      Kinding
       Parser
+      PatternSynthesis
       Renamer
       Syntax.Absyn
       Syntax.Env
@@ -37,7 +39,6 @@ library
       TypeInference
       TypeSubstitution
       TypeUnification
-      TypeWellformedness
       Util
   other-modules:
       Paths_vl

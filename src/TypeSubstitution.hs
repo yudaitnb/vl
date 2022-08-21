@@ -1,12 +1,10 @@
-module TypeSubstitution (
-    typeSubstitution
-) where
+module TypeSubstitution where
 
 import Control.Monad.State
 import Data.Map
 
-import Syntax.Type
-import Syntax.Substitution (SubstMap)
+import Syntax.Type ( HasName(getName), Type(..) )
+import Syntax.Substitution
 
 typeSubstitution :: SubstMap -> Type -> Type
 typeSubstitution subst ty = evalState (tysubst ty) (SubstEnv' subst)
