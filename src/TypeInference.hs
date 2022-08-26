@@ -1,10 +1,11 @@
 {-# LANGUAGE TypeFamilies #-}
-module TypeInference where
+module TypeInference (getInterface) where
 
 import qualified Syntax.LambdaVL as VL
 import Data.Maybe (fromMaybe)
 import Control.Monad.State
 import Data.Map
+import Data.List (foldl)
 
 import Syntax.Type
 import Syntax.Kind
@@ -14,54 +15,63 @@ import TypeUnification
 import Kinding
 import Prelude hiding (lookup)
 import TypeSubstitution
+import PatternSynthesis
+import Prettyprinter
 
--- inferType :: Typable ast => ast -> (ast, SubstMap)
--- inferType ast = evalState (infer ast) primEnv
-
-data Env' = Env'
+data InferenceEnv' = InferenceEnv'
   { counter :: Int -- 単一化型変数の累積数
   , tEnv :: TEnv   -- 型付け環境 / [x:A]
   , uEnv :: UEnv   -- 単一化用型変数環境 / [X:κ]
   }
-type Env a = State Env' a
-
-primEnv :: Env'
-primEnv = Env' 0 empty empty
+type Env a = State InferenceEnv' a
 
 prefixNewTyVar :: String
 prefixNewTyVar = "_tyvar_"
 
+getCounter :: Env Int
+getCounter = state $ \env@(InferenceEnv' c _ _) -> (c, env)
+
 getTEnv :: Env TEnv
-getTEnv = state $ \env@(Env' _ t _) -> (t, env)
+getTEnv = state $ \env@(InferenceEnv' _ t _) -> (t, env)
 
 getUEnv :: Env UEnv
-getUEnv = state $ \env@(Env' _ _ u) -> (u, env)
+getUEnv = state $ \env@(InferenceEnv' _ _ u) -> (u, env)
 
 setTEnv :: TEnv -> Env ()
-setTEnv tenv = state $ \(Env' c _ u) -> ((), Env' c tenv u)
+setTEnv tenv = state $ \(InferenceEnv' c _ u) -> ((), InferenceEnv' c tenv u)
 
 setUEnv :: UEnv -> Env ()
-setUEnv uenv = state $ \(Env' c t _) -> ((), Env' c t uenv)
+setUEnv uenv = state $ \(InferenceEnv' c t _) -> ((), InferenceEnv' c t uenv)
 
 addTEnv :: String -> EnvType -> Env ()
-addTEnv str envType = state $ \(Env' c t u) ->
+addTEnv str envType = state $ \(InferenceEnv' c t u) ->
   let tenv' = insert str envType t in
-  return $ Env' c tenv' u
+  return $ InferenceEnv' c tenv' u
 
 addUEnv :: String -> Kind -> Env ()
-addUEnv str kind = state $ \(Env' c t u) ->
+addUEnv str kind = state $ \(InferenceEnv' c t u) ->
   let uenv' = insert str kind u in
-  return $ Env' c t uenv'
+  return $ InferenceEnv' c t uenv'
 
-genNewTyVar :: Kind -> Env ()
-genNewTyVar kind = state $ \(Env' c t u) ->
+genNewTyVar :: Kind -> Env Type
+genNewTyVar kind = state $ \(InferenceEnv' c t u) ->
   let strvar' = prefixNewTyVar ++ show c
       counter' = c + 1
       uenv' = insert strvar' kind u
-  in return $ Env' counter' t uenv'
+      tyvar = TyVar (Ident strvar')
+  in (tyvar, InferenceEnv' counter' t uenv')
+
+
+
+typeOf :: Typable ast => Int -> TEnv -> UEnv -> ast -> (Type, SubstMap)
+typeOf c t u ast = evalState (infer ast) (InferenceEnv' c t u)
 
 class Typable ast where
   infer :: ast -> Env (Type, SubstMap)
+
+instance Typable (VL.Rhs l) where
+  infer rhs = case rhs of
+    VL.UnGuardedRhs _ exp -> infer exp
 
 instance Typable (VL.Exp l) where
   infer exp = case exp of
@@ -80,7 +90,8 @@ instance Typable (VL.Exp l) where
           GrType ty c -> do
             uenv <- getUEnv
             isLabelsKind uenv c
-            return (TyBox c ty, empty)
+            setTEnv $ Syntax.Env.addTEnv str (GrType ty coeff1) emptyTEnv
+            return (ty, empty)
     -- ^ ⇒_app
     VL.App _ e1 e2 -> do
       (funTy, theta_1) <- infer e1
@@ -97,39 +108,64 @@ instance Typable (VL.Exp l) where
           return (tyb', theta_4)
         _ -> error $ "[Exp - infer@TypeInference.hs] The variable " ++ show funTy ++ " is not a function type."
     -- ^ ⇒_pr
-    VL.Pr _ exp -> do
-      error "" -- [TODO] 文脈変換関数が必要
+    VL.Pr _ t -> do
+      gamma <- getTEnv
+      sigma1 <- getUEnv
+      let gamma' = gradeCtx (filterTEnv gamma (VL.freeVars t))
+      setTEnv gamma'
+      (tya, theta) <- infer t
+      alpha <- genNewTyVar LabelsKind
+      delta <- getTEnv
+      let delta' = alpha .** delta
+      setTEnv delta'
+      return (TyBox alpha tya, theta)
     -- ^ ⇒_abs
-    VL.Lambda _ pats exp -> error "[Exp - infer@TypeInference.hs] The function `infer` is not defined for a 'Lambda'."
+    lam@(VL.Lambda _ (p:nil) t) -> do
+      gamma <- getTEnv
+      alpha <- genNewTyVar TypeKind
+      sigma1' <- getUEnv
+      c <- getCounter
+      let (gamma', theta) = patSynth c sigma1' emptyREnv p alpha
+      let gamma'' = gamma .++ gamma' -- [TODO] , == .++  でいいの?
+      setTEnv gamma''
+      (tyb, theta') <- infer t
+      let tyres = typeSubstitution theta (TyFun alpha tyb)
+          theta'' = theta `comp` theta' -- [TODO] tenv, uenv
+      return (tyres, theta'')
+    lam@(VL.Lambda {}) -> do
+      let lam' = VL.decon lam -- \x y. ... ==> \x. \y. ... 
+      infer lam'
+    -- InfixApp
+    VL.InfixApp l e1 (VL.QVarOp l2 qName) e2 -> do
+      infer $ VL.App l (VL.App l (VL.Var l2 qName) e1) e2
     _              -> error "[Exp - infer@TypeInference.hs] The function `infer` is not defined for a given expression."
 
--- instance Typable (Module) where
---   infer (Module moduleHead modulePragma importDecl decl) = do decl' <- mapM infer decl
---                                                                  return $ Module moduleHead modulePragma importDecl decl'
---   infer _ = error "[Module - infer@infer.hs] The alpha-inferExp function is not defined for a given expression."
+newtype TypedExp = TypedExp [(String, Type)]
+instance Pretty TypedExp where
+  pretty (TypedExp []) = pretty ""
+  pretty (TypedExp ((str,ty):rst)) =
+       pretty str <+> pretty ":" <+> pretty ty <> line
+    <> pretty (TypedExp rst)
 
--- instance Typable (Decl) where
---   infer (FunBind match) = do ms' <- mapM infer match
---                                 return $ FunBind ms'
---   infer (PatBind pat rhs maybeBinds) = do oldTable <- getTable
---                                              rhs' <- infer rhs
---                                              setTable oldTable
---                                              return $ PatBind pat rhs' maybeBinds -- TODO:bindsも同様にスコープを作る。
---   infer _ = error "[Decl - infer@infer.hs] The alpha-inferExp function is not defined for a given expression."
+typeDecl :: Show l => VL.Decl l -> TypedExp
+typeDecl (VL.FunBind l1 []) = TypedExp [] 
+typeDecl (VL.FunBind l1 ((VL.Match l2 name pats (VL.UnGuardedRhs _ exp) maybeBinds):ms)) = 
+  let
+    str = VL.getName name
+    match' = VL.Lambda l2 pats exp
+    (ty, subst) = typeOf 0 basicTEnv emptyUEnv match'
+    TypedExp res = typeDecl (VL.FunBind l1 ms) 
+  in TypedExp ((str,ty):res) -- [TODO] maybeBinds
+typeDecl (VL.PatBind _ pat@(VL.PVar _ name) rhs maybeBinds) = 
+  let str = VL.getName name
+      (ty, subst) = typeOf 0 basicTEnv emptyUEnv rhs
+  in TypedExp [(str, ty)] -- [TODO] maybeBinds
+typeDecl decl = error $ "[TODO] typeDecl is not defined for `bind`:" ++ show decl
 
--- instance Typable (Match) where
---   infer (Match name ps rhs maybeBinds) = do oldTable <- getTable
---                                                ps' <- genNewVarPats ps
---                                                rhs' <- infer rhs
---                                                setTable oldTable
---                                                return $ Match name ps' rhs' maybeBinds -- TODO:bindsも同様にスコープを作る。
---   infer ms@(InfixMatch _ _ _ _ _) = error "[Match - infer@infer.hs] The alpha-inferExp function is not defined for a given expression."
-
--- instance Typable (Rhs) where
---   infer (UnGuardedRhs e) = do e' <- infer e
---                                  return $ UnGuardedRhs e'
---   infer rhs@(GuardedRhss guardedRhs) = error "[Rhs - infer@infer.hs] The alpha-inferExp function is not defined for a given expression."
-
--- instance Typable (QOp) where
---   infer (QVarOp qName) = return $ QVarOp qName
---   infer (QConOp qName) = return $ QConOp qName
+getInterface :: Show l =>  VL.Module l -> TypedExp
+getInterface (VL.Module _ _ _ decls) =
+  Data.List.foldl
+    (\acc decl -> case (acc, typeDecl decl) of
+      (TypedExp acc', TypedExp decl') -> TypedExp (acc' ++ decl'))
+    (TypedExp [])
+    decls

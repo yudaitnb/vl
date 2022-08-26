@@ -1,7 +1,8 @@
-module Main (id) where
+module Test (id) where
 
-main = id y
-
-id x = x
-y = 1
+x 1 = 1
+y 1 = 1
+x 2 = 2
+x 3 = 3
+x = 1
 

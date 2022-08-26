@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Desugar
       Girard
       Kinding
       Parser
@@ -34,8 +35,10 @@ library
       Syntax.Env
       Syntax.Kind
       Syntax.LambdaVL
+      Syntax.STLC
       Syntax.Substitution
       Syntax.Type
+      Syntax.VL
       TypeInference
       TypeSubstitution
       TypeUnification
@@ -76,6 +79,7 @@ test-suite vl-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      PatternSynthesisSpec
       Paths_vl
   hs-source-dirs:
       test
@@ -86,6 +90,7 @@ test-suite vl-test
     , directory
     , filepath
     , haskell-src-exts
+    , hspec
     , mtl
     , prettyprinter
     , vl

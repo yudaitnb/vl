@@ -1,4 +1,4 @@
-module Syntax.LambdaVL where
+module Syntax.STLC where
 
 import qualified Language.Haskell.Exts.Syntax as S
 import Language.Haskell.Exts.SrcLoc
@@ -6,10 +6,10 @@ import Data.List
 import Data.Maybe
 import Prettyprinter
 
--- | A complete Haskell source module.
+-- | A complete STLC source module.
 data Module l
     = Module l (Maybe (ModuleHead l)) [ImportDecl l] [Decl l]
-    -- ^ an ordinary Haskell module
+    -- ^ an ordinary STLC module
   deriving (Eq,Ord,Show)
 
 getDecls :: Module l -> [Decl l]
@@ -48,7 +48,7 @@ data ImportDecl l = ImportDecl
     }
   deriving (Eq,Ord,Show)
 
--- | The name of a Haskell module.
+-- | The name of a STLC module.
 data ModuleName l = ModuleName l String
   deriving (Eq,Ord,Show)
 
@@ -85,30 +85,8 @@ data Name l
 
 -- | A top-level declaration.
 data Decl l
-     = FunBind      l [Match l]
-     -- ^ A set of function binding clauses
-     | PatBind      l (Pat l) (Rhs l) {-where-} (Maybe (Binds l))
+     = PatBind      l (Pat l) (Exp l)
      -- ^ A pattern binding
-  deriving (Eq,Ord,Show)
-
--- | The head of a type or class declaration, which consists of the type
--- or class name applied to some type variables
-data DeclHead l
-    = DHead l (Name l) -- ^ type or class name
-    | DHParen l (DeclHead l) -- ^ parenthesized declaration head
-  deriving (Eq,Ord,Show)
-
--- | The right hand side of a function binding, pattern binding, or a case alternative.
-data Rhs l
-     = UnGuardedRhs l (Exp l) -- ^ unguarded right hand side (/exp/)
-  deriving (Eq,Ord,Show)
-
--- | Clauses of a function binding.
-data Match l
-     = Match l      (Name l) [Pat l]         (Rhs l) {-where-} (Maybe (Binds l))
-        -- ^ A clause defined with prefix notation, i.e. the function name
-        --  followed by its argument patterns, the right-hand side and an
-        --  optional where clause.
   deriving (Eq,Ord,Show)
 
 -- | A pattern, to be matched against a value.
@@ -116,7 +94,6 @@ data Pat l
     = PVar l (Name l)                       -- ^ variable
     | PLit l (Sign l) (Literal l)           -- ^ literal constant
     | PWildCard l                           -- ^ wildcard pattern: @_@
-    | PBox l (Pat l)                        -- ^ promoted pattern; @[@/x/@]@ -> ...
   deriving (Eq,Ord,Show)
 
 -- | An indication whether a literal pattern has been negated or not.
@@ -125,38 +102,19 @@ data Sign l
     | Negative l
   deriving (Eq,Ord,Show)
 
--- | Haskell expressions.
+-- | STLC expressions.
 data Exp l
     = Var l (QName l)                       -- ^ variable
     | Lit l (Literal l)                     -- ^ literal constant
     | App l (Exp l) (Exp l)                 -- ^ ordinary application
     | NegApp l (Exp l)                      -- ^ negation expression @-/exp/@ (unary minus)
-    | Lambda l [Pat l] (Exp l)              -- ^ lambda expression
-    | Let l (Binds l) (Exp l)               -- ^ local declarations with @let@ ... @in@ ...
+    | Lambda l (Pat l) (Exp l)              -- ^ lambda expression
     | If l (Exp l) (Exp l) (Exp l)          -- ^ @if@ /exp/ @then@ /exp/ @else@ /exp/
-    | InfixApp l (Exp l) (QOp l) (Exp l)    -- ^ infix application
     -- | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     -- | Paren l (Exp l)                       -- ^ parenthesised expression
     -- Versioned expressions
-    | Pr l (Exp l)                          -- ^ An expression promoted version resources
     -- LambdaCase
     -- | LCase l [Alt l]                       -- ^ @\case@ /alts/
-  deriving (Eq,Ord,Show)
-
-decon :: Exp l -> Exp l
-decon (Lambda l (p:nil) exp) = Lambda l (p:nil) exp
-decon (Lambda l (p:ps) exp) = Lambda l [p] (decon (Lambda l ps exp))
-decon (App l e1 e2) = App l (decon e1) (decon e2)
-decon (NegApp l e)  = NegApp l (decon e)
-decon (Let l bs e)  = Let l bs (decon e)
-decon (If l e1 e2 e3) = If l (decon e1) (decon e2) (decon e3)
-decon (InfixApp l e1 qop e2) = InfixApp l (decon e1) qop (decon e2)
-decon (Pr l e) = Pr l (decon e)
-decon e = e
-
--- | A binding group inside a @let@ or @where@ clause.
-data Binds l
-    = BDecls  l [Decl l]     -- ^ An ordinary binding group
   deriving (Eq,Ord,Show)
 
 -- | /literal/
@@ -167,17 +125,6 @@ data Literal l
     = Char       l Char     String     -- ^ character literal
     | String     l String   String     -- ^ string literal
     | Int        l Integer  String     -- ^ integer literal
-  deriving (Eq,Ord,Show)
-
--- | An /alt/ alternative in a @case@ expression.
-data Alt l
-    = Alt l (Pat l) (Rhs l) (Maybe (Binds l))
-  deriving (Eq,Ord,Show)
-
--- | Possibly qualified infix operators (/qop/), appearing in expressions.
-data QOp l
-    = QVarOp l (QName l) -- ^ variable operator (/qvarop/)
-    | QConOp l (QName l) -- ^ constructor operator (/qconop/)
   deriving (Eq,Ord,Show)
 
 instance Pretty l => Pretty (Module l) where
@@ -279,16 +226,11 @@ instance Pretty l => Pretty (Name l) where
     <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
 
 instance Pretty l => Pretty (Decl l) where
-  pretty (FunBind srcLocInfo match) = 
-        nest 2 $ pretty "(FunBind" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty match <> pretty ")"
-  pretty (PatBind srcLocInfo pat rhd binds) = 
+  pretty (PatBind srcLocInfo pat rhd) = 
         nest 2 $ pretty "(PatBind" <> line 
     <+> pretty srcLocInfo <> line 
     <+> pretty pat <> line 
-    <+> pretty rhd <> line 
-    <+> pretty binds <> pretty ")"
+    <+> pretty rhd <> pretty ")"
 
 instance Pretty l => Pretty (Pat l) where
   pretty (PVar srcLocInfo name) = 
@@ -304,31 +246,6 @@ instance Pretty l => Pretty (Pat l) where
         nest 2 $ pretty "(PWildCard" <> line 
     <+> pretty srcLocInfo
     <> pretty ")"
-  pretty (PBox srcLocInfo pat) = 
-        nest 2 $ pretty "(PBox" <> line 
-    <+> pretty srcLocInfo <> line
-    <+> pretty pat <> pretty ")"
-
-instance Pretty l => Pretty (Match l) where
-  pretty (Match srcLocInfo name pat rhs binds) =
-        nest 2 $ pretty "(Match" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty name <> line 
-    <+> pretty pat <> line 
-    <+> pretty rhs <> line 
-    <+> pretty binds <> pretty ")"
-
-instance Pretty l => Pretty (Rhs l) where
-  pretty (UnGuardedRhs srcLocInfo exp) = 
-        nest 2 $ pretty "(UnGuardedRhs" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty exp <> pretty ")"
-
-instance Pretty l => Pretty (Binds l) where
-  pretty (BDecls srcLocInfo decl) = 
-        nest 2 $ pretty "(BDecls" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty decl <> pretty ")"
 
 instance Pretty l => Pretty (Sign l) where
   pretty (Signless srcLocInfo) = 
@@ -373,11 +290,6 @@ instance Pretty l => Pretty (Exp l) where
         nest 2 $ pretty "(NegApp" <> line 
     <+> pretty srcLocInfo <> line 
     <+> pretty exp <> pretty ")"
-  pretty (Let srcLocInfo binds exp) = 
-        nest 2 $ pretty "(Let" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty binds <> line 
-    <+> pretty exp <> pretty ")"
   pretty (If srcLocInfo exp1 exp2 exp3) = 
         nest 2 $ pretty "(If" <> line 
     <+> pretty srcLocInfo <> line 
@@ -389,32 +301,11 @@ instance Pretty l => Pretty (Exp l) where
     <+> pretty srcLocInfo <> line 
     <+> pretty pat <> line 
     <+> pretty exp <> pretty ")"
-  pretty (InfixApp srcLocInfo exp1 qOp exp2) =
-        nest 2 $ pretty "(InfixApp" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty exp1 <> line 
-    <+> pretty qOp <> line 
-    <+> pretty exp2 <> pretty ")"
   -- pretty (LCase srcLocInfo alt) =
   --       nest 2 $ pretty "(LCase" <> line 
   --   <+> pretty srcLocInfo <> line 
   --   <+> pretty alt <> pretty ")"
-  pretty (Pr srcLocInfo exp) = 
-        nest 2 $ pretty "(Pr" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty exp <> pretty ")"
   -- pretty _ = pretty "(Unknown)"
-
-instance Pretty l => Pretty (QOp l) where
-  pretty (QVarOp srcLocInfo qName) =
-        nest 2 $ pretty "(QVarOp" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty qName <> pretty ")"
-  pretty (QConOp srcLocInfo qName) =
-        nest 2 $ pretty "(QConOp" <> line 
-    <+> pretty srcLocInfo <> line 
-    <+> pretty qName <> pretty ")"
-
 
 -- 
 class HasName a where
@@ -446,27 +337,8 @@ instance HasVar (Exp l) where
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       NegApp _ e    -> freeVars e
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
-      InfixApp _ e1 op e2 -> freeVars e1 ++ freeVars op ++ freeVars e2
-      Lambda _ ps e -> freeVars e \\ boundVarsPats ps 
+      -- Lambda _ ps e -> freeVars e \\ boundVarsPats ps 
       _             -> error "The freeVars function is not defined for a given expression."
-
-instance HasVar (Decl l) where
-  freeVars (FunBind l match) = foldl (\acc m -> freeVars m ++ acc) [] match
-  freeVars (PatBind l pat rhs maybeBinds) = 
-    (freeVars rhs \\ maybe [] freeVars maybeBinds) \\ boundVars pat
-
-instance HasVar (Binds l) where
-  freeVars (BDecls _ decls) = foldl (\acc d -> freeVars d ++ acc) [] decls
-
-instance HasVar (Match l) where
-  freeVars (Match l name ps rhs maybeBinds) = freeVars rhs \\ boundVarsPats ps
-
-instance HasVar (Rhs l) where
-  freeVars (UnGuardedRhs _ e) = freeVars e
-
-instance HasVar (QOp l) where
-  freeVars (QVarOp l qName) = []
-  freeVars (QConOp l qName) = []
 
 boundVarsPats :: [Pat l] -> [String]
 boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
@@ -475,4 +347,3 @@ boundVars :: Pat l -> [String]
 boundVars (PVar _ name) = [getName name]
 boundVars (PLit _ _ _)  = [] 
 boundVars (PWildCard _) = [] 
-boundVars (PBox _ p)    = boundVars p 

@@ -1,11 +1,14 @@
 module Syntax.Env (
   EnvType(..),
-  TEnv, UEnv, REnv,
-  emptyTEnv, emptyUEnv, emptyREnv,
-  (!),
+  TEnv, UEnv, REnv(..),
+  emptyTEnv, emptyUEnv, emptyREnv, basicTEnv,
+  lookupTEnv, lookupUEnv,
   getType,
   (.++), (.**),
-  gradeCtx
+  gradeCtx,
+  addTEnv, addUEnv,
+  mulREnv,
+  filterTEnv
 ) where
 
 import Data.Map
@@ -24,7 +27,7 @@ getType (GrType t _) = t
 
 type TEnv = Map String EnvType
 type UEnv = Map String Kind
-data REnv = Empty | REnv Coeffect
+data REnv = EmptyREnv | REnv Coeffect
 
 emptyTEnv :: TEnv
 emptyTEnv = empty
@@ -33,7 +36,7 @@ emptyUEnv :: UEnv
 emptyUEnv = empty
 
 emptyREnv :: REnv
-emptyREnv = Empty
+emptyREnv = EmptyREnv
 
 (.++) :: TEnv -> TEnv -> TEnv
 (.++) = unionWith concat
@@ -62,6 +65,44 @@ gradeCtx = Data.Map.map gradeTy
     gradeTy (NType t)       = GrType t one
     gradeTy ty@(GrType _ _) = ty
 
+lookupTEnv :: String -> TEnv -> EnvType
+lookupTEnv str tenv = case Data.Map.lookup str tenv of
+  Nothing ->
+    let message = "[lookupTEnv] The variable:" ++ show str ++ " is not in the tenv:" ++ show tenv ++ "." 
+    in error message
+  Just envty -> envty
+
+lookupUEnv :: String -> UEnv -> Kind
+lookupUEnv str uenv = case Data.Map.lookup str uenv of
+  Nothing ->
+    let message = "[lookupUEnv] The variable:" ++ show str ++ " is not in the uenv:" ++ show uenv ++ "." 
+    in error message
+  Just envty -> envty
+
+addTEnv :: String -> EnvType -> TEnv -> TEnv
+addTEnv = insert
+
+addUEnv :: String -> Kind -> UEnv -> UEnv
+addUEnv = insert
+
 mulREnv :: Coeffect -> REnv -> REnv
-mulREnv c Empty      = REnv c
+mulREnv c EmptyREnv  = REnv c
 mulREnv c1 (REnv c2) = REnv (c1 .* c2)
+
+filterTEnv :: TEnv -> [String] -> TEnv
+filterTEnv tenv keys = filterWithKey (\k _ -> k `elem` keys) tenv
+
+
+
+intType :: Type
+intType = TyCon (UnQual (Ident "Int"))
+
+intToIntToInt :: Type
+intToIntToInt = TyFun intType (TyFun intType intType)
+
+basicTEnv :: TEnv
+basicTEnv = fromList 
+          [ ("+", NType intToIntToInt)
+          , ("-", NType intToIntToInt)
+          , ("*", NType intToIntToInt)
+          , ("/", NType intToIntToInt) ]

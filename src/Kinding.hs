@@ -52,7 +52,7 @@ kind ty = case ty of
   -- κ_var
   TyVar name  -> do
     sigma <- getUEnv
-    let kappa = sigma ! getName name
+    let kappa = lookupUEnv (getName name) sigma
     return kappa
   -- κ_□
   TyBox c ty  -> do

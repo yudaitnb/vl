@@ -2,15 +2,17 @@ module Main where
 
 import System.FilePath ( splitFileName )
 import System.Environment ( getArgs )
-import System.Directory ( createDirectoryIfMissing, removeFile )
 
 import Parser ( parseAST )
 import Language.Haskell.Exts.ExactPrint ( exactPrint )
 -- import Syntax.LambdaVL
 import Syntax.Absyn
+import Desugar
 import Renamer
 import Girard ( girardFwd )
+import TypeInference
 import Util
+import Desugar
 
 -- from hint
 -- import qualified Language.Haskell.Interpreter as H
@@ -27,22 +29,29 @@ main = do
 
   -- create log directory 
   createDirectoryIfMissing False logdir
-  removeFile logfile
+  removeFileIfExists logfile
 
   -- output
   ast <- parseAST path
-  log "=== Exactprint ==="
+  log "\n=== Exactprint ==="
   log $ exactPrint ast []
-  log "=== AST (Syntax.Absyn) ==="
+  log "\n=== AST (Syntax.Absyn) ==="
   print ast
   log ast
-  log "=== Alpha renaming ==="
-  let ast_renamed = alphaRename ast
-  log ast_renamed
-  log "=== AST (Syntax.VL) ==="
-  let ast_vl = girardFwd ast_renamed
-  log ast_vl
+  -- log "=== Alpha renaming ==="
+  -- let ast_renamed = alphaRename ast
+  -- log ast_renamed
+  -- log "\n=== AST (Syntax.VL) ==="
+  -- let ast_vl = girardFwd ast_renamed
+  -- -- let ast_vl = girardFwd ast
+  -- log ast_vl
+  -- log "\n=== Types (Syntax.VL) ==="
+  -- let types = getInterface ast_vl
+  -- log types
 
+  log "\n=== Desugared AST (Syntax.STLC) ==="
+  let ast_desugared = desugarAST ast
+  log ast_desugared
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func
   -- putStrLn "=== Result value ( expects () ) ==="
