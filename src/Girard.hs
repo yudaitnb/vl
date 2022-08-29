@@ -3,124 +3,83 @@ module Girard (
   girardFwd
 ) where
 
-import qualified Language.Haskell.Exts.Syntax as S
-import Language.Haskell.Exts.SrcLoc ( SrcSpanInfo )
-
-import Syntax.LambdaVL
-import Language.Haskell.Exts (Annotated)
+import qualified Syntax.STLC as STLC
+import qualified Syntax.LambdaVL as VL
 
 class GirardFwd ast where
   type Girard ast -- type family
   girardFwd :: ast -> Girard ast
 
-instance GirardFwd (S.Module l) where
-  type Girard (S.Module l) = (Module l)
-  girardFwd (S.Module l moduleHead _ importDecl decl) = Module l (fmap girardFwd moduleHead) (fmap girardFwd importDecl) (fmap girardFwd decl)
-  girardFwd _ = error "[Module@Girard.hs] The girard's (forward) translation is not defined for a given expression."
+instance GirardFwd (STLC.Module l) where
+  type Girard (STLC.Module l) = (VL.Module l)
+  girardFwd (STLC.Module l moduleHead importDecl decl) = VL.Module l (fmap girardFwd moduleHead) (fmap girardFwd importDecl) (fmap girardFwd decl)
 
-instance GirardFwd (S.ModuleHead l) where
-  type Girard (S.ModuleHead l) = (ModuleHead l)
-  girardFwd (S.ModuleHead l moduleName _ maybeExportSpecList) = ModuleHead l (girardFwd moduleName) (fmap girardFwd maybeExportSpecList)
+instance GirardFwd (STLC.ModuleHead l) where
+  type Girard (STLC.ModuleHead l) = (VL.ModuleHead l)
+  girardFwd (STLC.ModuleHead l moduleName maybeExportSpecList) = VL.ModuleHead l moduleName (fmap girardFwd maybeExportSpecList)
 
-instance GirardFwd (S.ExportSpecList l) where
-  type Girard (S.ExportSpecList l) = (ExportSpecList l)
-  girardFwd (S.ExportSpecList l exportSpec) = ExportSpecList l (fmap girardFwd exportSpec)
+instance GirardFwd (STLC.ExportSpecList l) where
+  type Girard (STLC.ExportSpecList l) = (VL.ExportSpecList l)
+  girardFwd (STLC.ExportSpecList l exportSpec) = VL.ExportSpecList l (fmap girardFwd exportSpec)
 
-instance GirardFwd (S.ExportSpec l) where
-  type Girard (S.ExportSpec l) = (ExportSpec l)
-  girardFwd (S.EVar l qName) = EVar l (girardFwd qName)
-  girardFwd (S.EAbs l nameSpace qName) = EAbs l (girardFwd nameSpace) (girardFwd qName)
-  girardFwd (S.EModuleContents l moduleName) = EModuleContents l (girardFwd moduleName)
-  girardFwd _ = error "[ExportSpec@Girard.hs] The girard's (forward) translation is not defined for a given expression."
+instance GirardFwd (STLC.ExportSpec l) where
+  type Girard (STLC.ExportSpec l) = (VL.ExportSpec l)
+  girardFwd (STLC.EVar l qName) = VL.EVar l qName
+  girardFwd (STLC.EAbs l nameSpace qName) = VL.EAbs l (girardFwd nameSpace) qName
+  girardFwd (STLC.EModuleContents l moduleName) = VL.EModuleContents l moduleName
 
-instance GirardFwd (S.ImportDecl l) where
-  type Girard (S.ImportDecl l) = (ImportDecl l)
-  girardFwd (S.ImportDecl importAnn importModule importQualified importSrc importSafe importPkg importAs importSpecs)
-    = ImportDecl importAnn (girardFwd importModule) importQualified importSrc importSafe importPkg (fmap girardFwd importAs) (fmap girardFwd importSpecs)
+instance GirardFwd (STLC.ImportDecl l) where
+  type Girard (STLC.ImportDecl l) = (VL.ImportDecl l)
+  girardFwd (STLC.ImportDecl importAnn importModule importQualified importSrc importSafe importPkg importAs importSpecs)
+    = VL.ImportDecl importAnn importModule importQualified importSrc importSafe importPkg importAs (fmap girardFwd importSpecs)
 
-instance GirardFwd (S.ImportSpecList l) where
-  type Girard (S.ImportSpecList l) = (ImportSpecList l)
-  girardFwd (S.ImportSpecList l bool importSpec) = ImportSpecList l bool (fmap girardFwd importSpec)
+instance GirardFwd (STLC.ImportSpecList l) where
+  type Girard (STLC.ImportSpecList l) = (VL.ImportSpecList l)
+  girardFwd (STLC.ImportSpecList l bool importSpec) = VL.ImportSpecList l bool (fmap girardFwd importSpec)
 
-instance GirardFwd (S.ImportSpec l) where
-  type Girard (S.ImportSpec l) = (ImportSpec l)
-  girardFwd (S.IVar l name) = IVar l (girardFwd name)
-  girardFwd _ = error "[ImportSpec@Girard.hs] The girard's (forward) translation is not defined for a given expression."
+instance GirardFwd (STLC.ImportSpec l) where
+  type Girard (STLC.ImportSpec l) = (VL.ImportSpec l)
+  girardFwd (STLC.IVar l name) = VL.IVar l name
 
-instance GirardFwd (S.Exp l) where
-  type Girard (S.Exp l) = (Exp l)
-  girardFwd (S.Var l qName) = Var l (girardFwd qName)
-  girardFwd (S.Lit l literal) = Lit l (girardFwd literal)
-  girardFwd (S.App l exp1 exp2) = App l (girardFwd exp1) (Pr (S.ann exp2) (girardFwd exp2))
-  girardFwd (S.NegApp l exp) = NegApp l (girardFwd exp)
-  girardFwd (S.Lambda l pat exp) = Lambda l (PBox <$> S.ann <*> girardFwd <$> pat) (girardFwd exp) -- girard $ S.Lambda l [x,y] t = Lambda l [[x],[y]] (girard t)
-  -- girardFwd (S.Let l binds exp) = Let l (girardFwd binds) (girardFwd exp)
-  girardFwd (S.If l exp1 exp2 exp3) = If l (girardFwd exp1) (girardFwd exp2) (girardFwd exp3)
-  girardFwd (S.InfixApp l e1 qOp e2) = InfixApp l (girardFwd e1) (girardFwd qOp) (girardFwd e2)
-  girardFwd _ = error "[Exp@Girard.hs] The girard's (forward) translation is not defined for a given expression."
+instance GirardFwd (STLC.Exp l) where
+  type Girard (STLC.Exp l) = (VL.Exp l)
+  girardFwd (STLC.Var l qName) = VL.Var l qName
+  girardFwd (STLC.Lit l literal) = VL.Lit l (girardFwd literal)
+  girardFwd (STLC.App l exp1 exp2) = VL.App l (girardFwd exp1) (VL.Pr (STLC.ann exp2) (girardFwd exp2))
+  girardFwd (STLC.NegApp l exp) = VL.NegApp l (girardFwd exp)
+  girardFwd (STLC.Lambda l pat exp) = 
+    let src = STLC.ann pat
+        pat' = girardFwd pat
+        pbox = VL.PBox src pat'
+    in VL.Lambda l pbox (girardFwd exp)
+  -- girardFwd (STLC.Let l binds exp) = Let l (girardFwd binds) (girardFwd exp)
+  girardFwd (STLC.If l exp1 exp2 exp3) = VL.If l (girardFwd exp1) (girardFwd exp2) (girardFwd exp3)
 
-instance GirardFwd (S.Namespace l) where
-  type Girard (S.Namespace l) = (Namespace l)
-  girardFwd (S.NoNamespace l) = NoNamespace l
-  girardFwd (S.TypeNamespace l) = TypeNamespace l
-  girardFwd (S.PatternNamespace l) = PatternNamespace l
+instance GirardFwd (STLC.Namespace l) where
+  type Girard (STLC.Namespace l) = (VL.Namespace l)
+  girardFwd (STLC.NoNamespace l) = VL.NoNamespace l
+  girardFwd (STLC.TypeNamespace l) = VL.TypeNamespace l
+  girardFwd (STLC.PatternNamespace l) = VL.PatternNamespace l
 
-instance GirardFwd (S.ModuleName l) where
-  type Girard (S.ModuleName l) = (ModuleName l)
-  girardFwd (S.ModuleName l string) = ModuleName l string
+instance GirardFwd (STLC.Literal l) where
+  type Girard (STLC.Literal l) = (VL.Literal l)
+  girardFwd (STLC.Char l char string) = VL.Char l char string
+  girardFwd (STLC.String l string1 string2) = VL.String l string1 string2
+  girardFwd (STLC.Int l integer string) = VL.Int l integer string
 
-instance GirardFwd (S.Name l) where
-  type Girard (S.Name l) = (Name l)
-  girardFwd (S.Symbol l string) = Symbol l string
-  girardFwd (S.Ident l string) = Ident l string
-
-instance GirardFwd (S.QName l) where
-  type Girard (S.QName l) = (QName l)
-  girardFwd (S.Qual l moduleName name) = Qual l (girardFwd moduleName) (girardFwd name)
-  girardFwd (S.UnQual l name) = UnQual l (girardFwd name)
-  girardFwd _ = error "[QName@Girard.hs] The girard's (forward) translation is not defined for a given expression."
-
-instance GirardFwd (S.Literal l) where
-  type Girard (S.Literal l) = (Literal l)
-  girardFwd (S.Char l char string) = Char l char string
-  girardFwd (S.String l string1 string2) = String l string1 string2
-  girardFwd (S.Int l integer string) = Int l integer string
-  girardFwd _ = error "[Literal@Girard.hs] The girard's (forward) translation is not defined for a given expression."
-
-instance GirardFwd (S.Pat l) where
-  type Girard (S.Pat l) = (Pat l)
-  girardFwd (S.PVar l name) =  PVar l (girardFwd name)
-  girardFwd (S.PLit l sign literal) = PLit l (girardFwd sign) (girardFwd literal)
-  -- girardFwd (S.PWildCard l) = PWildCard l
+instance GirardFwd (STLC.Pat l) where
+  type Girard (STLC.Pat l) = (VL.Pat l)
+  girardFwd (STLC.PVar l name) =  VL.PVar l name
+  girardFwd (STLC.PLit l sign literal) = VL.PLit l (girardFwd sign) (girardFwd literal)
+  -- girardFwd (STLC.PWildCard l) = PWildCard l
   girardFwd _ = error "[Pat@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
-instance GirardFwd (S.Sign l) where
-  type Girard (S.Sign l) = (Sign l)
-  girardFwd (S.Signless l) = Signless l
-  girardFwd (S.Negative l) = Negative l
+instance GirardFwd (STLC.Sign l) where
+  type Girard (STLC.Sign l) = (VL.Sign l)
+  girardFwd (STLC.Signless l) = VL.Signless l
+  girardFwd (STLC.Negative l) = VL.Negative l
 
-instance GirardFwd (S.Decl l) where
-  type Girard (S.Decl l) = (Decl l)
-  girardFwd (S.FunBind l match) = FunBind l (fmap girardFwd match)
-  girardFwd (S.PatBind l pat rhs maybeBind) = PatBind l (girardFwd pat) (girardFwd rhs) (fmap girardFwd maybeBind)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
-
-instance GirardFwd (S.Binds l) where
-  type Girard (S.Binds l) = (Binds l)
-  girardFwd (S.BDecls l decls) = BDecls l (fmap girardFwd decls)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
-
-instance GirardFwd (S.Match l) where
-  type Girard (S.Match l) = (Match l)
-  girardFwd (S.Match l name pat rhs maybeBind) = Match l (girardFwd name) (PBox <$> S.ann <*> girardFwd <$> pat) (girardFwd rhs) (fmap girardFwd maybeBind)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
-
-instance GirardFwd (S.Rhs l) where
-  type Girard (S.Rhs l) = (Rhs l)
-  girardFwd (S.UnGuardedRhs l exp) = UnGuardedRhs l (girardFwd exp)
-  girardFwd _ = error "The girard's (forward) translation is not defined for a given expression."
-
-instance GirardFwd (S.QOp l) where
-  type Girard (S.QOp l) = (QOp l)
-  girardFwd (S.QVarOp srcLocInfo qName) = QVarOp srcLocInfo (girardFwd qName)
-  girardFwd (S.QConOp srcLocInfo qName) = QConOp srcLocInfo (girardFwd qName)
+instance GirardFwd (STLC.Decl l) where
+  type Girard (STLC.Decl l) = (VL.Decl l)
+  -- girardFwd (STLC.FunBind l match) = FunBind l (fmap girardFwd match)
+  girardFwd (STLC.PatBind l pat exp) = VL.PatBind l (girardFwd pat) (girardFwd exp)

@@ -1,31 +1,64 @@
 module Syntax.Absyn (
-  module Language.Haskell.Exts.SrcLoc,
   module Language.Haskell.Exts.Syntax,
   HasName(..),
   HasWhere(..),
   decomposeDecl
 ) where
 
-import Language.Haskell.Exts.Syntax
-import Language.Haskell.Exts.SrcLoc
+import Language.Haskell.Exts.Syntax hiding (Name, QName, ModuleName)
+
+import Syntax.Name
 
 import Prettyprinter
 
-class HasName a where
-  getName :: a -> String
+instance HasName (Exp l) where
+  getName (Var _ qName) = getName qName
+  getName (Lit _ literal) = getName literal
+  getName _ = error "Expressions without Var/Literal do not have a name field." 
 
-instance HasName (Name l) where
-  getName (Ident _ str) = str
-  getName (Symbol _ str) = str
-
-instance HasName (QName l) where
-  getName (Qual _ _ name) = getName name
-  getName (UnQual _ name) = getName name
-  getName (Special _ _)   = error "SpecialCon does not have a name field."
+instance HasName (Literal l) where
+  getName (Char _ _ str) = str
+  getName (String _ _ str) = str
+  getName (Int _ _ str) = str
+  getName _ = error "The getName function is not defined for a given expresion." 
 
 instance HasName (Pat l) where
   getName (PVar _ name) = getName name
-  getName _             = "Patterns without PVar do not have a name field."
+  getName _             = error "Patterns without PVar do not have a name field."
+
+class HasWhere a where
+  rmWhere :: a -> a
+
+instance HasWhere (Match l) where
+  rmWhere match@(Match l1 name pats (UnGuardedRhs l2 exp) maybeBinds) =
+    let patName = PVar (ann name) name in
+    case maybeBinds of
+      Nothing -> match
+      Just bs ->
+        let exp' = Let l1 bs exp
+            rhs' = UnGuardedRhs l2 exp'
+        in Match l1 name pats rhs' Nothing
+  rmWhere _ = error ""
+
+instance HasWhere (Decl l) where
+  rmWhere pb@(PatBind l1 pat (UnGuardedRhs l2 exp) maybeBinds) =
+    case maybeBinds of
+      Nothing -> pb
+      Just bs ->
+        let exp' = Let l1 bs exp
+            rhs' = UnGuardedRhs l2 exp'
+        in PatBind l1 pat rhs' maybeBinds
+  rmWhere (FunBind l match) = FunBind l (fmap rmWhere match)
+  rmWhere _ = error "The rmWhere function is not defined for a given expression."
+
+decomposeDecl :: [Decl l] -> [Decl l]
+decomposeDecl = concatMap decompose
+  where
+    decompose :: Decl l -> [Decl l]
+    decompose (FunBind l [])     = []
+    decompose (FunBind l (m:ms)) = FunBind l [m] : decompose (FunBind l ms)
+    decompose pb@(PatBind {})    = [pb]
+    decompose _ = error "Declarations other than FunBind/PatBind exist."
 
 instance Pretty l => Pretty (Module l) where
   pretty (Module srcLocInfo moduleHead _ importDecl decl) =
@@ -64,12 +97,6 @@ instance Pretty l => Pretty (ExportSpec l) where
     <+> pretty srcLocInfo <> line
     <+> pretty moduleName <> pretty ")"
   pretty _ = pretty "(Unknown - ExportSpec)"
-
-instance Pretty l => Pretty (ModuleName l) where
-  pretty (ModuleName srcLocInfo str) =
-        nest 2 $ pretty "(ModuleName" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty str <> pretty ")"
 
 instance Pretty l => Pretty (ImportDecl l) where
   pretty (ImportDecl srcLocInfo importModule importQualified importSrc importSafe importPkg importAs importSpecs) =
@@ -115,28 +142,6 @@ instance Pretty l => Pretty (Namespace l)  where
         pretty "(PatternNamespace" <> line
     <+> pretty srcLocInfo
     <> pretty ")"
-
-instance Pretty l => Pretty (QName l) where
-  pretty (Qual srcLocInfo moduleName name) =
-        nest 2 $ pretty "(Qual" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> line
-    <+> pretty name <> pretty ")"
-  pretty (UnQual srcLocInfo name) =
-        nest 2 $ pretty "(UnQual" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  pretty _ = pretty "(Unknown - QName)"
-
-instance Pretty l => Pretty (Name l) where
-  pretty (Ident srcLocInfo string) =
-        nest 2 $ pretty "(Ident" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty (Symbol srcLocInfo string) =
-        nest 2 $ pretty "(Symbol" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
 
 instance Pretty l => Pretty (Decl l) where
   pretty (FunBind srcLocInfo match) =
@@ -259,24 +264,6 @@ instance Pretty l => Pretty (Exp l) where
     <+> pretty exp2 <> pretty ")"
   pretty _ = pretty "(Unknown - Exp)"
 
-instance Pretty SrcSpanInfo where
-  pretty (SrcSpanInfo srcInfoSpan srcInfoPoints@[]) =
-        pretty "(SrcSpanInfo"
-    <+> pretty srcInfoSpan
-    <+> pretty srcInfoPoints <> pretty ")"
-  pretty (SrcSpanInfo srcInfoSpan srcInfoPoints) =
-        nest 2 $ pretty "(SrcSpanInfo" <> line
-    <+> pretty srcInfoSpan <> line
-    <+> pretty srcInfoPoints <> pretty ")"
-
-instance Pretty SrcSpan where
-  pretty (SrcSpan srcSpanFilename srcSpanStartLine srcSpanStartColumn srcSpanEndLiine srcSpanEndColumn) =
-       pretty "(SrcSpan "
-    <> pretty srcSpanFilename
-    <> pretty "@(" <> pretty srcSpanStartLine <> pretty ":" <> pretty srcSpanStartColumn <> pretty ")-"
-    <> pretty "(" <> pretty srcSpanEndLiine <> pretty ":" <> pretty srcSpanEndColumn <> pretty ")"
-    <> pretty ")"
-
 instance Pretty l => Pretty (QOp l) where
   pretty (QVarOp srcLocInfo qName) =
         nest 2 $ pretty "(QVarOp" <> line
@@ -286,38 +273,3 @@ instance Pretty l => Pretty (QOp l) where
         nest 2 $ pretty "(QConOp" <> line
     <+> pretty srcLocInfo <> line
     <+> pretty qName <> pretty ")"
-
-
-class HasWhere a where
-  rmWhere :: a -> a
-
-instance HasWhere (Match l) where
-  rmWhere match@(Match l1 name pats (UnGuardedRhs l2 exp) maybeBinds) =
-    let patName = PVar (ann name) name in
-    case maybeBinds of
-      Nothing -> match
-      Just bs ->
-        let exp' = Let l1 bs exp
-            rhs' = UnGuardedRhs l2 exp'
-        in Match l1 name pats rhs' Nothing
-  rmWhere _ = error ""
-
-instance HasWhere (Decl l) where
-  rmWhere pb@(PatBind l1 pat (UnGuardedRhs l2 exp) maybeBinds) =
-    case maybeBinds of
-      Nothing -> pb
-      Just bs ->
-        let exp' = Let l1 bs exp
-            rhs' = UnGuardedRhs l2 exp'
-        in PatBind l1 pat rhs' maybeBinds
-  rmWhere (FunBind l match) = FunBind l (fmap rmWhere match)
-  rmWhere _ = error "The rmWhere function is not defined for a given expression."
-
-decomposeDecl :: [Decl l] -> [Decl l]
-decomposeDecl = concatMap decompose
-  where
-    decompose :: Decl l -> [Decl l]
-    decompose (FunBind l [])     = []
-    decompose (FunBind l (m:ms)) = FunBind l [m] : decompose (FunBind l ms)
-    decompose pb@(PatBind {})    = [pb]
-    decompose _ = error "Declarations other than FunBind/PatBind exist."

@@ -1,4 +1,4 @@
-module PatternSynthesis (patSynth) where
+module PatternSynthesis where
 
 import Control.Monad.State
 
@@ -11,89 +11,54 @@ import Syntax.Substitution
 import Kinding
 import TypeUnification
 
-patSynth :: Int -> UEnv -> REnv -> Pat l -> Type -> (TEnv, SubstMap)
-patSynth c uenv renv pat ty = evalState (patternSynthesis pat ty) (PatternEnv' c uenv renv)
-
-data PatternEnv' = PatternEnv'
-  { counter :: Int
-  , uEnv :: UEnv   -- 
-  , rEnv :: REnv   -- リソース環境
-  }
-type Env a = State PatternEnv' a
-
-primEnv :: PatternEnv'
-primEnv = PatternEnv' 0 emptyUEnv emptyREnv
-
-prefixNewTyVar :: String
-prefixNewTyVar = "_tyvar_"
-
-getUEnv :: Env UEnv
-getUEnv = state $ \env@(PatternEnv' _ u _) -> (u, env)
-
-getREnv :: Env REnv
-getREnv = state $ \env@(PatternEnv' _ _ r) -> (r, env)
-
-setUEnv :: UEnv -> Env ()
-setUEnv uenv = state $ \(PatternEnv' c _ r) -> ((), PatternEnv' c uenv r)
-
-setREnv :: REnv -> Env ()
-setREnv renv = state $ \(PatternEnv' c u _) -> ((), PatternEnv' c u renv)
-
-genNewTyVar :: Kind -> Env Type
-genNewTyVar kind = state $ \(PatternEnv' c u r) ->
-  let strvar' = prefixNewTyVar ++ show c
-      counter' = c + 1
-      uenv' = addUEnv strvar' kind u
-      tyvar = TyVar (Type.Ident strvar')
-  in (tyvar, PatternEnv' counter' uenv' r)
-
-patternSynthesis :: Pat l -> Type -> Env (TEnv, SubstMap)
+patternSynthesis :: Pat l -> Type -> Env (TEnv, UEnv, SubstMap)
 patternSynthesis p tya = case p of
     -- PLit _ sign lit -> 
     -- PWildCard _     ->  
 
-    -- PVar_lin, pVar_gr 
+    -- pVar_?
     PVar _ name     -> do
-      uenv <- getUEnv
       renv <- getREnv
+      sigma <- getUEnv
       case renv of
+        -- PVar_lin
         EmptyREnv -> do
-          let x = Syntax.LambdaVL.getName name
+          let x = getName name
               tya' = NType tya
-              tenv' = addTEnv x tya' emptyTEnv
-          isTypeKind uenv tya
-          return (tenv', emptySubst)
+              tenv' = insertEnv x tya' emptyEnv
+          hasTypeKind tya
+          return (tenv', sigma, emptySubst)
+        -- pVar_gr 
         REnv r -> do
-          let x = Syntax.LambdaVL.getName name
+          let x = getName name
               tya' = GrType tya r
-              tenv' = addTEnv x tya' emptyTEnv
-          isTypeKind uenv tya
-          isLabelsKind uenv r
-          return (tenv', emptySubst)
+              tenv' = insertEnv x tya' emptyEnv
+          hasTypeKind tya
+          hasLabelsKind r
+          return (tenv', sigma, emptySubst)
+    -- p□?
     PBox _ p      -> do
-      uenv <- getUEnv
       renv <- getREnv
       case renv of
+        -- p□Noctx
         EmptyREnv -> do
           alpha <- genNewTyVar LabelsKind
           beta  <- genNewTyVar TypeKind
           sigma' <- getUEnv
-          isLabelsKind sigma' alpha
+          hasLabelsKind alpha -- [TODO] tribial
           setREnv $ REnv alpha
-          (delta, theta) <- patternSynthesis p beta
-          sigma'' <- getUEnv
-          let theta' = unify sigma' tya (TyBox alpha beta)
-              theta'' = comp theta theta'
-          return (delta, theta'')
+          (delta, sigma'', theta) <- patternSynthesis p beta
+          theta' <- typeUnification tya (TyBox alpha beta)
+          return (delta, sigma'', comp theta theta')
+        -- p□ctx
         renv@(REnv _) -> do
           alpha <- genNewTyVar LabelsKind
           beta  <- genNewTyVar TypeKind
           sigma' <- getUEnv
-          isLabelsKind sigma' alpha
+          hasLabelsKind alpha -- [TODO] tribial
           setREnv $ mulREnv alpha renv
-          (delta, theta) <- patternSynthesis p beta
+          (delta, sigma'', theta) <- patternSynthesis p beta
           sigma'' <- getUEnv
-          let theta' = unify sigma' tya (TyBox alpha beta)
-              theta'' = comp theta theta'
-          return (delta, theta'')
+          theta' <- typeUnification tya (TyBox alpha beta)
+          return (delta, sigma'', comp theta theta')
     _ -> error "May the arguments be PLit or PWildCard?"

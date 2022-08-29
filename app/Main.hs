@@ -7,6 +7,7 @@ import Parser ( parseAST )
 import Language.Haskell.Exts.ExactPrint ( exactPrint )
 -- import Syntax.LambdaVL
 import Syntax.Absyn
+import Syntax.SrcLoc
 import Desugar
 import Renamer
 import Girard ( girardFwd )
@@ -52,6 +53,14 @@ main = do
   log "\n=== Desugared AST (Syntax.STLC) ==="
   let ast_desugared = desugarAST ast
   log ast_desugared
+  log "\n=== AST (Syntax.VL) ==="
+  -- let ast_vl = girardFwd ast_renamed
+  let ast_vl = girardFwd ast_desugared
+  log ast_vl
+  log "\n=== Types (Syntax.VL) ==="
+  let types = getInterface ast_vl
+  log types
+
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func
   -- putStrLn "=== Result value ( expects () ) ==="

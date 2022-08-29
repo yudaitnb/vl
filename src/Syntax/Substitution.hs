@@ -1,6 +1,10 @@
-module Syntax.Substitution  where
+module Syntax.Substitution (
+  SubstMap,
+  emptySubst, singleSubst,
+  comp
+) where
 
-import Data.Map ( Map, empty, unionWith )
+import Data.Map ( Map, empty, unionWith, singleton )
 
 import Syntax.Type ( Type )
 
@@ -8,6 +12,9 @@ type SubstMap = Map String Type
 
 emptySubst :: SubstMap
 emptySubst = empty
+
+singleSubst :: String -> Type -> SubstMap
+singleSubst = singleton
 
 comp :: SubstMap -> SubstMap -> SubstMap
 comp = unionWith comp'

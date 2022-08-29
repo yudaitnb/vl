@@ -3,6 +3,7 @@ module Desugar where
 
 import qualified Syntax.STLC as STLC
 import qualified Syntax.Absyn as Absyn
+import Syntax.Name
 
 desugarAST :: Absyn.Module l -> STLC.Module l
 desugarAST (Absyn.Module l mh _ imp decls) = 
@@ -25,7 +26,7 @@ instance Desugaring (Absyn.Module l) where
 
 instance Desugaring (Absyn.ModuleHead l) where
   type Desugared (Absyn.ModuleHead l) = (STLC.ModuleHead l)
-  desugar (Absyn.ModuleHead l moduleName _ maybeExportSpecList) = STLC.ModuleHead l (desugar moduleName) (fmap desugar maybeExportSpecList)
+  desugar (Absyn.ModuleHead l moduleName _ maybeExportSpecList) = STLC.ModuleHead l moduleName (fmap desugar maybeExportSpecList)
 
 instance Desugaring (Absyn.ExportSpecList l) where
   type Desugared (Absyn.ExportSpecList l) = (STLC.ExportSpecList l)
@@ -33,15 +34,15 @@ instance Desugaring (Absyn.ExportSpecList l) where
 
 instance Desugaring (Absyn.ExportSpec l) where
   type Desugared (Absyn.ExportSpec l) = (STLC.ExportSpec l)
-  desugar (Absyn.EVar l qName) = STLC.EVar l (desugar qName)
-  desugar (Absyn.EAbs l nameSpace qName) = STLC.EAbs l (desugar nameSpace) (desugar qName)
-  desugar (Absyn.EModuleContents l moduleName) = STLC.EModuleContents l (desugar moduleName)
+  desugar (Absyn.EVar l qName) = STLC.EVar l qName
+  desugar (Absyn.EAbs l nameSpace qName) = STLC.EAbs l (desugar nameSpace) qName
+  desugar (Absyn.EModuleContents l moduleName) = STLC.EModuleContents l moduleName
   desugar _ = error "[ExportSpec@Desugared.hs] The desugaring translation is not defined for a given expression."
 
 instance Desugaring (Absyn.ImportDecl l) where
   type Desugared (Absyn.ImportDecl l) = (STLC.ImportDecl l)
   desugar (Absyn.ImportDecl importAnn importModule importQualified importSrc importSafe importPkg importAs importSpecs)
-    = STLC.ImportDecl importAnn (desugar importModule) importQualified importSrc importSafe importPkg (fmap desugar importAs) (fmap desugar importSpecs)
+    = STLC.ImportDecl importAnn importModule importQualified importSrc importSafe importPkg importAs (fmap desugar importSpecs)
 
 instance Desugaring (Absyn.ImportSpecList l) where
   type Desugared (Absyn.ImportSpecList l) = (STLC.ImportSpecList l)
@@ -49,7 +50,7 @@ instance Desugaring (Absyn.ImportSpecList l) where
 
 instance Desugaring (Absyn.ImportSpec l) where
   type Desugared (Absyn.ImportSpec l) = (STLC.ImportSpec l)
-  desugar (Absyn.IVar l name) = STLC.IVar l (desugar name)
+  desugar (Absyn.IVar l name) = STLC.IVar l name
   desugar _ = error "[ImportSpec@Desugared.hs] The desugaring translation is not defined for a given expression."
 
 instance Desugaring (Absyn.Namespace l) where
@@ -57,21 +58,6 @@ instance Desugaring (Absyn.Namespace l) where
   desugar (Absyn.NoNamespace l) = STLC.NoNamespace l
   desugar (Absyn.TypeNamespace l) = STLC.TypeNamespace l
   desugar (Absyn.PatternNamespace l) = STLC.PatternNamespace l
-
-instance Desugaring (Absyn.ModuleName l) where
-  type Desugared (Absyn.ModuleName l) = (STLC.ModuleName l)
-  desugar (Absyn.ModuleName l string) = STLC.ModuleName l string
-
-instance Desugaring (Absyn.Name l) where
-  type Desugared (Absyn.Name l) = (STLC.Name l)
-  desugar (Absyn.Symbol l string) = STLC.Symbol l string
-  desugar (Absyn.Ident l string) = STLC.Ident l string
-
-instance Desugaring (Absyn.QName l) where
-  type Desugared (Absyn.QName l) = (STLC.QName l)
-  desugar (Absyn.Qual l moduleName name) = STLC.Qual l (desugar moduleName) (desugar name)
-  desugar (Absyn.UnQual l name) = STLC.UnQual l (desugar name)
-  desugar _ = error "[QName@Desugar.hs] The desugaring translation is not defined for a given expression."
 
 instance Desugaring (Absyn.Literal l) where
   type Desugared (Absyn.Literal l) = (STLC.Literal l)
@@ -82,7 +68,7 @@ instance Desugaring (Absyn.Literal l) where
 
 instance Desugaring (Absyn.Pat l) where
   type Desugared (Absyn.Pat l) = (STLC.Pat l)
-  desugar (Absyn.PVar l name) =  STLC.PVar l (desugar name)
+  desugar (Absyn.PVar l name) =  STLC.PVar l name
   desugar (Absyn.PLit l sign literal) = STLC.PLit l (desugar sign) (desugar literal)
   -- desugar (Absyn.PWildCard l) = PWildCard l
   desugar _ = error "[Pat@Desugar.hs] The desugaring translation is not defined for a given expression."
@@ -117,7 +103,7 @@ instance Desugaring (Absyn.Decl l) where
         --   desugar (name ps = rhs)
         -- = name = desugar (\ps -> rhs)
         let Absyn.Match l1 name ps (Absyn.UnGuardedRhs l2 exp) _ = Absyn.rmWhere m
-            patName = STLC.PVar (Absyn.ann name) (desugar name)
+            patName = STLC.PVar (Absyn.ann name) name
             lam' = desugar $ Absyn.Lambda l1 ps exp
         in STLC.PatBind l1 patName lam'
       m:ms -> error "Before desugaring FunDecl, decompose it."
@@ -136,20 +122,20 @@ instance Desugaring (Absyn.Rhs l) where
 
 instance Desugaring (Absyn.Exp l) where
   type Desugared (Absyn.Exp l) = STLC.Exp l
-  desugar (Absyn.Var l qName) = STLC.Var l (desugar qName)
+  desugar (Absyn.Var l qName) = STLC.Var l qName
   desugar (Absyn.Lit l literal) = STLC.Lit l (desugar literal)
   desugar (Absyn.App l exp1 exp2) = STLC.App l (desugar exp1) (desugar exp2)
   desugar (Absyn.NegApp l exp) = STLC.NegApp l (desugar exp)
   desugar (Absyn.If l exp1 exp2 exp3) = STLC.If l (desugar exp1) (desugar exp2) (desugar exp3)
-  -- desugar (e1 + e2) = ((+) (desugar e1)) (desugar e2)
+  -- ^ desugar (e1 + e2) = ((+) (desugar e1)) (desugar e2)
   desugar (Absyn.InfixApp l1 e1 (Absyn.QVarOp l2 qName) e2) =
-    let varOp = STLC.Var l2 (desugar qName)
+    let varOp = STLC.Var l2 qName
         e1' = desugar e1
         e2' = desugar e2
     in STLC.App l1 (STLC.App l2 varOp e1') e2'
-  -- desugar (\_ -> e)      = error
-  -- desugar (\[p] -> e)    = \p -> e
-  -- desugar (\(p:ps) -> e) = \p -> desugar (\ps -> e)
+  -- ^ desugar (\_ -> e)      = error
+  -- ^ desugar (\[p] -> e)    = \p -> e
+  -- ^ desugar (\(p:ps) -> e) = \p -> desugar (\ps -> e)
   desugar (Absyn.Lambda l pat e) =
     case pat of
       []   -> error ""
@@ -161,8 +147,8 @@ instance Desugaring (Absyn.Exp l) where
         let lam' = desugar (Absyn.Lambda l ps e)
             pat' = desugar p
         in STLC.Lambda l pat' lam'
-  -- desugar (let [] in exp)          = desugar exp
-  -- desugar $ let (x = y):binds in z = (\x -> desugar (let binds in z)) y
+  -- ^ desugar (let [] in exp)          = desugar exp
+  -- ^ desugar $ let (x = y):binds in z = (\x -> desugar (let binds in z)) y
   desugar (Absyn.Let l1 binds exp) =
     case binds of
       Absyn.BDecls l2     [] -> desugar exp

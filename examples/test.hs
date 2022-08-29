@@ -1,8 +1,6 @@
-module Test (id) where
+module Test where
 
-x 1 = 1
-y 1 = 1
-x 2 = 2
-x 3 = 3
-x = 1
-
+-- id x = x
+-- y = 1
+-- add1 x = x + 1
+app x y = x y

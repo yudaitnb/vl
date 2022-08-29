@@ -1,9 +1,19 @@
-module Syntax.Type where
+module Syntax.Type (
+  ModuleName(..), QName(..), Name(..),
+  Coeffect, Type(..), 
+  Path(..), Version(..),
+  freeTyVar, isClosed,
+  coeff0, coeff1, zero, one,
+  (.+), (.*), (.<),
+  HasName(..)
+) where
 
 import Data.Map ( Map, toList )
 import Data.Set ( Set, union, isSubsetOf, empty )
 import Data.List ( null )
 import Prettyprinter
+
+import Syntax.Name (HasName(..))
 
 newtype ModuleName
   = ModuleName String
@@ -19,9 +29,6 @@ data Name
   | Symbol String   -- ^ /varsym/ or /consym/
   deriving (Eq,Ord,Show)
 
-class HasName a where
-  getName :: a -> String
-
 instance HasName Name where
   getName (Ident str) = str
   getName (Symbol str) = str
@@ -29,6 +36,11 @@ instance HasName Name where
 instance HasName QName where
   getName (Qual _ name) = getName name
   getName (UnQual name) = getName name
+
+instance HasName Type where
+  getName (TyCon qName) = getName qName
+  getName (TyVar name) = getName name
+  getName _ = error "The getName function is not defined for a given expresion." 
 
 type Coeffect = Type
 

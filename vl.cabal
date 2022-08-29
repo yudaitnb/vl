@@ -35,10 +35,11 @@ library
       Syntax.Env
       Syntax.Kind
       Syntax.LambdaVL
+      Syntax.Name
+      Syntax.SrcLoc
       Syntax.STLC
       Syntax.Substitution
       Syntax.Type
-      Syntax.VL
       TypeInference
       TypeSubstitution
       TypeUnification
