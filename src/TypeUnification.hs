@@ -26,6 +26,10 @@ typeUnification ty1 ty2 =
       if ty1 == ty2
         then return emptySubst -- [TODO] well-definedness
         else return $ singleSubst (getName alpha)  ty2 -- [TODO] well-definedness
+    (ty1, TyVar alpha) ->
+      if ty1 == ty2
+        then return emptySubst -- [TODO] well-definedness
+        else return $ singleSubst (getName alpha)  ty1 -- [TODO] well-definedness
     -- U_=
     (ty1, ty2) ->
       if ty1 == ty2

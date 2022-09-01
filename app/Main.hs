@@ -8,12 +8,12 @@ import Language.Haskell.Exts.ExactPrint ( exactPrint )
 -- import Syntax.LambdaVL
 import Syntax.Absyn
 import Syntax.SrcLoc
-import Desugar
 import Renamer
 import Girard ( girardFwd )
 import TypeInference
 import Util
 import Desugar
+import Control.Monad (forM_)
 
 -- from hint
 -- import qualified Language.Haskell.Interpreter as H
@@ -27,6 +27,8 @@ main = do
       logfile = logdir ++ fn ++ ".log"
       log :: Pretty a => a -> IO ()
       log = logPpLn logfile
+      logAST :: PrettyAST a => a -> IO ()
+      logAST = logPpASTLn logfile
 
   -- create log directory 
   createDirectoryIfMissing False logdir
@@ -58,8 +60,8 @@ main = do
   let ast_vl = girardFwd ast_desugared
   log ast_vl
   log "\n=== Types (Syntax.VL) ==="
-  let types = getInterface ast_vl
-  log types
+  let lst = getInterface ast_vl
+  forM_ lst logAST
 
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func

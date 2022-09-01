@@ -14,7 +14,7 @@ import qualified Language.Haskell.Exts.Syntax as S
 import Language.Haskell.Exts.SrcLoc
 import Data.List
 import Data.Maybe
-import Prettyprinter
+import Util
 
 import Syntax.Name
 
@@ -398,3 +398,31 @@ instance Pretty l => Pretty (Exp l) where
   --   <+> pretty srcLocInfo <> line 
   --   <+> pretty alt <> pretty ")"
   -- pretty _ = pretty "(Unknown)"
+
+------------------------------------------
+
+instance PrettyAST l => PrettyAST (Exp l) where
+  ppE = pretty
+  ppP (Var _ qname) = ppP qname
+  ppP (Lit _ literal) = ppP literal
+  ppP (App _ e1 e2) = parens $ ppP e1 <+> ppP e2
+  ppP (NegApp _ exp) = pretty "-" <> parens (ppP exp)
+  ppP (If _ e1 e2 e3) = parens $ pretty "If" <+> ppP e1 <+> pretty "then"  <+> ppP e2 <+> pretty "else" <+> ppP e3
+  ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
+
+instance PrettyAST l => PrettyAST (Literal l) where
+  ppE = pretty
+  ppP (Char _ c s) = pretty s
+  ppP (String _ s1 s2) = pretty s2
+  ppP (Int _ i s) = pretty s
+
+instance PrettyAST l => PrettyAST (Pat l) where
+  ppE = pretty
+  ppP (PVar _ name) = ppP name
+  ppP (PLit _ sign literal) = ppP sign <> ppP literal
+  ppP (PWildCard _) = pretty "_"
+
+instance PrettyAST l => PrettyAST (Sign l) where
+  ppE = pretty
+  ppP (Signless _) = pretty ""
+  ppP (Negative _) = pretty "-"

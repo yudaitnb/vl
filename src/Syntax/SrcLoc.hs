@@ -4,7 +4,7 @@ module Syntax.SrcLoc (
 ) where
 
 import Language.Haskell.Exts.SrcLoc
-import Prettyprinter
+import Util
 
 instance Pretty SrcSpanInfo where
   pretty (SrcSpanInfo srcInfoSpan srcInfoPoints@[]) =
@@ -20,6 +20,16 @@ instance Pretty SrcSpan where
   pretty (SrcSpan srcSpanFilename srcSpanStartLine srcSpanStartColumn srcSpanEndLiine srcSpanEndColumn) =
        pretty "(SrcSpan "
     <> pretty srcSpanFilename
-    <> pretty "@(" <> pretty srcSpanStartLine <> pretty ":" <> pretty srcSpanStartColumn <> pretty ")-"
-    <> pretty "(" <> pretty srcSpanEndLiine <> pretty ":" <> pretty srcSpanEndColumn <> pretty ")"
+    <> pretty "@(" <> pretty srcSpanStartLine <> comma <> pretty srcSpanStartColumn <> pretty ")-"
+    <> pretty "(" <> pretty srcSpanEndLiine <> comma <> pretty srcSpanEndColumn <> pretty ")"
     <> pretty ")"
+
+------------------------------------
+
+instance PrettyAST SrcSpanInfo where
+  ppE = pretty
+  ppP l = pretty ""
+
+instance PrettyAST SrcSpan where
+  ppE = pretty
+  ppP l = pretty ""

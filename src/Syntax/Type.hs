@@ -9,9 +9,9 @@ module Syntax.Type (
 ) where
 
 import Data.Map ( Map, toList )
-import Data.Set ( Set, union, isSubsetOf, empty )
+import Data.Set ( Set, union, isSubsetOf, empty, toList )
 import Data.List ( null )
-import Prettyprinter
+import Util
 
 import Syntax.Name (HasName(..))
 
@@ -101,6 +101,7 @@ isClosed ty = Data.List.null $ freeTyVar ty
 (.*) TyBottom _ = TyBottom
 (.*) _ TyBottom = TyBottom
 (.*) (TyLabels s1) (TyLabels s2) = TyLabels $ union s1 s2
+-- (.*) (TyVar n1) (TyLabels s2) = TyLabels $ union s1 s2
 (.*) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
 (.<) :: Coeffect -> Coeffect -> Bool
@@ -110,33 +111,24 @@ isClosed ty = Data.List.null $ freeTyVar ty
 (.<) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
 instance Pretty Type where
-  -- pretty (TyCon qName) = nest 2 $ pretty "(TyCon" <+> pretty qName <> pretty ")"
-  -- pretty (TyFun t1 t2) =
-  --       nest 2 $ pretty "(TyFun" <> line
-  --   <+> pretty t1 <> line
-  --   <+> pretty t2 <> pretty ")"
-  -- pretty (TyVar name)  = nest 2 $ pretty "(TyVar" <+> pretty name <> pretty ")"
-  -- pretty (TyBox c ty)  =
-  --       nest 2 $ pretty "(TyBox" <> line
-  --   <+> pretty c <> line
-  --   <+> pretty ty <> pretty ")"
-  -- pretty TyBottom      = nest 2 $ pretty "(TyBottom)"
-  -- pretty (TyLabels set_path) = 
-  --   let pp_path = foldl (\acc p -> acc <+> pretty p) (pretty "") set_path in
-  --   nest 2 $ pretty "(TyLabels" <> line
-  --   <+> pp_path <> pretty ")"
-  pretty (TyCon qName) = nest 2 $ pretty qName
-  pretty (TyFun t1 t2) = nest 2 $ pretty t1 <> pretty " -> " <> pretty t2
-  pretty (TyVar name)  = nest 2 $ pretty name
-  pretty (TyBox c ty)  = nest 2 $ pretty ty <> pretty "@" <> brackets (pretty c)
-  pretty TyBottom      = nest 2 $ pretty "⊥"
+  pretty (TyCon qName) = nest 2 $ pretty "(TyCon" <+> pretty qName <> pretty ")"
+  pretty (TyFun t1 t2) =
+        nest 2 $ pretty "(TyFun" <> line
+    <+> pretty t1 <> line
+    <+> pretty t2 <> pretty ")"
+  pretty (TyVar name)  = nest 2 $ pretty "(TyVar" <+> pretty name <> pretty ")"
+  pretty (TyBox c ty)  =
+        nest 2 $ pretty "(TyBox" <> line
+    <+> pretty c <> line
+    <+> pretty ty <> pretty ")"
+  pretty TyBottom      = nest 2 $ pretty "(TyBottom)"
   pretty (TyLabels set_path) = 
     let pp_path = foldl (\acc p -> acc <+> pretty p) (pretty "") set_path in
-    nest 2 pp_path
+    nest 2 $ pretty "(TyLabels" <> line
+    <+> pp_path <> pretty ")"
 
 instance Pretty Path where
-  -- pretty (Path map) = nest 2 $ pretty "(Path" <+> pretty (toList map) <> pretty ")"
-  pretty (Path map) = nest 2 $ pretty (toList map)
+  pretty (Path map) = nest 2 $ pretty "(Path" <+> pretty (Data.Map.toList map) <> pretty ")"
 
 instance Pretty Version where
   pretty (Version major minor patch) =
@@ -145,20 +137,50 @@ instance Pretty Version where
     <+> pp_ver <> pretty ")"
 
 instance Pretty QName where
-  -- pretty (Qual modName qName) =
-  --       nest 2 $ pretty "(Qual" <> line
-  --   <+> pretty modName <> line
-  --   <+> pretty qName <> pretty ")"
-  -- pretty (UnQual name) = nest 2 $ pretty "(UnQual" <+> pretty name <> pretty ")"
-  pretty (Qual modName qName) = nest 2 $ pretty modName <> pretty "." <> pretty qName
-  pretty (UnQual name) = nest 2 $ pretty name
+  pretty (Qual modName qName) =
+        nest 2 $ pretty "(Qual" <> line
+    <+> pretty modName <> line
+    <+> pretty qName <> pretty ")"
+  pretty (UnQual name) = nest 2 $ pretty "(UnQual" <+> pretty name <> pretty ")"
 
 instance Pretty Name where
-  -- pretty (Ident str) = nest 2 $ pretty "(Ident" <+> pretty str <> pretty ")"
-  -- pretty (Symbol str) = nest 2 $ pretty "(Symbol" <+> pretty str <> pretty ")"
-  pretty (Ident str) = nest 2 $ pretty str
-  pretty (Symbol str) = nest 2 $ pretty str
+  pretty (Ident str) = nest 2 $ pretty "(Ident" <+> pretty str <> pretty ")"
+  pretty (Symbol str) = nest 2 $ pretty "(Symbol" <+> pretty str <> pretty ")"
 
 instance Pretty ModuleName where
-  -- pretty (ModuleName str) = nest 2 $ pretty "(ModuleName" <+> pretty str <> pretty ")"
-  pretty (ModuleName str) = nest 2 $ pretty str
+  pretty (ModuleName str) = nest 2 $ pretty "(ModuleName" <+> pretty str <> pretty ")"
+
+-------------------------
+
+instance PrettyAST Type where
+  ppE = pretty
+  ppP (TyCon qName) = ppP qName
+  ppP (TyFun t1 t2) = parens $ ppP t1 <+> pretty "->" <+> ppP t2
+  ppP (TyVar name)  = ppP name
+  ppP (TyBox c ty)  = ppP ty <> pretty "@" <> brackets (ppP c)
+  ppP TyBottom      = pretty "⊥"
+  ppP (TyLabels paths) = list $ map ppP (Data.Set.toList paths)
+
+instance PrettyAST Path where
+  ppE = pretty
+  ppP (Path m) =
+    let ppm = concatWith (surround comma) $ map (\(k,v) -> pretty k <+> pretty "->" <+> pretty v) (Data.Map.toList m)
+    in parens $ pretty "Path" <+> ppm
+
+instance PrettyAST Version where
+  ppE = pretty
+  ppP (Version major minor patch) = concatWith (surround dot) $ map pretty [major, minor, patch]
+
+instance PrettyAST QName where
+  ppE = pretty
+  ppP (Qual modName qName) = ppP modName <> pretty "." <> ppP qName
+  ppP (UnQual name) = ppP name
+
+instance PrettyAST Name where
+  ppE = pretty
+  ppP (Ident str) = pretty str
+  ppP (Symbol str) = pretty str
+
+instance PrettyAST ModuleName where
+  ppE = pretty
+  ppP (ModuleName str) = pretty str

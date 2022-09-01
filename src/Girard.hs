@@ -5,6 +5,7 @@ module Girard (
 
 import qualified Syntax.STLC as STLC
 import qualified Syntax.LambdaVL as VL
+-- import Syntax.Type
 
 class GirardFwd ast where
   type Girard ast -- type family
@@ -83,3 +84,5 @@ instance GirardFwd (STLC.Decl l) where
   type Girard (STLC.Decl l) = (VL.Decl l)
   -- girardFwd (STLC.FunBind l match) = FunBind l (fmap girardFwd match)
   girardFwd (STLC.PatBind l pat exp) = VL.PatBind l (girardFwd pat) (girardFwd exp)
+
+  

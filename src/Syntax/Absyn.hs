@@ -9,7 +9,7 @@ import Language.Haskell.Exts.Syntax hiding (Name, QName, ModuleName)
 
 import Syntax.Name
 
-import Prettyprinter
+import Util
 
 instance HasName (Exp l) where
   getName (Var _ qName) = getName qName
