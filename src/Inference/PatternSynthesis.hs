@@ -1,4 +1,5 @@
-module PatternSynthesis where
+{-# LANGUAGE FlexibleInstances #-}
+module Inference.PatternSynthesis where
 
 import Control.Monad.State
 
@@ -8,10 +9,22 @@ import Syntax.Kind
 import Syntax.LambdaVL
 import Syntax.Substitution
 
-import Kinding
-import TypeUnification
+import Inference.Kinding
+import Inference.TypeUnification
 
-patternSynthesis :: Pat l -> Type -> Env (TEnv, UEnv, SubstMap)
+import Util
+
+type PatSynthRes = (TEnv, UEnv, Subst)
+
+putPatSynthLog :: (PrettyAST l) => UEnv -> REnv -> Pat l -> PatSynthRes -> Env ()
+putPatSynthLog oldu oldr pat patres = do
+  let header = pretty "(PatSynt)"
+      env = header <+> ppP oldu <> semicolon <+> ppP oldr <> vdash
+      res = ppP pat <+> pretty "▷" <+> ppP patres
+  putLog $ putDocString $ env <> res
+  return ()
+
+patternSynthesis :: (PrettyAST l) => Pat l -> Type -> Env PatSynthRes
 patternSynthesis p tya = case p of
     -- PLit _ sign lit -> 
     -- PWildCard _     ->  
@@ -27,7 +40,9 @@ patternSynthesis p tya = case p of
               tya' = NType tya
               tenv' = insertEnv x tya' emptyEnv
           hasTypeKind tya
-          return (tenv', sigma, emptySubst)
+          let result = (tenv', sigma, emptySubst)
+          putPatSynthLog sigma renv p result
+          return result
         -- pVar_gr 
         REnv r -> do
           let x = getName name
@@ -35,10 +50,13 @@ patternSynthesis p tya = case p of
               tenv' = insertEnv x tya' emptyEnv
           hasTypeKind tya
           hasLabelsKind r
-          return (tenv', sigma, emptySubst)
+          let result = (tenv', sigma, emptySubst)
+          putPatSynthLog sigma renv p result
+          return result
     -- p□?
     PBox _ p      -> do
-      renv <- getREnv
+      sigma <- getUEnv
+      renv  <- getREnv
       case renv of
         -- p□Noctx
         EmptyREnv -> do
@@ -49,7 +67,9 @@ patternSynthesis p tya = case p of
           setREnv $ REnv alpha
           (delta, sigma'', theta) <- patternSynthesis p beta
           theta' <- typeUnification tya (TyBox alpha beta)
-          return (delta, sigma'', comp theta theta')
+          let result = (delta, sigma'', theta `comp` theta')
+          putPatSynthLog sigma renv p result
+          return result
         -- p□ctx
         renv@(REnv _) -> do
           alpha <- genNewTyVar LabelsKind
@@ -60,5 +80,13 @@ patternSynthesis p tya = case p of
           (delta, sigma'', theta) <- patternSynthesis p beta
           sigma'' <- getUEnv
           theta' <- typeUnification tya (TyBox alpha beta)
-          return (delta, sigma'', comp theta theta')
+          let result = (delta, sigma'', theta `comp` theta')
+          putPatSynthLog sigma renv p result
+          return result
     _ -> error "May the arguments be PLit or PWildCard?"
+  
+------------------------------
+
+instance PrettyAST PatSynthRes where
+  ppE (tenv, uenv, subst) = nest 2 $ parens $ ppE tenv <> semicolon <+> ppE uenv <> semicolon <+> ppE subst
+  ppP (tenv, uenv, subst) = parens $ ppP tenv <> semicolon <+> ppP uenv <> semicolon <+> ppP subst

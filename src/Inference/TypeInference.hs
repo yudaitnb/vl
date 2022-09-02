@@ -1,25 +1,26 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
-module TypeInference  where
+module Inference.TypeInference  where
 
 import qualified Syntax.LambdaVL as VL
 import Data.Maybe (fromMaybe)
 import Control.Monad.State
 import Data.List (foldl, map)
+import Control.Arrow (second)
+import Prelude hiding (lookup)
 
 import Syntax.Type
 import Syntax.Kind
 import Syntax.Env
 import Syntax.Substitution
-import TypeUnification
-import Kinding
-import Prelude hiding (lookup)
-import TypeSubstitution
-import PatternSynthesis
-import Util
-import Control.Monad.Writer
 
-type TyInfRes = (Type, TEnv, UEnv, SubstMap)
+import Inference.TypeUnification
+import Inference.Kinding
+import Inference.PatternSynthesis
+
+import Util
+
+type TyInfRes = (Type, TEnv, UEnv, Subst)
 
 typeOf :: Typable ast => Env' -> ast -> TyInfRes
 typeOf env ast = evalState (infer ast) env
@@ -29,11 +30,12 @@ typeOfWithLogs env ast =
   let (res, Env' _ _ _ _ l) = runState (infer ast) env
   in (res, l)
 
-putTyInfLog :: (PrettyAST l) => VL.Exp l -> TyInfRes -> Env ()
-putTyInfLog exp tyInfRes = do
-  env <- showTyInfEnv
-  let doc = ppP exp <+> pretty "=>" <+> ppP tyInfRes
-  putLog $ env ++ putDocString doc
+putTyInfLog :: (PrettyAST l) => UEnv -> TEnv -> VL.Exp l -> TyInfRes -> Env ()
+putTyInfLog oldu oldt exp tyInfRes = do
+  let header = pretty "(TypeInf)"
+      env = header <+> ppP oldu <> semicolon <+> ppP oldt <> vdash
+      res = ppP exp <+> pretty "=>" <+> ppP tyInfRes
+  putLog $ putDocString $ env <> res
   return ()
 
 class Typable ast where
@@ -47,21 +49,21 @@ instance (PrettyAST l) => Typable (VL.Exp l) where
       sigma <- getUEnv
       let tychar = TyCon (UnQual (Ident "Char"))
           result = (tychar, emptyEnv, sigma, emptySubst)
-      putTyInfLog exp result
+      putTyInfLog sigma gamma exp result
       return result
     VL.Lit _ (VL.String {}) -> do
       gamma <- getTEnv
       sigma <- getUEnv
       let tystr = TyCon (UnQual (Ident "String"))
           result = (tystr, emptyEnv, sigma, emptySubst)
-      putTyInfLog exp result
+      putTyInfLog sigma gamma exp result
       return result
     VL.Lit _ (VL.Int {}) -> do
       gamma <- getTEnv
       sigma <- getUEnv
       let tyint = TyCon (UnQual (Ident "Int"))
           result = (tyint, emptyEnv, sigma, emptySubst)
-      putTyInfLog exp result
+      putTyInfLog sigma gamma exp result
       return result
 
     -- ^ ⇒_Var?
@@ -76,13 +78,13 @@ instance (PrettyAST l) => Typable (VL.Exp l) where
         -- ^ ⇒_Lin
         Just ty@(NType tya) -> do
           let result = (tya, makeEnv [(x, ty)], sigma, emptySubst)
-          putTyInfLog exp result
+          putTyInfLog sigma gamma exp result
           return result
         -- ^ ⇒_Gr
         Just ty@(GrType tya r) -> do
           hasLabelsKind r
           let result = (tya, makeEnv [(x, GrType tya coeff1)], sigma, emptySubst)
-          putTyInfLog exp result
+          putTyInfLog sigma gamma exp result
           return result
 
     -- ^ ⇒_app
@@ -101,7 +103,7 @@ instance (PrettyAST l) => Typable (VL.Exp l) where
       let theta_4 = (theta_1 `comp` theta_2) `comp` theta_3
           beta' = typeSubstitution theta_4 beta
           result = (beta', delta1 .++ delta2, sigma3, theta_4)
-      putTyInfLog exp result
+      putTyInfLog sigma1 gamma exp result
       return result
 
     -- ^ ⇒_pr
@@ -117,12 +119,13 @@ instance (PrettyAST l) => Typable (VL.Exp l) where
                     , alpha .** delta
                     , insertEnv name LabelsKind sigma2
                     , theta)
-      putTyInfLog exp result
+      putTyInfLog sigma1 gamma exp result
       return result
 
     -- ^ ⇒_abs
-    lam@(VL.Lambda _ p t) -> do
+    VL.Lambda _ p t -> do
       gamma <- getTEnv
+      sigma <- getUEnv
       alpha <- genNewTyVar LabelsKind
       let name = getName alpha
       sigma1' <- getUEnv
@@ -132,10 +135,11 @@ instance (PrettyAST l) => Typable (VL.Exp l) where
       setTEnv $ gamma .++ gamma' -- [TODO] , が .++  で問題ないか?
       (tyb, delta, sigma3, theta') <- infer t
       let result =  ( typeSubstitution theta (TyFun alpha tyb)
+                      -- typeSubstitution (theta `comp` theta') (TyFun alpha tyb) -- ?
                     , delta `exclude` gamma'
                     , insertEnv name LabelsKind sigma3
                     , theta `comp` theta')
-      putTyInfLog exp result
+      putTyInfLog sigma gamma exp result
       return result
 
     _ -> error "The function `infer` is not defined for a given expression."
@@ -146,20 +150,20 @@ newtype TypedExp = TypedExp (String, Type)
 type TypedExpWithLog = (TypedExp, Logs)
 
 getInterface :: (PrettyAST l) => VL.Module l -> [TypedExpWithLog]
-getInterface (VL.Module _ _ _ decls) = Data.List.map typeDecl decls
+getInterface (VL.Module _ _ _ decls) = map (second reverse . typeDecl) decls -- Reverse logs
   where
     typeDecl :: (PrettyAST l) => VL.Decl l -> TypedExpWithLog
-    typeDecl (VL.PatBind _ pat exp) = 
+    typeDecl (VL.PatBind _ pat exp) =
       let name = getName pat
           env = Env' 0 basicTEnv emptyEnv emptyREnv []
           ((ty, _, _, _), l) = typeOfWithLogs env exp
       in (TypedExp (name, ty), l)
-  
+
 
 ------------------------------
 
 instance Pretty TyInfRes where
-  pretty (ty, tenv, uenv, subst) = 
+  pretty (ty, tenv, uenv, subst) =
     let sep = pretty "; " in
     pretty ty <> sep <> pretty tenv <> sep <> pretty uenv <> sep <> pretty subst
 

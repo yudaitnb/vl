@@ -47,12 +47,23 @@ type Coeffect = Type
 -- | A type qualified with a context.
 --   An unqualified type has an empty context.
 data Type
-  = TyCon QName          -- ^ named type or type constructor / Int
-  | TyFun Type Type      -- ^ function type / A → B
-  | TyVar Name           -- ^ type variable / α
-  | TyBox Coeffect Type  -- ^ promoted types / □_r A
-  | TyBottom             -- ^ coeffect / coeffect-0
-  | TyLabels (Set Path)  -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
+  = TyCon QName         -- ^ named type or type constructor / Int
+  | TyFun Type Type     -- ^ function type / A → B
+  | TyVar Name          -- ^ type variable / α
+  | TyBox Coeffect Type -- ^ promoted types / □_r A
+  | TyBottom            -- ^ coeffect / coeffect-0
+  | TyLabels (Set Path) -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
+  | CAdd Coeffect Coeffect -- ^ A constraint gnerated by (.+) when either of the coeffs is a type variable
+  | CMul Coeffect Coeffect -- ^ A constraint gnerated by (.*) when either of the coeffs is a type variable
+  deriving (Eq,Ord,Show)
+
+newtype Path = Path (Map ModuleName Version)
+  deriving (Eq,Ord,Show)
+
+data Version = Version
+  { major :: Int
+  , minor :: Int
+  , patch :: Int }
   deriving (Eq,Ord,Show)
 
 coeff0 :: Coeffect
@@ -67,15 +78,6 @@ zero = TyBottom
 one :: Coeffect
 one = TyLabels empty
 
-newtype Path = Path (Map ModuleName Version)
-  deriving (Eq,Ord,Show)
-
-data Version = Version
-  { major :: Int
-  , minor :: Int
-  , patch :: Int }
-  deriving (Eq,Ord,Show)
-
 freeTyVar :: Type -> [String]
 freeTyVar ty = case ty of
   -- Types
@@ -86,6 +88,8 @@ freeTyVar ty = case ty of
   -- Coeffects
   TyBottom    -> []
   TyLabels _  -> []
+  CAdd c1 c2  -> freeTyVar c1 ++ freeTyVar c2
+  CMul c1 c2  -> freeTyVar c1 ++ freeTyVar c2
 
 isClosed :: Type -> Bool
 isClosed ty = Data.List.null $ freeTyVar ty
@@ -95,13 +99,16 @@ isClosed ty = Data.List.null $ freeTyVar ty
 (.+) TyBottom ty = ty
 (.+) ty TyBottom = ty
 (.+) (TyLabels s1) (TyLabels s2) = TyLabels $ union s1 s2
+(.+) v@(TyVar _) c = CAdd v c
+(.+) c v@(TyVar _) = CAdd c v
 (.+) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
 (.*) :: Coeffect -> Coeffect -> Coeffect
 (.*) TyBottom _ = TyBottom
 (.*) _ TyBottom = TyBottom
 (.*) (TyLabels s1) (TyLabels s2) = TyLabels $ union s1 s2
--- (.*) (TyVar n1) (TyLabels s2) = TyLabels $ union s1 s2
+(.*) v@(TyVar _) c = CMul v c
+(.*) c v@(TyVar _) = CMul c v
 (.*) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
 (.<) :: Coeffect -> Coeffect -> Bool
@@ -126,6 +133,14 @@ instance Pretty Type where
     let pp_path = foldl (\acc p -> acc <+> pretty p) (pretty "") set_path in
     nest 2 $ pretty "(TyLabels" <> line
     <+> pp_path <> pretty ")"
+  pretty (CAdd c1 c2) =
+        nest 2 $ pretty "(CAdd" <> line
+    <+> pretty c1 <> line
+    <+> pretty c2 <> pretty ")"
+  pretty (CMul c1 c2) =
+        nest 2 $ pretty "(CMul" <> line
+    <+> pretty c1 <> line
+    <+> pretty c2 <> pretty ")"
 
 instance Pretty Path where
   pretty (Path map) = nest 2 $ pretty "(Path" <+> pretty (Data.Map.toList map) <> pretty ")"
@@ -158,8 +173,13 @@ instance PrettyAST Type where
   ppP (TyFun t1 t2) = parens $ ppP t1 <+> pretty "->" <+> ppP t2
   ppP (TyVar name)  = ppP name
   ppP (TyBox c ty)  = ppP ty <> pretty "@" <> brackets (ppP c)
-  ppP TyBottom      = pretty "⊥"
-  ppP (TyLabels paths) = list $ map ppP (Data.Set.toList paths)
+  ppP TyBottom      = pretty "⊥" -- coeef 0
+  ppP (TyLabels paths) = let p' = map ppP (Data.Set.toList paths) in
+    case p' of
+      [] -> pretty "{}" -- coeff 1
+      _  -> list p'
+  ppP (CAdd c1 c2) = ppP c1 <+> pretty ".+" <+> ppP c2
+  ppP (CMul c1 c2) = ppP c1 <+> pretty ".*" <+> ppP c2
 
 instance PrettyAST Path where
   ppE = pretty

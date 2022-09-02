@@ -8,7 +8,7 @@ import qualified Syntax.LambdaVL as VL
 -- import Syntax.Type
 
 class GirardFwd ast where
-  type Girard ast -- type family
+  type Girard ast
   girardFwd :: ast -> Girard ast
 
 instance GirardFwd (STLC.Module l) where

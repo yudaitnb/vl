@@ -40,6 +40,8 @@ removeFileIfExists path = do
   exists <- doesFileExist path
   when exists $ removeFile path
 
+------------------------
+
 putDocString :: Doc ann -> String
 putDocString = renderString . layoutCompact
 
@@ -47,10 +49,16 @@ semicolon :: Doc ann
 semicolon = pretty ";"
 
 vdash :: Doc ann
-vdash = line <> pretty "|-" <> line
+vdash = 
+  space <> pretty "|-" <> space
+  -- space <> pretty "|-" <> line
 
 emptyset :: Doc ann
 emptyset = pretty "{}"
+
+------------------------
+
+
 
 ------------------------
 
@@ -65,3 +73,4 @@ instance PrettyAST String where
 instance (PrettyAST a, PrettyAST b) => PrettyAST (a, b) where
   ppE (a,b) = vsep [ppE a, ppE b] 
   ppP (a,b) = vsep [ppP a, ppP b] 
+

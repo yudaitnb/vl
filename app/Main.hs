@@ -10,7 +10,7 @@ import Syntax.Absyn
 import Syntax.SrcLoc
 import Renamer
 import Girard ( girardFwd )
-import TypeInference
+import Inference.TypeInference
 import Util
 import Desugar
 import Control.Monad (forM_)

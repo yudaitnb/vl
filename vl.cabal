@@ -27,9 +27,11 @@ library
   exposed-modules:
       Desugar
       Girard
-      Kinding
+      Inference.Kinding
+      Inference.PatternSynthesis
+      Inference.TypeInference
+      Inference.TypeUnification
       Parser
-      PatternSynthesis
       Renamer
       Syntax.Absyn
       Syntax.Env
@@ -40,9 +42,6 @@ library
       Syntax.STLC
       Syntax.Substitution
       Syntax.Type
-      TypeInference
-      TypeSubstitution
-      TypeUnification
       Util
   other-modules:
       Paths_vl

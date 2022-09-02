@@ -15,7 +15,7 @@ module Syntax.Env (
   genNewTyVar,
   basicType, basicTEnv,
   --Logs
-  Logs, showTyInfEnv, showPatSynthEnv, showKindEnv
+  Logs
 ) where
 
 import Data.Map
@@ -275,30 +275,9 @@ instance PrettyAST UEnv where
 
 instance PrettyAST REnv where
   ppE = pretty
-  ppP = pretty
+  ppP EmptyREnv = pretty "-"
+  ppP (REnv c) = ppP c
 
 instance PrettyAST Logs where
   ppE = pretty
   ppP logs = vsep $ Prelude.map pretty logs
-
-------------------------------
-
-showTyInfEnv :: Env String
-showTyInfEnv = do
-  t <- getTEnv
-  u <- getUEnv
-  let doc = ppP u <> semicolon <+> ppP t <> vdash
-  return $ putDocString doc
-
-showPatSynthEnv :: Env String
-showPatSynthEnv = do
-  u <- getUEnv
-  r <- getREnv
-  let doc = ppP u <> semicolon <+> ppP r <> vdash
-  return $ putDocString doc
-
-showKindEnv :: Env String
-showKindEnv = do
-  u <- getUEnv
-  let doc = ppP u <> vdash
-  return $ putDocString doc
