@@ -1,71 +1,95 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TupleSections #-}
 module Syntax.Substitution where
 
 import Data.Maybe (fromMaybe)
+import Data.List (sortOn, intersect, elemIndex)
 
+import Syntax.LambdaVL
 import Syntax.Type
-import Util
+import Syntax.Env
+import Inference.Kinding
 
-type Subst = [(String, Type)]
+import Graph
+
+import Util
+import Control.Arrow (second)
+
+newtype Subst = Subst { subst :: [(String, Type)] }
 
 emptySubst :: Subst
-emptySubst = []
+emptySubst = Subst []
 
-singleSubst :: String -> Type -> Subst
-singleSubst k v = [(k, v)]
+makeSubst :: String -> Type -> Subst
+makeSubst k v = Subst [(k, v)]
 
 findSubst :: String -> Subst -> Maybe Type
-findSubst = lookup
+findSubst str sub = lookup str (subst sub)
 
 (\\) :: Subst -> String -> Subst
-(\\) s str = dropWhile (\(k,_) -> k == str) s
+(\\) s str = Subst $ dropWhile (\(k,_) -> k == str) (subst s)
 
-comp :: Subst -> Subst -> Subst
-comp [] s2 = s2
-comp ((alpha,tya):theta1) theta2 =
+putSubstCompLog :: UEnv -> Subst -> Subst -> Subst -> Env ()
+putSubstCompLog oldu s1 s2 s3 = do
+  let header = ppP "(CompSub)"
+      env = header <+> ppP oldu <+> vdash
+      res = ppP s1 <+> ppP "⊎" <+> ppP s2 <+> ppP "=>" <+> ppP s3
+  putLog $ putDocString $ env <> res
+  return ()
+
+-- 最般単一化子になるよう2つの代入を合成
+-- 前提：s1 s2は以下のような代入ではない
+-- - 解決の結果循環参照を含む代入(トポロジカルソートの前提を満たさない)
+--   o: (a0 ↦ a1 -> a2) `comp` (a1 ↦ a2) => (a0 ↦ a2 -> a2, a1 ↦ a2))
+--   x: (a0 ↦ a1 -> a2) `comp` (a1 ↦ a0) => fail
+comp :: Subst -> Subst -> Env Subst
+comp s1 s2 = do
+  uenv <- getUEnv
+  s2 <- rmSameTyVar s1 s2
+  -- return s2
+  let nodes = varsInEnv uenv
+      tmp = map (second freeTyVars) (subst s2)
+      edges = concatMap (\(str, lst) -> map (str,) lst) tmp
+      sorted = tsort $ Graph (nodes, edges)
+      s2' = reverse $ sortOn (\(k,_) -> elemIndex k sorted) (subst s2)
+      result = normalize $ Subst s2'
+  -- debug s2'
+  putSubstCompLog uenv s1 s2 result
+  return result
+
+-- 同一domainの代入を除去
+-- Granule論文のcomp
+rmSameTyVar :: Subst -> Subst -> Env Subst
+rmSameTyVar (Subst []) theta2 = return theta2
+rmSameTyVar (Subst ((alpha,tya):theta1)) theta2 =
   case findSubst alpha theta2 of
-    Nothing ->
-      (alpha, tya):(theta1 `comp` theta2)
-    Just tyb -> 
-      let theta = unifySubst tya tyb in
-      (alpha, typeSubstitution theta tya):(theta1 `comp` (theta2 \\ alpha))
+    Just tyb -> do
+      theta <- typeUnification tya tyb
+      theta12 <- Subst theta1 `comp` (theta2 \\ alpha)
+      theta12' <- theta12 `comp` theta
+      return $ Subst $ (alpha, typeSubstitution theta tya) : subst theta12'
+    Nothing -> do
+      theta12 <- Subst theta1 `comp` theta2
+      return $ Subst $ (alpha, tya) : subst theta12
 
--- ty1もty2もwell-definedなことを仮定
-unifySubst :: Type -> Type -> Subst
-unifySubst ty1 ty2 =
-  case (ty1, ty2) of
-    -- U_→
-    (TyFun a b, TyFun a' b') ->
-      let theta_1 = unifySubst a' a
-          theta_2 = unifySubst (typeSubstitution theta_1 b) (typeSubstitution theta_1 b')
-      in theta_1 `comp` theta_2
-    -- U_box
-    (TyBox r a, TyBox r' a') ->
-      let theta_1 = unifySubst a a'
-          theta_2 = unifySubst (typeSubstitution theta_1 r) (typeSubstitution theta_1 r') -- [TODO] typeSubstitution不要かも
-      in theta_1 `comp` theta_2
-    -- U_var=, U_var∃
-    (TyVar alpha, ty2) ->
-      if ty1 == ty2
-        then emptySubst
-        else singleSubst (getName alpha) ty2 
-    (ty1, TyVar alpha) ->
-      if ty1 == ty2
-        then emptySubst 
-        else singleSubst (getName alpha) ty1 
-    -- U_=
-    (ty1, ty2) ->
-      if ty1 == ty2
-        then emptySubst 
-        else error ""
+-- 解を生成
+normalize :: Subst -> Subst
+normalize (Subst [])          = emptySubst
+normalize (Subst ((k,v):lst)) = Subst $ (k,v) : map (second (typeSubstitution (Subst [(k,v)]))) (subst $ normalize $ Subst lst)
+
+isCompatible :: Subst -> Env Bool
+isCompatible (Subst []) = return True
+isCompatible (Subst ((alpha, tya):theta)) = do
+  sigma <- getUEnv
+  case lookupEnv alpha sigma of
+    Nothing    -> return False
+    Just kappa -> do
+      b1 <- isCompatible $ Subst theta
+      setUEnv (exclude sigma (makeEnv [(alpha, kappa)]))
+      kappa' <- kind tya
+      return $ kappa == kappa'
 
 --------------------------
-
-instance PrettyAST Subst where
-  ppE = pretty
-  ppP s = parens $ concatWith (surround $ comma <> space) $ map (\(k,v) -> pretty k <> pretty " ↦ " <> ppP v) s
-
-
 
 typeSubstitution :: Subst -> Type -> Type
 typeSubstitution s_table ty =
@@ -91,3 +115,72 @@ typeSubstitution s_table ty =
       let c1' = tysubst c1
           c2' = tysubst c2
       in CMul c1' c2'
+    CSubset c1 c2 ->
+      let c1' = tysubst c1
+          c2' = tysubst c2
+      in CSubset c1' c2'
+
+----------------------------
+
+putUnifyLog :: UEnv -> Type -> Type -> Subst -> Env ()
+putUnifyLog oldu ty1 ty2 subst = do
+  let header = ppP "(TyUnify)"
+      env = header <+> ppP oldu <> vdash
+      res = ppP ty1 <+> ppP "~" <+> ppP ty2 <+> ppP "▷" <+> ppP subst
+  putLog $ putDocString $ env <> res
+  return ()
+
+typeUnification :: Type -> Type -> Env Subst
+typeUnification ty1 ty2 = do
+  sigma <- getUEnv
+  case (ty1, ty2) of
+    -- U_→
+    (TyFun a b, TyFun a' b') -> do
+      theta_1 <- typeUnification a' a
+      theta_2 <- typeUnification (typeSubstitution theta_1 b) (typeSubstitution theta_1 b')
+      result <- comp theta_1 theta_2
+      putUnifyLog sigma ty1 ty2 result
+      return result
+    -- U_box
+    (TyBox r a, TyBox r' a') -> do
+      theta_1 <- typeUnification a a'
+      theta_2 <- typeUnification (typeSubstitution theta_1 r) (typeSubstitution theta_1 r') -- [TODO] typeSubstitution不要かも
+      result <- comp theta_1 theta_2
+      putUnifyLog sigma ty1 ty2 result
+      return result
+    -- U_var=, U_var∃
+    (TyVar alpha, ty2) ->
+      if ty1 == ty2
+        then do
+          let result = emptySubst-- [TODO] well-definedness
+          putUnifyLog sigma ty1 ty2 result
+          return result
+        else do
+          let result = makeSubst (getName alpha) ty2 -- [TODO] well-definedness
+          putUnifyLog sigma ty1 ty2 result
+          return result
+    (ty1, TyVar alpha) ->
+      if ty1 == ty2
+        then do
+          let result = emptySubst -- [TODO] well-definedness
+          putUnifyLog sigma ty1 ty2 result
+          return result
+        else do
+          let result = makeSubst (getName alpha) ty1 -- [TODO] well-definedness
+          putUnifyLog sigma ty1 ty2 result
+          return result
+    -- U_=
+    (ty1, ty2) ->
+      if ty1 == ty2
+        then do
+          let result = emptySubst -- [TODO] well-definedness
+          putUnifyLog sigma ty1 ty2 result
+          return result
+        else do
+          error ""
+
+--------------------------
+
+instance PrettyAST Subst where
+  ppE s = parens $ concatWith (surround $ comma <> space) $ map (\(k,v) -> ppE k <> ppE " ↦ " <> ppP v) (subst s) -- [TODO]
+  ppP s = parens $ concatWith (surround $ comma <> space) $ map (\(k,v) -> ppP k <> ppP " ↦ " <> ppP v) (subst s)

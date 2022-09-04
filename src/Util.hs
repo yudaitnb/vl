@@ -1,32 +1,27 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DefaultSignatures   #-}
 module Util (
-  pp, logPpLn, logPpASTLn,
+  pp, logPpLn,
   module Prettyprinter,
   removeFileIfExists, createDirectoryIfMissing,
   PrettyAST(..),
   putDocString,
-  vdash, semicolon, emptyset
+  vdash, semicolon, emptyset, pplist
 ) where
 
 import System.Directory ( createDirectoryIfMissing, removeFile, doesFileExist )
 
 import Prettyprinter.Render.Text
-import Prettyprinter
+import Prettyprinter hiding (prettyList)
 import Prettyprinter.Render.String ( renderString )
 import Control.Monad (when)
 
-pp :: Pretty a => a -> IO ()
-pp ast = putDoc $ pretty ast <+> line
+pp :: PrettyAST a => a -> IO ()
+pp ast = putDoc $ ppE ast <+> line
 
-logPpLn :: Pretty a => FilePath -> a -> IO ()
-logPpLn filename ast = do
-  let doc = pretty ast <> line
-  putDoc doc
-  appendFile filename (renderString $ layoutPretty defaultLayoutOptions doc)
-
-logPpASTLn :: PrettyAST a => FilePath -> a -> IO ()
-logPpASTLn filename ast = do
-  let doc = ppP ast <> line
+logPpLn :: (PrettyAST a) => (a -> Doc ann) -> FilePath -> a -> IO ()
+logPpLn pp filename ast = do
+  let doc = pp ast <> line
   putDoc doc
   appendFile filename (renderString $ layoutPretty defaultLayoutOptions doc)
 
@@ -58,15 +53,31 @@ emptyset = pretty "{}"
 
 ------------------------
 
-
-
-------------------------
-
-class (Pretty a) => PrettyAST a where
+class PrettyAST a where
   ppE :: a -> Doc ann
   ppP :: a -> Doc ann
+  default ppE :: Show a => a -> Doc ann
+  default ppP :: Show a => a -> Doc ann
+  ppE = viaShow
+  ppP = viaShow
+
+instance PrettyAST Char where
+  ppE = pretty
+  ppP = pretty
 
 instance PrettyAST String where
+  ppE = pretty
+  ppP = pretty
+
+instance PrettyAST Integer where
+  ppE = pretty
+  ppP = pretty
+
+instance PrettyAST Int where
+  ppE = pretty
+  ppP = pretty
+
+instance PrettyAST Bool where
   ppE = pretty
   ppP = pretty
 
@@ -74,3 +85,9 @@ instance (PrettyAST a, PrettyAST b) => PrettyAST (a, b) where
   ppE (a,b) = vsep [ppE a, ppE b] 
   ppP (a,b) = vsep [ppP a, ppP b] 
 
+instance PrettyAST a => PrettyAST (Maybe a) where
+  ppE = maybe mempty ppE
+  ppP = maybe mempty ppP
+
+pplist :: (a -> Doc ann) -> [a] -> Doc ann
+pplist pp = align . list . map pp

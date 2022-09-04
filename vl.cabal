@@ -27,10 +27,10 @@ library
   exposed-modules:
       Desugar
       Girard
+      Graph
       Inference.Kinding
       Inference.PatternSynthesis
       Inference.TypeInference
-      Inference.TypeUnification
       Parser
       Renamer
       Syntax.Absyn

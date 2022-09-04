@@ -1,8 +1,9 @@
+{-# LANGUAGE FlexibleInstances #-}
 module Syntax.Type (
   ModuleName(..), QName(..), Name(..),
-  Coeffect, Type(..), 
+  Coeffect, Type(..), Constraint(..), Constraints(..), emptyConstraints, landC,
   Path(..), Version(..),
-  freeTyVar, isClosed,
+  freeTyVars, isClosed,
   coeff0, coeff1, zero, one,
   (.+), (.*), (.<),
   HasName(..)
@@ -10,7 +11,7 @@ module Syntax.Type (
 
 import Data.Map ( Map, toList )
 import Data.Set ( Set, union, isSubsetOf, empty, toList )
-import Data.List ( null )
+import Data.List ( null, nub )
 import Util
 
 import Syntax.Name (HasName(..))
@@ -40,9 +41,18 @@ instance HasName QName where
 instance HasName Type where
   getName (TyCon qName) = getName qName
   getName (TyVar name) = getName name
-  getName _ = error "The getName function is not defined for a given expresion." 
+  getName _ = error "The getName function is not defined for a given expresion."
 
 type Coeffect = Type
+type Constraint = Type
+newtype Constraints = Constraints { constraints :: [Constraint] }
+  deriving (Eq, Ord, Show)
+
+emptyConstraints :: Constraints
+emptyConstraints = Constraints []
+
+landC :: Constraints -> Constraints -> Constraints
+landC c1 c2 = Constraints $ constraints c1 ++ constraints c2
 
 -- | A type qualified with a context.
 --   An unqualified type has an empty context.
@@ -55,6 +65,7 @@ data Type
   | TyLabels (Set Path) -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
   | CAdd Coeffect Coeffect -- ^ A constraint gnerated by (.+) when either of the coeffs is a type variable
   | CMul Coeffect Coeffect -- ^ A constraint gnerated by (.*) when either of the coeffs is a type variable
+  | CSubset Coeffect Coeffect -- ^ A constraint note that c1 ≤ c2
   deriving (Eq,Ord,Show)
 
 newtype Path = Path (Map ModuleName Version)
@@ -78,21 +89,26 @@ zero = TyBottom
 one :: Coeffect
 one = TyLabels empty
 
-freeTyVar :: Type -> [String]
-freeTyVar ty = case ty of
-  -- Types
-  TyCon _     -> []
-  TyVar name  -> [getName name]
-  TyFun t1 t2 -> freeTyVar t1 ++ freeTyVar t2
-  TyBox c t   -> freeTyVar c ++ freeTyVar t
-  -- Coeffects
-  TyBottom    -> []
-  TyLabels _  -> []
-  CAdd c1 c2  -> freeTyVar c1 ++ freeTyVar c2
-  CMul c1 c2  -> freeTyVar c1 ++ freeTyVar c2
+freeTyVars :: Type -> [String]
+freeTyVars ty = nub $ freeTyVars' ty
+  where
+    freeTyVars' ty =
+      case ty of
+      -- Types
+      TyCon _     -> []
+      TyVar name  -> [getName name]
+      TyFun t1 t2 -> freeTyVars' t1 ++ freeTyVars' t2
+      TyBox c t   -> freeTyVars' c ++ freeTyVars' t
+      -- Coeffects
+      TyBottom    -> []
+      TyLabels _  -> []
+      CAdd c1 c2  -> freeTyVars' c1 ++ freeTyVars' c2
+      CMul c1 c2  -> freeTyVars' c1 ++ freeTyVars' c2
+      -- Constraints
+      CSubset c1 c2 -> freeTyVars' c1 ++ freeTyVars' c2
 
 isClosed :: Type -> Bool
-isClosed ty = Data.List.null $ freeTyVar ty
+isClosed ty = Data.List.null $ freeTyVars ty
 
 -- ^ Addition, multiplication, and partial-order in version resource semiring
 (.+) :: Coeffect -> Coeffect -> Coeffect
@@ -117,90 +133,86 @@ isClosed ty = Data.List.null $ freeTyVar ty
 (.<) (TyLabels s1) (TyLabels s2) = s1 `isSubsetOf` s2
 (.<) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
-instance Pretty Type where
-  pretty (TyCon qName) = nest 2 $ pretty "(TyCon" <+> pretty qName <> pretty ")"
-  pretty (TyFun t1 t2) =
-        nest 2 $ pretty "(TyFun" <> line
-    <+> pretty t1 <> line
-    <+> pretty t2 <> pretty ")"
-  pretty (TyVar name)  = nest 2 $ pretty "(TyVar" <+> pretty name <> pretty ")"
-  pretty (TyBox c ty)  =
-        nest 2 $ pretty "(TyBox" <> line
-    <+> pretty c <> line
-    <+> pretty ty <> pretty ")"
-  pretty TyBottom      = nest 2 $ pretty "(TyBottom)"
-  pretty (TyLabels set_path) = 
-    let pp_path = foldl (\acc p -> acc <+> pretty p) (pretty "") set_path in
-    nest 2 $ pretty "(TyLabels" <> line
-    <+> pp_path <> pretty ")"
-  pretty (CAdd c1 c2) =
-        nest 2 $ pretty "(CAdd" <> line
-    <+> pretty c1 <> line
-    <+> pretty c2 <> pretty ")"
-  pretty (CMul c1 c2) =
-        nest 2 $ pretty "(CMul" <> line
-    <+> pretty c1 <> line
-    <+> pretty c2 <> pretty ")"
-
-instance Pretty Path where
-  pretty (Path map) = nest 2 $ pretty "(Path" <+> pretty (Data.Map.toList map) <> pretty ")"
-
-instance Pretty Version where
-  pretty (Version major minor patch) =
-    let pp_ver = pretty major <> pretty "." <> pretty minor <> pretty "." <> pretty patch in
-    nest 2 $ pretty "(Version" <> line
-    <+> pp_ver <> pretty ")"
-
-instance Pretty QName where
-  pretty (Qual modName qName) =
-        nest 2 $ pretty "(Qual" <> line
-    <+> pretty modName <> line
-    <+> pretty qName <> pretty ")"
-  pretty (UnQual name) = nest 2 $ pretty "(UnQual" <+> pretty name <> pretty ")"
-
-instance Pretty Name where
-  pretty (Ident str) = nest 2 $ pretty "(Ident" <+> pretty str <> pretty ")"
-  pretty (Symbol str) = nest 2 $ pretty "(Symbol" <+> pretty str <> pretty ")"
-
-instance Pretty ModuleName where
-  pretty (ModuleName str) = nest 2 $ pretty "(ModuleName" <+> pretty str <> pretty ")"
-
 -------------------------
 
 instance PrettyAST Type where
-  ppE = pretty
+  ppE (TyCon qName) = nest 2 $ ppE "(TyCon" <+> ppE qName <> ppE ")"
+  ppE (TyFun t1 t2) =
+        nest 2 $ ppE "(TyFun" <> line
+    <+> ppE t1 <> line
+    <+> ppE t2 <> ppE ")"
+  ppE (TyVar name)  = nest 2 $ ppE "(TyVar" <+> ppE name <> ppE ")"
+  ppE (TyBox c ty)  =
+        nest 2 $ ppE "(TyBox" <> line
+    <+> ppE c <> line
+    <+> ppE ty <> ppE ")"
+  ppE TyBottom      = nest 2 $ ppE "(TyBottom)"
+  ppE (TyLabels set_path) =
+    let pp_path = foldl (\acc p -> acc <+> ppE p) (ppE "") set_path in
+    nest 2 $ ppE "(TyLabels" <> line
+    <+> pp_path <> ppE ")"
+  ppE (CAdd c1 c2) =
+        nest 2 $ ppE "(CAdd" <> line
+    <+> ppE c1 <> line
+    <+> ppE c2 <> ppE ")"
+  ppE (CMul c1 c2) =
+        nest 2 $ ppE "(CMul" <> line
+    <+> ppE c1 <> line
+    <+> ppE c2 <> ppE ")"
+  ppE (CSubset c1 c2) =
+        nest 2 $ ppE "(CSubset" <> line
+    <+> ppE c1 <> line
+    <+> ppE c2 <> ppE ")"
+  -- ^ Types
   ppP (TyCon qName) = ppP qName
-  ppP (TyFun t1 t2) = parens $ ppP t1 <+> pretty "->" <+> ppP t2
+  ppP (TyFun t1 t2) = parens $ ppP t1 <+> ppP "->" <+> ppP t2
   ppP (TyVar name)  = ppP name
-  ppP (TyBox c ty)  = ppP ty <> pretty "@" <> brackets (ppP c)
-  ppP TyBottom      = pretty "⊥" -- coeef 0
+  ppP (TyBox c ty)  = ppP ty <> ppP "@" <> brackets (ppP c)
+  -- ^ Coeffects
+  ppP TyBottom      = ppP "⊥" -- coeef 0
   ppP (TyLabels paths) = let p' = map ppP (Data.Set.toList paths) in
     case p' of
-      [] -> pretty "{}" -- coeff 1
+      [] -> ppP "{}" -- coeff 1
       _  -> list p'
-  ppP (CAdd c1 c2) = ppP c1 <+> pretty ".+" <+> ppP c2
-  ppP (CMul c1 c2) = ppP c1 <+> pretty ".*" <+> ppP c2
+  ppP (CAdd c1 c2) = ppP c1 <+> ppP ".+" <+> ppP c2
+  ppP (CMul c1 c2) = ppP c1 <+> ppP ".*" <+> ppP c2
+  -- ^ Constraints
+  ppP (CSubset c1 c2) = ppP c1 <+> ppP "≤" <+> ppP c2
 
 instance PrettyAST Path where
-  ppE = pretty
+  ppE (Path m) = nest 2 $ ppE "(Path" <+> pplist ppE (Data.Map.toList m) <> ppE ")"
   ppP (Path m) =
-    let ppm = concatWith (surround comma) $ map (\(k,v) -> pretty k <+> pretty "->" <+> pretty v) (Data.Map.toList m)
-    in parens $ pretty "Path" <+> ppm
+    let ppm = concatWith (surround comma) $ map (\(k,v) -> ppP k <+> ppP "->" <+> ppP v) (Data.Map.toList m)
+    in parens $ ppP "Path" <+> ppm
 
 instance PrettyAST Version where
-  ppE = pretty
-  ppP (Version major minor patch) = concatWith (surround dot) $ map pretty [major, minor, patch]
+  ppE (Version major minor patch) =
+    let pp_ver = ppE major <> ppE "." <> ppE minor <> ppE "." <> ppE patch in
+    nest 2 $ parens $ ppE "Version" <> line
+    <+> pp_ver
+  ppP (Version major minor patch) = concatWith (surround dot) $ map ppP [major, minor, patch]
 
 instance PrettyAST QName where
-  ppE = pretty
-  ppP (Qual modName qName) = ppP modName <> pretty "." <> ppP qName
+  ppE (Qual modName qName) =
+        nest 2 $ parens $ ppE "Qual" <> line
+    <+> ppE modName <> line
+    <+> ppE qName
+  ppE (UnQual name) = nest 2 $ parens $ ppE "UnQual" <+> ppE name
+  ppP (Qual modName qName) = ppP modName <> ppP "." <> ppP qName
   ppP (UnQual name) = ppP name
 
 instance PrettyAST Name where
-  ppE = pretty
-  ppP (Ident str) = pretty str
-  ppP (Symbol str) = pretty str
+  ppE (Ident str) = nest 2 $ parens $ ppE "Ident" <+> ppE str
+  ppE (Symbol str) = nest 2 $ parens $ ppE "Symbol" <+> ppE str
+  ppP (Ident str) = ppP str
+  ppP (Symbol str) = ppP str
 
 instance PrettyAST ModuleName where
-  ppE = pretty
-  ppP (ModuleName str) = pretty str
+  ppE (ModuleName str) = nest 2 $ parens $ ppE "ModuleName" <+> ppE str
+  ppP (ModuleName str) = ppP str
+
+instance PrettyAST Constraints where
+  ppE (Constraints []) = ppE "⊤" -- [TODO]
+  ppE (Constraints cs) = concatWith (surround $ ppE "∧") $ map ppP cs
+  ppP (Constraints []) = ppP "⊤"
+  ppP (Constraints cs) = concatWith (surround $ ppP "∧") $ map ppP cs

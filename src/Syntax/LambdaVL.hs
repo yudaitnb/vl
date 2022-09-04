@@ -157,7 +157,7 @@ boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
 
 boundVars :: Pat l -> [String]
 boundVars (PVar _ name) = [getName name]
-boundVars (PLit _ _ _)  = []
+boundVars (PLit {})  = []
 boundVars (PWildCard _) = []
 boundVars (PBox _ p)    = boundVars p
 
@@ -165,189 +165,205 @@ boundVars (PBox _ p)    = boundVars p
 --  Pretty printer --
 ---------------------
 
-instance Pretty l => Pretty (Module l) where
-  pretty (Module srcLocInfo moduleHead importDecl decl) =
-        nest 2 $ pretty "(Module" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleHead <> line
-    <+> pretty importDecl <> line
-    <+> pretty decl <> pretty ")"
-instance Pretty l => Pretty (ModuleHead l) where
-  pretty (ModuleHead srcLocInfo moduleName exportSpecList) =
-        nest 2 $ pretty "(ModuleHead " <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> line
-    <+> pretty exportSpecList <> pretty ")"
-instance Pretty l => Pretty (ExportSpecList l) where
-  pretty (ExportSpecList srcLocInfo exportSpec) =
-        nest 2 $ pretty "(ExportSpecList" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exportSpec <> pretty ")"
-instance Pretty l => Pretty (ExportSpec l) where
-  pretty (EVar srcLocInfo qName) =
-        nest 2 $ pretty "(EVar" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty qName <> pretty ")"
-  pretty (EAbs srcLocInfo nameSpace qName) =
-        nest 2 $ pretty "(EAbs" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty nameSpace <> line
-    <+> pretty qName <> pretty ")"
-  pretty (EModuleContents srcLocInfo moduleName) =
-        nest 2 $ pretty "(EModuleContents" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> pretty ")"
-instance Pretty l => Pretty (ImportDecl l) where
-  pretty (ImportDecl srcLocInfo importModule importQualified importSrc importSafe importPkg importAs importSpecs) =
-        nest 2 $ pretty "(ImportDecl" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty importModule <> line
-    <+> pretty importQualified <> line
-    <+> pretty importSrc <> line
-    <+> pretty importSafe <> line
-    <+> pretty importPkg <> line
-    <+> pretty importAs <> line
-    <+> pretty importSpecs <> pretty ")"
-instance Pretty l => Pretty (ImportSpecList l) where
-  pretty (ImportSpecList srcLocInfo bool importSpecs) =
-        nest 2 $ pretty "(ImportSpecList" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty bool <> line
-    <+> pretty importSpecs <> pretty ")"
+instance PrettyAST l => PrettyAST (Module l) where
+  ppE (Module srcLocInfo moduleHead importDecl decl) =
+        nest 2 $ parens $ ppE "Module" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleHead <> line
+    <+> pplist ppE importDecl <> line
+    <+> pplist ppE decl
+  ppP (Module srcLocInfo moduleHead importDecl decl) =
+        ppP "module" <+> ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
+instance PrettyAST l => PrettyAST (ModuleHead l) where
+  ppE (ModuleHead srcLocInfo moduleName exportSpecList) =
+        nest 2 $ parens $ ppE "ModuleHead " <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleName <> line
+    <+> ppE exportSpecList
+  ppP (ModuleHead srcLocInfo moduleName exportSpecList) = ppP moduleName
+instance PrettyAST l => PrettyAST (ExportSpecList l) where
+  ppE (ExportSpecList srcLocInfo exportSpec) =
+        nest 2 $ parens $ ppE "ExportSpecList" <> line
+    <+> ppE srcLocInfo <> line
+    <+> pplist ppE exportSpec
+  ppP (ExportSpecList srcLocInfo exportSpec) = list $ map ppP exportSpec
+instance PrettyAST l => PrettyAST (ExportSpec l) where
+  ppE (EVar srcLocInfo qName) =
+        nest 2 $ parens $ ppE "EVar" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qName
+  ppE (EAbs srcLocInfo nameSpace qName) =
+        nest 2 $ parens $ ppE "EAbs" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE nameSpace <> line
+    <+> ppE qName
+  ppE (EModuleContents srcLocInfo moduleName) =
+        nest 2 $ parens $ ppE "EModuleContents" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleName
+  ppP (EVar srcLocInfo qName) = ppP qName
+  ppP (EAbs srcLocInfo nameSpace qName) = ppP nameSpace <+> ppP qName
+  ppP (EModuleContents srcLocInfo moduleName) = ppP moduleName
+instance PrettyAST l => PrettyAST (ImportDecl l) where
+  ppE (ImportDecl srcLocInfo importModule importQualified importSrc importSafe importPkg importAs importSpecs) =
+        nest 2 $ parens $ ppE "ImportDecl" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE importModule <> line
+    <+> ppE importQualified <> line
+    <+> ppE importSrc <> line
+    <+> ppE importSafe <> line
+    <+> ppE importPkg <> line
+    <+> ppE importAs <> line
+    <+> ppE importSpecs
+  ppP (ImportDecl srcLocInfo importModule importQualified importSrc importSafe importPkg importAs importSpecs) =
+        nest 2 $ parens $ ppP "ImportDecl" <> line
+    <+> ppP srcLocInfo <> line
+    <+> ppP importModule <> line
+    <+> ppP importQualified <> line
+    <+> ppP importSrc <> line
+    <+> ppP importSafe <> line
+    <+> ppP importPkg <> line
+    <+> ppP importAs <> line
+    <+> ppP importSpecs
+instance PrettyAST l => PrettyAST (ImportSpecList l) where
+  ppE (ImportSpecList srcLocInfo bool importSpecs) =
+        nest 2 $ parens $ ppE "ImportSpecList" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE bool <> line
+    <+> pplist ppE importSpecs
+  ppP (ImportSpecList srcLocInfo bool importSpecs) =
+        nest 2 $ parens $ ppP "ImportSpecList" <> line
+    <+> ppP srcLocInfo <> line
+    <+> ppP bool <> line
+    <+> list (map ppP importSpecs)
 
-instance Pretty l => Pretty (ImportSpec l) where
-  pretty (IVar srcLocInfo name) =
-        nest 2 $ pretty "(IVar" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  -- pretty (IAbs srcLocInfo namespace name) = 
-  --       nest 2 $ pretty "(IAbs" <> line 
-  --   <+> pretty srcLocInfo <> line 
-  --   <+> pretty namespace <> line 
-  --   <+> pretty name <> pretty ")"
+instance PrettyAST l => PrettyAST (ImportSpec l) where
+  ppE (IVar srcLocInfo name) =
+        nest 2 $ parens $ ppE "IVar" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE name
+  ppP (IVar srcLocInfo name) =
+        nest 2 $ parens $ ppP "IVar" <> line
+    <+> ppP srcLocInfo <> line
+    <+> ppP name
 
-instance Pretty l => Pretty (Namespace l)  where
-  pretty (NoNamespace srcLocInfo) =
-        pretty "(NoNamespace" <> line
-    <+> pretty srcLocInfo <> pretty ")"
-  pretty (TypeNamespace srcLocInfo) =
-        pretty "(TypeNamespace" <> line
-    <+> pretty srcLocInfo <> pretty ")"
-  pretty (PatternNamespace srcLocInfo) =
-        pretty "(PatternNamespace" <> line
-    <+> pretty srcLocInfo <> pretty ")"
+instance PrettyAST l => PrettyAST (Namespace l)  where
+  ppE (NoNamespace srcLocInfo) =
+        parens $ ppE "NoNamespace" <> line
+    <+> ppE srcLocInfo
+  ppE (TypeNamespace srcLocInfo) =
+        parens $ ppE "TypeNamespace" <> line
+    <+> ppE srcLocInfo
+  ppE (PatternNamespace srcLocInfo) =
+        parens $ ppE "PatternNamespace" <> line
+    <+> ppE srcLocInfo
+  ppP (NoNamespace srcLocInfo) =
+        parens $ ppP "NoNamespace" <> line
+    <+> ppP srcLocInfo
+  ppP (TypeNamespace srcLocInfo) =
+        parens $ ppP "TypeNamespace" <> line
+    <+> ppP srcLocInfo
+  ppP (PatternNamespace srcLocInfo) =
+        parens $ ppP "PatternNamespace" <> line
+    <+> ppP srcLocInfo
 
-instance Pretty l => Pretty (Decl l) where
-  pretty (PatBind srcLocInfo pat rhd) =
-        nest 2 $ pretty "(PatBind" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty pat <> line
-    <+> pretty rhd <> pretty ")"
-
-instance Pretty l => Pretty (Pat l) where
-  pretty (PVar srcLocInfo name) =
-        nest 2 $ pretty "(PVar" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  pretty (PLit srcLocInfo sign literal) =
-        nest 2 $ pretty "(PLit" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty sign <> line
-    <+> pretty literal <> pretty ")"
-  pretty (PWildCard srcLocInfo) =
-        nest 2 $ pretty "(PWildCard" <> line
-    <+> pretty srcLocInfo
-    <> pretty ")"
-  pretty (PBox srcLocInfo pat) =
-        nest 2 $ pretty "(PBox" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty pat <> pretty ")"
-
-instance Pretty l => Pretty (Sign l) where
-  pretty (Signless srcLocInfo) =
-        pretty "(Signless" <> line
-    <+> pretty srcLocInfo <> pretty ")"
-  pretty (Negative srcLocInfo) =
-        pretty "(Negative" <> line
-    <+> pretty srcLocInfo <> pretty ")"
-
-instance Pretty l => Pretty (Literal l) where
-  pretty (Char srcLocInfo char string) =
-        nest 2 $ pretty "(Char" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\'" <> pretty char
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty (String srcLocInfo string1 string2) =
-        nest 2 $ pretty "(String" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string1 <> pretty "\""
-    <+> pretty "\"" <> pretty string2 <> pretty "\"" <> pretty ")"
-  pretty (Int srcLocInfo integer string) =
-        nest 2 $ pretty "(Int" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty integer
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-
-instance Pretty l => Pretty (Exp l) where
-  pretty (Var srcLocInfo qname) =
-        nest 2 $ pretty "(Var" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty qname <> pretty ")"
-  pretty (Lit srcLocInfo literal) =
-        nest 2 $ pretty "(Lit" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty literal <> pretty ")"
-  pretty (App srcLocInfo exp1 exp2) =
-        nest 2 $ pretty "(App" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp1 <> line
-    <+> pretty exp2 <> pretty ")"
-  pretty (NegApp srcLocInfo exp) =
-        nest 2 $ pretty "(NegApp" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp <> pretty ")"
-  pretty (If srcLocInfo exp1 exp2 exp3) =
-        nest 2 $ pretty "(If" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp1 <> line
-    <+> pretty exp2 <> line
-    <+> pretty exp3  <> pretty ")"
-  pretty (Lambda srcLocInfo pat exp) =
-        nest 2 $ pretty "(Lambda" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty pat <> line
-    <+> pretty exp <> pretty ")"
-  pretty (Pr srcLocInfo exp) =
-        nest 2 $ pretty "(Pr" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp <> pretty ")"
-
-------------------------------------------
+instance PrettyAST l => PrettyAST (Decl l) where
+  ppE (PatBind srcLocInfo pat rhd) =
+        nest 2 $ parens $ ppE "PatBind" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE pat <> line
+    <+> ppE rhd
+  ppP (PatBind srcLocInfo pat rhd) = ppP pat <+> ppP "=" <+> ppP rhd <> line
 
 instance PrettyAST l => PrettyAST (Exp l) where
-  ppE = pretty
+  ppE (Var srcLocInfo qname) =
+        nest 2 $ parens $ ppE "Var" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qname
+  ppE (Lit srcLocInfo literal) =
+        nest 2 $ parens $ ppE "Lit" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE literal
+  ppE (App srcLocInfo exp1 exp2) =
+        nest 2 $ parens $ ppE "App" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp1 <> line
+    <+> ppE exp2
+  ppE (NegApp srcLocInfo exp) =
+        nest 2 $ parens $ ppE "NegApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp
+  ppE (If srcLocInfo exp1 exp2 exp3) =
+        nest 2 $ parens $ ppE "If" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp1 <> line
+    <+> ppE exp2 <> line
+    <+> ppE exp3
+  ppE (Lambda srcLocInfo pat exp) =
+        nest 2 $ parens $ ppE "Lambda" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE pat <> line
+    <+> ppE exp
+  ppE (Pr srcLocInfo exp) =
+        nest 2 $ parens $ ppE "Pr" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp
   ppP (Var _ qname) = ppP qname
   ppP (Lit _ literal) = ppP literal
   ppP (App _ e1 e2) = parens $ ppP e1 <+> ppP e2
-  ppP (NegApp _ exp) = pretty "-" <> parens (ppP exp)
-  ppP (If _ e1 e2 e3) = parens $ pretty "If" <+> ppP e1 <+> pretty "then"  <+> ppP e2 <+> pretty "else" <+> ppP e3
+  ppP (NegApp _ exp) = ppP "-" <> parens (ppP exp)
+  ppP (If _ e1 e2 e3) = parens $ ppP "If" <+> ppP e1 <+> ppP "then"  <+> ppP e2 <+> ppP "else" <+> ppP e3
   ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
   ppP (Pr _ e) = brackets $ ppP e
 
 instance PrettyAST l => PrettyAST (Literal l) where
-  ppE = pretty
-  ppP (Char _ c s) = pretty s
-  ppP (String _ s1 s2) = pretty s2
-  ppP (Int _ i s) = pretty s
+  ppE (Char srcLocInfo char string) =
+        nest 2 $ parens $ ppE "Char" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE "\'" <> ppE char
+    <+> ppE "\"" <> ppE string <> ppE "\""
+  ppE (String srcLocInfo string1 string2) =
+        nest 2 $ parens $ ppE "String" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE "\"" <> ppE string1 <> ppE "\""
+    <+> ppE "\"" <> ppE string2 <> ppE "\""
+  ppE (Int srcLocInfo integer string) =
+        nest 2 $ parens $ ppE "Int" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE integer
+    <+> ppE "\"" <> ppE string <> ppE "\""
+  ppP (Char _ c s) = ppP s
+  ppP (String _ s1 s2) = ppP s2
+  ppP (Int _ i s) = ppP s
 
 instance PrettyAST l => PrettyAST (Pat l) where
-  ppE = pretty
+  ppE (PVar srcLocInfo name) =
+        nest 2 $ parens $ ppE "PVar" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE name
+  ppE (PLit srcLocInfo sign literal) =
+        nest 2 $ parens $ ppE "PLit" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE sign <> line
+    <+> ppE literal
+  ppE (PWildCard srcLocInfo) =
+        nest 2 $ parens $ ppE "PWildCard" <> line
+    <+> ppE srcLocInfo
+  ppE (PBox srcLocInfo pat) =
+        nest 2 $ parens $ ppE "PBox" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE pat
   ppP (PVar _ name) = ppP name
   ppP (PLit _ sign literal) = ppP sign <> ppP literal
-  ppP (PWildCard _) = pretty "_"
+  ppP (PWildCard _) = ppP "_"
   ppP (PBox _ pat) = brackets $ ppP pat
 
 instance PrettyAST l => PrettyAST (Sign l) where
-  ppE = pretty
-  ppP (Signless _) = pretty ""
-  ppP (Negative _) = pretty "-"
+  ppE (Signless srcLocInfo) =
+        parens $ ppE "Signless" <> line
+    <+> ppE srcLocInfo
+  ppE (Negative srcLocInfo) =
+        parens $ ppE "Negative" <> line
+    <+> ppE srcLocInfo
+  ppP (Signless _) = ppP ""
+  ppP (Negative _) = ppP "-"

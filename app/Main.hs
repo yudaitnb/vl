@@ -25,10 +25,10 @@ main = do
   let (dir, fn) = splitFileName path
       logdir = "./log/"
       logfile = logdir ++ fn ++ ".log"
-      log :: Pretty a => a -> IO ()
-      log = logPpLn logfile
-      logAST :: PrettyAST a => a -> IO ()
-      logAST = logPpASTLn logfile
+      logE :: PrettyAST a => a -> IO ()
+      logE = logPpLn ppE logfile
+      logP :: PrettyAST a => a -> IO ()
+      logP = logPpLn ppP logfile
 
   -- create log directory 
   createDirectoryIfMissing False logdir
@@ -36,32 +36,24 @@ main = do
 
   -- output
   ast <- parseAST path
-  log "\n=== Exactprint ==="
-  log $ exactPrint ast []
-  log "\n=== AST (Syntax.Absyn) ==="
-  print ast
-  log ast
+  logE "\n=== Exactprint ==="
+  logE $ exactPrint ast []
+  logE "\n=== AST (Syntax.Absyn) ==="
+  logE ast
   -- log "=== Alpha renaming ==="
   -- let ast_renamed = alphaRename ast
   -- log ast_renamed
-  -- log "\n=== AST (Syntax.VL) ==="
-  -- let ast_vl = girardFwd ast_renamed
-  -- -- let ast_vl = girardFwd ast
-  -- log ast_vl
-  -- log "\n=== Types (Syntax.VL) ==="
-  -- let types = getInterface ast_vl
-  -- log types
-
-  log "\n=== Desugared AST (Syntax.STLC) ==="
+  logP "\n=== Desugared AST (Syntax.STLC) ==="
   let ast_desugared = desugarAST ast
-  log ast_desugared
-  log "\n=== AST (Syntax.VL) ==="
+  logP ast_desugared
+  logP "\n=== AST (Syntax.VL) ==="
   -- let ast_vl = girardFwd ast_renamed
   let ast_vl = girardFwd ast_desugared
-  log ast_vl
-  log "\n=== Types (Syntax.VL) ==="
+  logP ast_vl
+  logE ast_vl
+  logP "\n=== Types (Syntax.VL) ==="
   let lst = getInterface ast_vl
-  forM_ lst logAST
+  forM_ lst logP
 
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func

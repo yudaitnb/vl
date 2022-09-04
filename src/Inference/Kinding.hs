@@ -14,7 +14,7 @@ import Util
 
 putKindingLog :: UEnv -> Type -> Kind -> Env ()
 putKindingLog oldu ty kind = do
-  let header = pretty "(Kinding)"
+  let header = ppP "(Kinding)"
       env = header <+> ppP oldu <> vdash
       res = ppP ty <+> colon <+> ppP kind
   putLog $ putDocString $ env <> res

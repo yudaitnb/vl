@@ -22,47 +22,36 @@ instance HasName (QName l) where
 
 ------------------------------------
 
-instance Pretty l => Pretty (QName l) where
-  pretty (Qual srcLocInfo moduleName name) =
-        nest 2 $ pretty "(Qual" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> line
-    <+> pretty name <> pretty ")"
-  pretty (UnQual srcLocInfo name) =
-        nest 2 $ pretty "(UnQual" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  pretty _ = error "prety printer is not define a given QName."
-
-instance Pretty l => Pretty (Name l) where
-  pretty (Ident srcLocInfo string) =
-        nest 2 $ pretty "(Ident" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty (Symbol srcLocInfo string) =
-        nest 2 $ pretty "(Symbol" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-
-instance Pretty l => Pretty (ModuleName l) where
-  pretty (ModuleName srcLocInfo str) =
-        nest 2 $ pretty "(ModuleName" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty str <> pretty ")"
-
-------------------------------------
-
 instance PrettyAST l => PrettyAST (QName l) where
-  ppE = pretty
-  ppP (Qual _ moduleName name) = ppP moduleName <> pretty "." <> ppP name
+  ppE (Qual srcLocInfo moduleName name) =
+        nest 2 $ ppE "(Qual" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleName <> line
+    <+> ppE name <> ppE ")"
+  ppE (UnQual srcLocInfo name) =
+        nest 2 $ ppE "(UnQual" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE name <> ppE ")"
+  ppE _ = error "prety printer is not define a given QName."
+  ppP (Qual _ moduleName name) = ppP moduleName <> ppP "." <> ppP name
   ppP (UnQual _ name) = ppP name
   ppP _ = error "showPrtty is not defined for an given expression."
 
 instance PrettyAST l => PrettyAST (Name l) where
-  ppE = pretty
-  ppP (Ident _ str) = pretty str
-  ppP (Symbol _ str) = pretty str
+  ppE (Ident srcLocInfo string) =
+        nest 2 $ ppE "(Ident" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE "\"" <> ppE string <> ppE "\"" <> ppE ")"
+  ppE (Symbol srcLocInfo string) =
+        nest 2 $ ppE "(Symbol" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE "\"" <> ppE string <> ppE "\"" <> ppE ")"
+  ppP (Ident _ str) = ppP str
+  ppP (Symbol _ str) = ppP str
 
 instance PrettyAST l => PrettyAST (ModuleName l) where
-  ppE = pretty
-  ppP (ModuleName _ str) = pretty str
+  ppE (ModuleName srcLocInfo str) =
+        nest 2 $ ppE "(ModuleName" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE str <> ppE ")"
+  ppP (ModuleName _ str) = ppP str

@@ -4,7 +4,7 @@ module Syntax.Env (
   Env, Env'(..),
   Environment(..),
   EnvType(..), getType,
-  getLogs, setLogs, initLogs, putLog,
+  getLogs, setLogs, initLogs, putLog, debugE, debugP,
   getCounter, setCounter, initCounter,
   TEnv, getTEnv, setTEnv, initTEnv,
   UEnv, getUEnv, setUEnv, initUEnv,
@@ -14,8 +14,9 @@ module Syntax.Env (
   gradeTEnv,
   genNewTyVar,
   basicType, basicTEnv,
+  genConstraint,
   --Logs
-  Logs
+  Logs, reverseLogs, emptyLogs,
 ) where
 
 import Data.Map
@@ -53,6 +54,7 @@ class Environment env where
   filterEnvBy :: [Key env] -> env -> env
   hasBinding :: Key env -> Value env -> env -> Bool
   exclude :: env -> env -> env
+  varsInEnv :: env -> [Key env]
 
 instance Environment TEnv where
   type Key TEnv = String
@@ -67,6 +69,7 @@ instance Environment TEnv where
       Nothing  -> False
       Just res -> res == v
   exclude = difference
+  varsInEnv = keys
 
 instance Environment UEnv where
   type Key UEnv = String
@@ -81,6 +84,7 @@ instance Environment UEnv where
       Nothing  -> False
       Just res -> res == v
   exclude = difference
+  varsInEnv = keys
 
 (.++) :: TEnv -> TEnv -> TEnv
 (.++) = unionWith concat
@@ -109,17 +113,24 @@ gradeTEnv = Data.Map.map gradeTy
     gradeTy (NType t)       = GrType t one
     gradeTy ty@(GrType _ _) = ty
 
+genConstraint :: Coeffect -> TEnv -> Constraints
+genConstraint c tenv = Constraints $ Data.Map.foldl (\acc envty -> genCon c envty : acc) [] tenv
+  where
+    genCon c (NType _) = error "`genCon` cannot produce constraints from NType."
+    genCon c1 (GrType _ c2) = CSubset c1 c2
+
 data Env' = Env'
   { counter :: Int -- 単一化型変数の累積数
   , tEnv :: TEnv   -- 型付け環境 / [x:A]
   , uEnv :: UEnv   -- 単一化用型変数環境 / [X:κ]
   , rEnv :: REnv   -- リソース環境 / -, r
-  , logs :: Logs
+  , l :: Logs
   }
   deriving (Show)
 type Env a = State Env' a
 
-type Logs = [String]
+newtype Logs = Logs { logs :: [String] }
+  deriving (Eq, Show)
 
 -- ^ Logs
 getLogs :: Env Logs
@@ -129,10 +140,22 @@ setLogs :: Logs -> Env ()
 setLogs logs = state $ \(Env' c t u r _) -> ((), Env' c t u r logs)
 
 initLogs :: Env ()
-initLogs = state $ \(Env' c t u r _) -> ((), Env' c t u r [])
+initLogs = state $ \(Env' c t u r _) -> ((), Env' c t u r (Logs []))
 
 putLog :: String -> Env ()
-putLog str = state $ \env@(Env' c t u r l) -> ((), Env' c t u r (str:l))
+putLog str = state $ \env@(Env' c t u r l) -> ((), Env' c t u r (Logs (str : logs l)))
+
+reverseLogs :: Logs -> Logs
+reverseLogs l = Logs $ reverse $ logs l
+
+emptyLogs :: Logs
+emptyLogs = Logs []
+
+debugE :: (PrettyAST a) => a ->Env ()
+debugE p = putLog $ putDocString $ ppE p
+
+debugP :: (PrettyAST a) => a ->Env ()
+debugP p = putLog $ putDocString $ ppP p
 
 -- ^ Counter
 getCounter :: Env Int
@@ -232,52 +255,38 @@ basicTEnv = fromList []
           -- , ("*", NType intToIntToInt)
           -- , ("/", NType intToIntToInt) ]
 
------------------------------
-
-instance Pretty EnvType where
-  pretty (NType ty) = pretty ty
-  pretty (GrType c ty) = brackets (pretty ty) <> pretty "_" <> parens (pretty c)
-
-instance Pretty TEnv where
-  pretty = foldlWithKey
-    (\acc k v -> acc <+>
-      pretty k <> comma <> pretty v)
-    emptyDoc
-
-instance Pretty UEnv where
-  pretty = foldlWithKey
-    (\acc k v -> acc <+>
-      pretty k <> comma <> pretty v)
-    emptyDoc
-
-instance Pretty REnv where
-  pretty EmptyREnv = pretty "-"
-  pretty (REnv c) = pretty c
-
 ------------------------------
 
 instance PrettyAST EnvType where
-  ppE = pretty
+  ppE (NType ty) = ppE ty
+  ppE (GrType c ty) = brackets (ppE ty) <> ppE "_" <> parens (ppE c)
   ppP (NType ty) = ppP ty
-  ppP (GrType ty c) = brackets (ppP ty) <> pretty "_" <> parens (ppP c)
+  ppP (GrType ty c) = brackets (ppP ty) <> ppP "_" <> parens (ppP c)
 
 instance PrettyAST TEnv where
-  ppE = pretty
+  ppE = foldlWithKey
+    (\acc k v -> acc <+>
+      ppE k <> comma <> ppE v)
+    emptyDoc
   ppP m
     | m == empty = emptyset
-    | otherwise  = concatWith (surround $ comma <> space) $ Prelude.map (\(k,v) -> pretty k <> colon <> ppP v) (toList m)
+    | otherwise  = concatWith (surround $ comma <> space) $ Prelude.map (\(k,v) -> ppP k <> colon <> ppP v) (toList m)
 
 instance PrettyAST UEnv where
-  ppE = pretty
+  ppE = foldlWithKey
+    (\acc k v -> acc <+>
+      ppE k <> comma <> ppE v)
+    emptyDoc
   ppP m
     | m == empty = emptyset
-    | otherwise  = concatWith (surround $ comma <> space) $ Prelude.map (\(k,v) -> pretty k <> colon <> ppP v) (toList m)
+    | otherwise  = concatWith (surround $ comma <> space) $ Prelude.map (\(k,v) -> ppP k <> colon <> ppP v) (toList m)
 
 instance PrettyAST REnv where
-  ppE = pretty
-  ppP EmptyREnv = pretty "-"
+  ppE EmptyREnv = ppE "-"
+  ppE (REnv c) = ppE c
+  ppP EmptyREnv = ppP "-"
   ppP (REnv c) = ppP c
 
 instance PrettyAST Logs where
-  ppE = pretty
-  ppP logs = vsep $ Prelude.map pretty logs
+  ppE (Logs l) = concatWith (surround line) $ Prelude.map ppE l
+  ppP (Logs l) = concatWith (surround line) $ Prelude.map ppP l

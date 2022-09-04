@@ -10,7 +10,7 @@ import Syntax.LambdaVL
 import Syntax.Substitution
 
 import Inference.Kinding
-import Inference.TypeUnification
+-- import Inference.TypeUnification
 
 import Util
 
@@ -18,9 +18,9 @@ type PatSynthRes = (TEnv, UEnv, Subst)
 
 putPatSynthLog :: (PrettyAST l) => UEnv -> REnv -> Pat l -> PatSynthRes -> Env ()
 putPatSynthLog oldu oldr pat patres = do
-  let header = pretty "(PatSynt)"
+  let header = ppP "(PatSynt)"
       env = header <+> ppP oldu <> semicolon <+> ppP oldr <> vdash
-      res = ppP pat <+> pretty "▷" <+> ppP patres
+      res = ppP pat <+> ppP "▷" <+> ppP patres
   putLog $ putDocString $ env <> res
   return ()
 
@@ -67,7 +67,8 @@ patternSynthesis p tya = case p of
           setREnv $ REnv alpha
           (delta, sigma'', theta) <- patternSynthesis p beta
           theta' <- typeUnification tya (TyBox alpha beta)
-          let result = (delta, sigma'', theta `comp` theta')
+          theta'' <- theta `comp` theta'
+          let result = (delta, sigma'', theta'')
           putPatSynthLog sigma renv p result
           return result
         -- p□ctx
@@ -80,7 +81,8 @@ patternSynthesis p tya = case p of
           (delta, sigma'', theta) <- patternSynthesis p beta
           sigma'' <- getUEnv
           theta' <- typeUnification tya (TyBox alpha beta)
-          let result = (delta, sigma'', theta `comp` theta')
+          theta'' <- theta `comp` theta'
+          let result = (delta, sigma'', theta'')
           putPatSynthLog sigma renv p result
           return result
     _ -> error "May the arguments be PLit or PWildCard?"

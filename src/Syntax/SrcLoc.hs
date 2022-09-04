@@ -1,35 +1,30 @@
 module Syntax.SrcLoc (
   Language.Haskell.Exts.SrcLoc.SrcLoc(..),
-  Language.Haskell.Exts.SrcLoc.SrcSpanInfo(..)
+  Language.Haskell.Exts.SrcLoc.SrcSpanInfo(..),
+  Language.Haskell.Exts.SrcLoc.SrcInfo(..),
 ) where
 
 import Language.Haskell.Exts.SrcLoc
 import Util
 
-instance Pretty SrcSpanInfo where
-  pretty (SrcSpanInfo srcInfoSpan srcInfoPoints@[]) =
-        pretty "(SrcSpanInfo"
-    <+> pretty srcInfoSpan
-    <+> pretty srcInfoPoints <> pretty ")"
-  pretty (SrcSpanInfo srcInfoSpan srcInfoPoints) =
-        nest 2 $ pretty "(SrcSpanInfo" <> line
-    <+> pretty srcInfoSpan <> line
-    <+> pretty srcInfoPoints <> pretty ")"
-
-instance Pretty SrcSpan where
-  pretty (SrcSpan srcSpanFilename srcSpanStartLine srcSpanStartColumn srcSpanEndLiine srcSpanEndColumn) =
-       pretty "(SrcSpan "
-    <> pretty srcSpanFilename
-    <> pretty "@(" <> pretty srcSpanStartLine <> comma <> pretty srcSpanStartColumn <> pretty ")-"
-    <> pretty "(" <> pretty srcSpanEndLiine <> comma <> pretty srcSpanEndColumn <> pretty ")"
-    <> pretty ")"
-
 ------------------------------------
 
 instance PrettyAST SrcSpanInfo where
-  ppE = pretty
-  ppP l = pretty ""
+  ppE (SrcSpanInfo srcInfoSpan srcInfoPoints@[]) =
+        ppE "(SrcSpanInfo"
+    <+> ppE srcInfoSpan
+    <+> pplist ppE srcInfoPoints <> ppE ")"
+  ppE (SrcSpanInfo srcInfoSpan srcInfoPoints) =
+        nest 2 $ ppE "(SrcSpanInfo" <> line
+    <+> ppE srcInfoSpan <> line
+    <+> pplist ppE srcInfoPoints <> ppE ")"
+  ppP _ = ppP ""
 
 instance PrettyAST SrcSpan where
-  ppE = pretty
-  ppP l = pretty ""
+  ppE (SrcSpan srcSpanFilename srcSpanStartLine srcSpanStartColumn srcSpanEndLiine srcSpanEndColumn) =
+       ppE "(SrcSpan "
+    <> ppE srcSpanFilename
+    <> ppE "@(" <> ppE srcSpanStartLine <> comma <> ppE srcSpanStartColumn <> ppE ")-"
+    <> ppE "(" <> ppE srcSpanEndLiine <> comma <> ppE srcSpanEndColumn <> ppE ")"
+    <> ppE ")"
+  ppP _ = ppP ""

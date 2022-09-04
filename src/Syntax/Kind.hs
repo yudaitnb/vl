@@ -9,12 +9,8 @@ data Kind
 
 -----------------------
 
-instance Pretty Kind where
-  pretty TypeKind = pretty "Type"
-  pretty LabelsKind = pretty "Labels"
-
------------------------
-
 instance PrettyAST Kind where
-  ppE = pretty
-  ppP = pretty
+  ppE TypeKind = ppE "Type"
+  ppE LabelsKind = ppE "Labels"
+  ppP TypeKind = ppP "Type"
+  ppP LabelsKind = ppP "Labels"
