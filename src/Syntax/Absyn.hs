@@ -1,292 +1,53 @@
 module Syntax.Absyn (
-  module Language.Haskell.Exts.SrcLoc,
   module Language.Haskell.Exts.Syntax,
   HasName(..),
   HasWhere(..),
-  decomposeDecl
+  -- PrettyAST(..),
+  decomposeDecl,
+  getImports, getDepEdge,
 ) where
 
-import Language.Haskell.Exts.Syntax
-import Language.Haskell.Exts.SrcLoc
+import Language.Haskell.Exts.Syntax hiding (Name, QName, ModuleName, Literal)
 
-import Prettyprinter
+import Syntax.Literal
+import Syntax.Name
+import Syntax.SrcLoc
 
-class HasName a where
-  getName :: a -> String
+import Util
+    ( exactPrint, line, (<+>), nest, parens, pplist, PrettyAST(..), emptyDoc )
+import Language.Haskell.Exts (exactPrint)
 
-instance HasName (Name l) where
-  getName (Ident _ str) = str
-  getName (Symbol _ str) = str
+getImports :: Module l -> [String]
+getImports (Module _ _ _ importDecls _) = map getName importDecls
+getImports _ = error "getImports is not defined in any syntax other than Module."
 
-instance HasName (QName l) where
-  getName (Qual _ _ name) = getName name
-  getName (UnQual _ name) = getName name
-  getName (Special _ _)   = error "SpecialCon does not have a name field."
+getDepEdge :: Module l -> [(String, String)]
+getDepEdge mod@(Module _ mh _ importDecls _) =
+  let imports = getImports mod
+      modname = maybe (error "This moudle does not have module name.") getName mh
+  in map (modname,) imports
+getDepEdge _ = error "getDepEdge is not defined in any syntax other than Module."
+
+instance HasName (Exp l) where
+  getName (Var _ qName) = getName qName
+  getName (Lit _ literal) = getName literal
+  getName _ = error "Expressions without Var/Literal do not have a name field." 
 
 instance HasName (Pat l) where
   getName (PVar _ name) = getName name
-  getName _             = "Patterns without PVar do not have a name field."
+  getName _             = error "Patterns without PVar do not have a name field."
 
-instance Pretty l => Pretty (Module l) where
-  pretty (Module srcLocInfo moduleHead _ importDecl decl) =
-        nest 2 $ pretty "(Module" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleHead <> line
-    <+> pretty importDecl <> line
-    <+> pretty decl <> pretty ")"
-  pretty _ = pretty "(Unknown - Module)"
+instance HasName (ImportDecl l) where
+  getName (ImportDecl _ importModule _ _ _ _ _ _) = getName importModule
 
-instance Pretty l => Pretty (ModuleHead l) where
-  pretty (ModuleHead srcLocInfo moduleName _ exportSpecList) =
-        nest 2 $ pretty "(ModuleHead " <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> line
-    <+> pretty exportSpecList <> pretty ")"
+instance HasName (ModuleHead l) where
+  getName (ModuleHead _ moduleName _ _) = getName moduleName
 
-instance Pretty l => Pretty (ExportSpecList l) where
-  pretty (ExportSpecList srcLocInfo exportSpec) =
-        nest 2 $ pretty "(ExportSpecList" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exportSpec <> pretty ")"
+instance HasName (Module l) where
+  getName (Module _ mh _ _ _) = maybe (error "") getName mh
+  getName _ = error "getName function is not defined for a given expresion."
 
-instance Pretty l => Pretty (ExportSpec l) where
-  pretty (EVar srcLocInfo qName) =
-        nest 2 $ pretty "(EVar" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty qName <> pretty ")"
-  pretty (EAbs srcLocInfo nameSpace qName) =
-        nest 2 $ pretty "(EAbs" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty nameSpace <> line
-    <+> pretty qName <> pretty ")"
-  pretty (EModuleContents srcLocInfo moduleName) =
-        nest 2 $ pretty "(EModuleContents" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> pretty ")"
-  pretty _ = pretty "(Unknown - ExportSpec)"
-
-instance Pretty l => Pretty (ModuleName l) where
-  pretty (ModuleName srcLocInfo str) =
-        nest 2 $ pretty "(ModuleName" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty str <> pretty ")"
-
-instance Pretty l => Pretty (ImportDecl l) where
-  pretty (ImportDecl srcLocInfo importModule importQualified importSrc importSafe importPkg importAs importSpecs) =
-        nest 2 $ pretty "(ImportDecl" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty importModule <> line
-    <+> pretty importQualified <> line
-    <+> pretty importSrc <> line
-    <+> pretty importSafe <> line
-    <+> pretty importPkg <> line
-    <+> pretty importAs <> line
-    <+> pretty importSpecs <> pretty ")"
-
-instance Pretty l => Pretty (ImportSpecList l) where
-  pretty (ImportSpecList srcLocInfo bool importSpecs) =
-        nest 2 $ pretty "(ImportSpecList" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty bool <> line
-    <+> pretty importSpecs <> pretty ")"
-
-instance Pretty l => Pretty (ImportSpec l) where
-  pretty (IVar srcLocInfo name) =
-        nest 2 $ pretty "(IVar" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  pretty (IAbs srcLocInfo namespace name) =
-        nest 2 $ pretty "(IAbs" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty namespace <> line
-    <+> pretty name <> pretty ")"
-  pretty _ = pretty "(Unknown- ImportSpec)"
-
-instance Pretty l => Pretty (Namespace l)  where
-  pretty (NoNamespace srcLocInfo) =
-        pretty "(NoNamespace" <> line
-    <+> pretty srcLocInfo
-    <> pretty ")"
-  pretty (TypeNamespace srcLocInfo) =
-        pretty "(TypeNamespace" <> line
-    <+> pretty srcLocInfo
-    <> pretty ")"
-  pretty (PatternNamespace srcLocInfo) =
-        pretty "(PatternNamespace" <> line
-    <+> pretty srcLocInfo
-    <> pretty ")"
-
-instance Pretty l => Pretty (QName l) where
-  pretty (Qual srcLocInfo moduleName name) =
-        nest 2 $ pretty "(Qual" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty moduleName <> line
-    <+> pretty name <> pretty ")"
-  pretty (UnQual srcLocInfo name) =
-        nest 2 $ pretty "(UnQual" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  pretty _ = pretty "(Unknown - QName)"
-
-instance Pretty l => Pretty (Name l) where
-  pretty (Ident srcLocInfo string) =
-        nest 2 $ pretty "(Ident" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty (Symbol srcLocInfo string) =
-        nest 2 $ pretty "(Symbol" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-
-instance Pretty l => Pretty (Decl l) where
-  pretty (FunBind srcLocInfo match) =
-        nest 2 $ pretty "(FunBind" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty match <> pretty ")"
-  pretty (PatBind srcLocInfo pat rhd binds) =
-        nest 2 $ pretty "(PatBind" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty pat <> line
-    <+> pretty rhd <> line
-    <+> pretty binds <> pretty ")"
-  pretty _ = pretty "(Unknown - Decl)"
-
-instance Pretty l => Pretty (Pat l) where
-  pretty (PVar srcLocInfo name) =
-        nest 2 $ pretty "(PVar" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> pretty ")"
-  pretty (PLit srcLocInfo sign literal) =
-        nest 2 $ pretty "(PLit" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty sign <> line
-    <+> pretty literal <> pretty ")"
-  pretty (PWildCard srcLocInfo) =
-        nest 2 $ pretty "(PWildCard" <> line
-    <+> pretty srcLocInfo
-    <> pretty ")"
-  pretty _ = pretty "(Unknown - Pat)"
-
-instance Pretty l => Pretty (Match l) where
-  pretty (Match srcLocInfo name pat rhs binds) =
-        nest 2 $ pretty "(Match" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty name <> line
-    <+> pretty pat <> line
-    <+> pretty rhs <> line
-    <+> pretty binds <> pretty ")"
-  pretty _ = pretty "(Unknown - Match)"
-
-instance Pretty l => Pretty (Rhs l) where
-  pretty (UnGuardedRhs srcLocInfo exp) =
-        nest 2 $ pretty "(UnGuardedRhs" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp <> pretty ")"
-  pretty _ = pretty "(Unknown - Rhs)"
-
-instance Pretty l => Pretty (Binds l) where
-  pretty (BDecls srcLocInfo decl) =
-        nest 2 $ pretty "(BDecls" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty decl <> pretty ")"
-  pretty _ = pretty "(Unknown - Binds)"
-
-instance Pretty l => Pretty (Sign l) where
-  pretty (Signless srcLocInfo) =
-        pretty "(Signless" <> line
-    <+> pretty srcLocInfo <> pretty ")"
-  pretty (Negative srcLocInfo) =
-        pretty "(Negative" <> line
-    <+> pretty srcLocInfo <> pretty ")"
-
-instance Pretty l => Pretty (Literal l) where
-  pretty (Char srcLocInfo char string) =
-        nest 2 $ pretty "(Char" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\'" <> pretty char
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty (String srcLocInfo string1 string2) =
-        nest 2 $ pretty "(String" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty "\"" <> pretty string1 <> pretty "\""
-    <+> pretty "\"" <> pretty string2 <> pretty "\"" <> pretty ")"
-  pretty (Int srcLocInfo integer string) =
-        nest 2 $ pretty "(Int" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty integer
-    <+> pretty "\"" <> pretty string <> pretty "\"" <> pretty ")"
-  pretty _ = pretty "(Unknown - Literal)"
-
-instance Pretty l => Pretty (Exp l) where
-  pretty (Var srcLocInfo qname) =
-        nest 2 $ pretty "(Var" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty qname <> pretty ")"
-  pretty (Lit srcLocInfo literal) =
-        nest 2 $ pretty "(Lit" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty literal <> pretty ")"
-  pretty (App srcLocInfo exp1 exp2) =
-        nest 2 $ pretty "(App" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp1 <> line
-    <+> pretty exp2 <> pretty ")"
-  pretty (NegApp srcLocInfo exp) =
-        nest 2 $ pretty "(NegApp" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp <> pretty ")"
-  pretty (Let srcLocInfo binds exp) =
-        nest 2 $ pretty "(Let" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty binds <> line
-    <+> pretty exp <> pretty ")"
-  pretty (If srcLocInfo exp1 exp2 exp3) =
-        nest 2 $ pretty "(If" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp1 <> line
-    <+> pretty exp2 <> line
-    <+> pretty exp3  <> pretty ")"
-  pretty (Lambda srcLocInfo pats exp) =
-        nest 2 $ pretty "(Lambda" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty pats <> line
-    <+> pretty exp <> pretty ")"
-  pretty (InfixApp srcLocInfo exp1 qOp exp2) =
-        nest 2 $ pretty "(InfixApp" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty exp1 <> line
-    <+> pretty qOp <> line
-    <+> pretty exp2 <> pretty ")"
-  pretty _ = pretty "(Unknown - Exp)"
-
-instance Pretty SrcSpanInfo where
-  pretty (SrcSpanInfo srcInfoSpan srcInfoPoints@[]) =
-        pretty "(SrcSpanInfo"
-    <+> pretty srcInfoSpan
-    <+> pretty srcInfoPoints <> pretty ")"
-  pretty (SrcSpanInfo srcInfoSpan srcInfoPoints) =
-        nest 2 $ pretty "(SrcSpanInfo" <> line
-    <+> pretty srcInfoSpan <> line
-    <+> pretty srcInfoPoints <> pretty ")"
-
-instance Pretty SrcSpan where
-  pretty (SrcSpan srcSpanFilename srcSpanStartLine srcSpanStartColumn srcSpanEndLiine srcSpanEndColumn) =
-       pretty "(SrcSpan "
-    <> pretty srcSpanFilename
-    <> pretty "@(" <> pretty srcSpanStartLine <> pretty ":" <> pretty srcSpanStartColumn <> pretty ")-"
-    <> pretty "(" <> pretty srcSpanEndLiine <> pretty ":" <> pretty srcSpanEndColumn <> pretty ")"
-    <> pretty ")"
-
-instance Pretty l => Pretty (QOp l) where
-  pretty (QVarOp srcLocInfo qName) =
-        nest 2 $ pretty "(QVarOp" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty qName <> pretty ")"
-  pretty (QConOp srcLocInfo qName) =
-        nest 2 $ pretty "(QConOp" <> line
-    <+> pretty srcLocInfo <> line
-    <+> pretty qName <> pretty ")"
-
+----------------------
 
 class HasWhere a where
   rmWhere :: a -> a
@@ -320,4 +81,245 @@ decomposeDecl = concatMap decompose
     decompose (FunBind l [])     = []
     decompose (FunBind l (m:ms)) = FunBind l [m] : decompose (FunBind l ms)
     decompose pb@(PatBind {})    = [pb]
+    -- decompose (InfixDecl l (Assoc l) (Maybe Int) [Op l])
     decompose _ = error "Declarations other than FunBind/PatBind exist."
+
+---------------------
+--  Pretty printer --
+---------------------
+
+instance PrettyAST (Module SrcSpanInfo) where
+  ppE (Module srcLocInfo moduleHead _ importDecl decl) =
+        nest 2 $ parens $ ppE "Module" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleHead <> line
+    <+> pplist ppE importDecl <> line
+    <+> pplist ppE decl
+  ppE _ = ppE "(Unknown - Module)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (ModuleHead SrcSpanInfo) where
+  ppE (ModuleHead srcLocInfo moduleName _ exportSpecList) =
+        nest 2 $ parens $ ppE "ModuleHead " <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleName <> line
+    <+> ppE exportSpecList
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (ExportSpecList SrcSpanInfo) where
+  ppE (ExportSpecList srcLocInfo exportSpec) =
+        nest 2 $ parens $ ppE "ExportSpecList" <> line
+    <+> ppE srcLocInfo <> line
+    <+> pplist ppE exportSpec
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (ExportSpec SrcSpanInfo) where
+  ppE (EVar srcLocInfo qName) =
+        nest 2 $ parens $ ppE "EVar" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qName
+  ppE (EAbs srcLocInfo nameSpace qName) =
+        nest 2 $ parens $ ppE "EAbs" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE nameSpace <> line
+    <+> ppE qName
+  ppE (EModuleContents srcLocInfo moduleName) =
+        nest 2 $ parens $ ppE "EModuleContents" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE moduleName
+  ppE _ = ppE "(Unknown - ExportSpec)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (ImportDecl SrcSpanInfo) where
+  ppE (ImportDecl srcLocInfo importModule importQualified importSrc importSafe importPkg importAs importSpecs) =
+        nest 2 $ parens $ ppE "ImportDecl" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE importModule <> line
+    <+> ppE importQualified <> line
+    <+> ppE importSrc <> line
+    <+> ppE importSafe <> line
+    <+> ppE importPkg <> line
+    <+> ppE importAs <> line
+    <+> ppE importSpecs
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (ImportSpecList SrcSpanInfo) where
+  ppE (ImportSpecList srcLocInfo bool importSpecs) =
+        nest 2 $ parens $ ppE "ImportSpecList" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE bool <> line
+    <+> pplist ppE importSpecs
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (ImportSpec SrcSpanInfo) where
+  ppE (IVar srcLocInfo name) =
+        nest 2 $ parens $ ppE "IVar" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE name
+  ppE (IAbs srcLocInfo namespace name) =
+        nest 2 $ parens $ ppE "IAbs" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE namespace <> line
+    <+> ppE name
+  ppE _ = ppE "(Unknown- ImportSpec)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (Namespace SrcSpanInfo)  where
+  ppE (NoNamespace srcLocInfo) =
+        parens $ ppE "NoNamespace" <> line
+    <+> ppE srcLocInfo
+  ppE (TypeNamespace srcLocInfo) =
+        parens $ ppE "TypeNamespace" <> line
+    <+> ppE srcLocInfo
+  ppE (PatternNamespace srcLocInfo) =
+        parens $ ppE "PatternNamespace" <> line
+    <+> ppE srcLocInfo
+
+instance PrettyAST (Decl SrcSpanInfo) where
+  ppE (FunBind srcLocInfo match) =
+        nest 2 $ parens $ ppE "FunBind" <> line
+    <+> ppE srcLocInfo <> line
+    <+> pplist ppE match
+  ppE (PatBind srcLocInfo pat rhd binds) =
+        nest 2 $ parens $ ppE "PatBind" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE pat <> line
+    <+> ppE rhd <> line
+    <+> ppE binds
+  ppE _ = ppE "(Unknown - Decl)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (Pat SrcSpanInfo) where
+  ppE (PVar srcLocInfo name) =
+        nest 2 $ parens $ ppE "PVar" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE name
+  ppE (PLit srcLocInfo sign literal) =
+        nest 2 $ parens $ ppE "PLit" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE sign <> line
+    <+> ppE literal
+  ppE (PWildCard srcLocInfo) =
+        nest 2 $ parens $ ppE "PWildCard" <> line
+    <+> ppE srcLocInfo
+  ppE _ = ppE "(Unknown - Pat)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (Match SrcSpanInfo) where
+  ppE (Match srcLocInfo name pat rhs binds) =
+        nest 2 $ parens $ ppE "Match" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE name <> line
+    <+> pplist ppE pat <> line
+    <+> ppE rhs <> line
+    <+> ppE binds
+  ppE _ = ppE "(Unknown - Match)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (Rhs SrcSpanInfo) where
+  ppE (UnGuardedRhs srcLocInfo exp) =
+        nest 2 $ parens $ ppE "UnGuardedRhs" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp
+  ppE _ = ppE "(Unknown - Rhs)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (Binds SrcSpanInfo) where
+  ppE (BDecls srcLocInfo decl) =
+        nest 2 $ parens $ ppE "BDecls" <> line
+    <+> ppE srcLocInfo <> line
+    <+> pplist ppE decl
+  ppE _ = ppE "(Unknown - Binds)"
+  ppP m = ppP $ exactPrint m []
+
+instance (PrettyAST l) => PrettyAST (VBinds l) where
+  ppE (VBinds srcLocInfo lst) =
+        nest 2 $ parens $ ppE "VBinds" <> line
+    <+> ppE srcLocInfo <> line
+    <+> pplist ppE lst
+  ppP (VBinds srcLocInfo lst) = ppP "VBinds" <+> pplist ppP lst
+
+instance (PrettyAST l) => PrettyAST (VBind l) where
+  ppE (VBind srcLocInfo mn v) =
+        nest 2 $ parens $ ppE "VBind" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE mn <> line
+    <+> ppE v
+  ppP (VBind _ mn v) = ppP "VBind" <+> ppP mn <+> ppP v
+
+instance (PrettyAST l) => PrettyAST (VersionNumber l) where
+  ppE (VersionNumber srcLocInfo major minor patch) =
+        nest 2 $ parens $ ppE "VersionNumber" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE major <> line
+    <+> ppE minor <> line
+    <+> ppE patch
+  ppP (VersionNumber srcLocInfo major minor patch) = ppP major <> ppP "." <> ppP minor <> ppP "." <> ppP patch
+
+instance (PrettyAST l) => PrettyAST (Sign l) where
+  ppE (Signless srcLocInfo) =
+        parens $ ppE "Signless" <> line
+    <+> ppE srcLocInfo
+  ppE (Negative srcLocInfo) =
+        parens $ ppE "Negative" <> line
+    <+> ppE srcLocInfo
+  ppP (Signless _) = emptyDoc
+  ppP (Negative _) = ppP "-"
+
+instance PrettyAST (Exp SrcSpanInfo) where
+  ppE (Var srcLocInfo qname) =
+        nest 2 $ parens $ ppE "Var" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qname
+  ppE (Lit srcLocInfo literal) =
+        nest 2 $ parens $ ppE "Lit" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE literal
+  ppE (App srcLocInfo exp1 exp2) =
+        nest 2 $ parens $ ppE "App" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp1 <> line
+    <+> ppE exp2
+  ppE (NegApp srcLocInfo exp) =
+        nest 2 $ parens $ ppE "NegApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp
+  ppE (Let srcLocInfo binds exp) =
+        nest 2 $ parens $ ppE "Let" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE binds <> line
+    <+> ppE exp
+  ppE (If srcLocInfo exp1 exp2 exp3) =
+        nest 2 $ parens $ ppE "If" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp1 <> line
+    <+> ppE exp2 <> line
+    <+> ppE exp3 
+  ppE (Lambda srcLocInfo pats exp) =
+        nest 2 $ parens $ ppE "Lambda" <> line
+    <+> ppE srcLocInfo <> line
+    <+> pplist ppE pats <> line
+    <+> ppE exp
+  ppE (InfixApp srcLocInfo exp1 qOp exp2) =
+        nest 2 $ parens $ ppE "InfixApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp1 <> line
+    <+> ppE qOp <> line
+    <+> ppE exp2
+  ppE (Paren srcLocInfo e) =
+        nest 2 $ parens $ ppE "Paren" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE e
+  ppE _ = ppE "(Unknown - Exp)"
+  ppP m = ppP $ exactPrint m []
+
+instance PrettyAST (QOp SrcSpanInfo) where
+  ppE (QVarOp srcLocInfo qName) =
+        nest 2 $ parens $ ppE "QVarOp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qName
+  ppE (QConOp srcLocInfo qName) =
+        nest 2 $ parens $ ppE "QConOp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qName
+  ppP m = ppP $ exactPrint m []

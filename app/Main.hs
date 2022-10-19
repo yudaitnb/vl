@@ -1,57 +1,89 @@
 module Main where
 
-import System.FilePath ( splitFileName )
+import Control.Monad ( forM_, when )
+import Control.Monad.State ( execStateT, execState )
+import Data.Map ( (!), empty, elems )
+
+import System.Directory ( createDirectoryIfMissing )
+import System.FilePath ( splitFileName, splitExtension )
 import System.Environment ( getArgs )
 
-import Parser ( parseAST )
-import Language.Haskell.Exts.ExactPrint ( exactPrint )
--- import Syntax.LambdaVL
-import Syntax.Absyn
-import Desugar
-import Renamer
-import Girard ( girardFwd )
-import TypeInference
-import Util
-import Desugar
+import DependencyGraph
+import Compilation.Compile
+import Inference.TypeInference (TypedExp(..))
+import Syntax.Type (landC, tsortConstraints)
+import qualified Data.List
+import Syntax.Version (Version(..))
 
--- from hint
--- import qualified Language.Haskell.Interpreter as H
--- import Language.Haskell.Interpreter.Unsafe
+import Solver
+import Util
+import Data.List (nub)
+
+
+-- import qualified Language.Haskell.Interpreter as I
 
 main :: IO ()
 main = do
-  [path, func] <- getArgs
-  let (dir, fn) = splitFileName path
-      logdir = "./log/"
-      logfile = logdir ++ fn ++ ".log"
-      log :: Pretty a => a -> IO ()
-      log = logPpLn logfile
+  let rootDirPath = "./examples/"
+      logDirPath = "./log/"
+      extension = ".hs"
 
-  -- create log directory 
-  createDirectoryIfMissing False logdir
+  -- Get arguments from stdin
+  -- stack run "[ROOT].hs"
+  [filename] <- getArgs
+  let dir = rootDirPath
+      (fn, ext) = splitExtension filename
+
+  -- Logger utility
+  let logfile = logDirPath ++ fn ++ ".log"
+      logE :: PrettyAST a => a -> IO ()
+      logE = logPpLn ppE logfile
+      logP :: PrettyAST a => a -> IO ()
+      logP = logPpLn ppP logfile
+
+  -- Create log directory 
+  createDirectoryIfMissing False logDirPath
   removeFileIfExists logfile
 
-  -- output
-  ast <- parseAST path
-  log "\n=== Exactprint ==="
-  log $ exactPrint ast []
-  log "\n=== AST (Syntax.Absyn) ==="
-  print ast
-  log ast
-  -- log "=== Alpha renaming ==="
-  -- let ast_renamed = alphaRename ast
-  -- log ast_renamed
-  -- log "\n=== AST (Syntax.VL) ==="
-  -- let ast_vl = girardFwd ast_renamed
-  -- -- let ast_vl = girardFwd ast
-  -- log ast_vl
-  -- log "\n=== Types (Syntax.VL) ==="
-  -- let types = getInterface ast_vl
-  -- log types
+  -- Parse dependent modules and create dependency graph
+  (root, sorted, mapParsedAst) <- getDependencyGraph fn dir ext
+  let extMods = cvtExtMods sorted
+  logP "=== Compilation order ==="
+  logP sorted
 
-  log "\n=== Desugared AST (Syntax.STLC) ==="
-  let ast_desugared = desugarAST ast
-  log ast_desugared
+  let initCompEnv = CompileEnv' (tail sorted) 0 mapParsedAst empty empty empty empty logfile
+  env <- execStateT (compile $ head sorted) initCompEnv
+
+  logP "=== Compilation Result ==="
+  let result = (! root) $ globalTEnv env
+  logP result
+
+  logP "=== Constraints ==="
+  let consMain = foldl (\acc (TypedExp _ _ c _) -> c ++ acc) [] result
+      consDepMods = concat . elems $ bundledConstraints env
+      cons = tsortConstraints $ nub $ consMain `landC` consDepMods
+      -- [TODO] namedConstraintの名前が被らないように入れているnubが余計かもしれない
+      -- リソース変数が同じでも制約名を区別できるようになればnub不要
+  logP $ putDocString $ concatWith (surround $ comma <> line) $ Data.List.map ppP cons
+
+  logP "=== Solver result ==="
+  let fvCons = freeVars cons
+      maxWHeader = maximum $ Data.List.map Data.List.length fvCons
+      maxWItem = 7 -- [TODO]
+      printResult :: Int -> Int -> [(String, [(String, Version)])] -> IO ()
+      printResult maxWHeader maxWItem m = do
+        forM_ m $ \(v, res) -> do
+          let header = fill maxWHeader (ppP v) <+> ppP ":"
+              maintxt = concatWith (surround $ comma <> space) $ Data.List.map (\(mn, v) -> fill maxWItem $ ppP mn <> colon <> ppP v) res
+              doc = header <+> maintxt
+          logP $ putDocString doc
+
+  solve extMods cons >>= \case
+    Left (h,r)   -> do
+        logP h
+        logP $ putDocString $ concatWith (surround $ comma <> space) $ map ppP r
+    Right res -> printResult maxWHeader maxWItem res
+
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func
   -- putStrLn "=== Result value ( expects () ) ==="
@@ -74,3 +106,4 @@ main = do
 --   H.loadModules [path]
 --   H.setTopLevelModules [mod]
 --   H.setImportsQ [("Prelude", Nothing)]
+

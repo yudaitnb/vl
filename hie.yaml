@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "vl:lib"
+
+    - path: "./app/Main.hs"
+      component: "vl:exe:vl-exe"
+
+    - path: "./app/Paths_vl.hs"
+      component: "vl:exe:vl-exe"
+
+    - path: "./test"
+      component: "vl:test:vl-test"

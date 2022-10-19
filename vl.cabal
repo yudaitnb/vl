@@ -6,9 +6,9 @@ cabal-version: 1.12
 
 name:           vl
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/vl#readme>
-homepage:       https://github.com/githubuser/vl#readme
-bug-reports:    https://github.com/githubuser/vl/issues
+description:    Please see the README on GitHub at <https://github.com/yudaitnb/vl#readme>
+homepage:       https://github.com/yudaitnb/vl#readme
+bug-reports:    https://github.com/yudaitnb/vl/issues
 author:         Author name here
 maintainer:     example@example.com
 copyright:      2022 Author name here
@@ -21,32 +21,48 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/vl
+  location: https://github.com/yudaitnb/vl
 
 library
   exposed-modules:
-      Desugar
-      Girard
-      Kinding
+      Compilation.Bundling
+      Compilation.Compile
+      DependencyGraph
+      Graph
+      Inference.Kinding
+      Inference.PatternSynthesis
+      Inference.TypeInference
       Parser
-      PatternSynthesis
-      Renamer
+      Solver
       Syntax.Absyn
+      Syntax.Desugared
       Syntax.Env
       Syntax.Kind
+      Syntax.Label
       Syntax.LambdaVL
-      Syntax.STLC
+      Syntax.Literal
+      Syntax.Name
+      Syntax.SrcLoc
       Syntax.Substitution
       Syntax.Type
-      Syntax.VL
-      TypeInference
-      TypeSubstitution
-      TypeUnification
+      Syntax.Version
+      Translation.Desugar
+      Translation.Girard
+      Translation.Normalize
+      Translation.Promote
+      Translation.Renamer
       Util
   other-modules:
       Paths_vl
   hs-source-dirs:
       src
+  default-extensions:
+      LambdaCase
+      FlexibleInstances
+      LambdaCase
+      TypeFamilies
+      TupleSections
+      DeriveFunctor
   build-depends:
       base >=4.7 && <5
     , containers
@@ -55,6 +71,9 @@ library
     , haskell-src-exts
     , mtl
     , prettyprinter
+    , sbv
+    , split
+    , transformers
   default-language: Haskell2010
 
 executable vl-exe
@@ -63,6 +82,13 @@ executable vl-exe
       Paths_vl
   hs-source-dirs:
       app
+  default-extensions:
+      LambdaCase
+      FlexibleInstances
+      LambdaCase
+      TypeFamilies
+      TupleSections
+      DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -72,6 +98,9 @@ executable vl-exe
     , haskell-src-exts
     , mtl
     , prettyprinter
+    , sbv
+    , split
+    , transformers
     , vl
   default-language: Haskell2010
 
@@ -79,10 +108,17 @@ test-suite vl-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      PatternSynthesisSpec
+      SolverSpec
       Paths_vl
   hs-source-dirs:
       test
+  default-extensions:
+      LambdaCase
+      FlexibleInstances
+      LambdaCase
+      TypeFamilies
+      TupleSections
+      DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -93,5 +129,8 @@ test-suite vl-test
     , hspec
     , mtl
     , prettyprinter
+    , sbv
+    , split
+    , transformers
     , vl
   default-language: Haskell2010

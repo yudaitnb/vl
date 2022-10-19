@@ -3,7 +3,18 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    size: 1264252
+    url: https://github.com/yudaitnb/vl-haskell-src-exts/archive/d3591d04110e7c79ac5a42740f3b65935b3b1ae6.tar.gz
+    name: haskell-src-exts
+    version: 1.23.1
+    sha256: 5445f02d3dc4cb20464dd8b2d7960214536219ca8be7edea800d086271b0fc90
+    pantry-tree:
+      size: 101764
+      sha256: e26829b78cb5dc33d91084ef0a630bbc446d300bbe4b274e129bfc05246ad392
+  original:
+    url: https://github.com/yudaitnb/vl-haskell-src-exts/archive/d3591d04110e7c79ac5a42740f3b65935b3b1ae6.tar.gz
 snapshots:
 - completed:
     size: 619161
