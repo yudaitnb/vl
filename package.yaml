@@ -2,9 +2,9 @@ name:                vl
 version:             0.1.0.0
 github:              "yudaitnb/vl"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2022 Author name here"
+author:              "Yudai Tanabe"
+maintainer:          "yudaitnb@gmail.com"
+copyright:           "2022 Yudai Tanabe"
 
 extra-source-files:
 - README.md

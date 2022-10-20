@@ -25,7 +25,6 @@ import qualified Data.SBV.List as SL
 import Data.SBV.Control hiding (Version)
 import Data.SBV.Tuple (tuple, (^.), untuple)
 import Data.SBV.Set
-import Data.SBV.List hiding (length)
 import Data.SBV.Internals hiding (Label)
 import Data.SBV.Tools.BoundedList
 
@@ -59,12 +58,12 @@ runSolverEnv :: (Symbolic a -> t) -> SolverEnv a -> Env -> t
 runSolverEnv s (a :: SolverEnv a) (env :: Env) = s $ evalStateT (runEnvT a) env
 
 initEnv :: Env
-initEnv = Env [] Data.Map.empty [] [] 0 [] Data.Map.empty
+initEnv = Env CTop Data.Map.empty [] [] 0 [] Data.Map.empty
 
 mkSolverEnv :: Map String [Version] -> Constraints -> Env
 mkSolverEnv em cs =
   let mdnames = keys em
-      extMods = Data.Map.map (reverse . sort) em -- (TBD,) newest, 2nd newest, ...
+      extMods = Data.Map.map (Data.List.reverse . sort) em -- (TBD,) newest, 2nd newest, ...
       fvCons  = nub $ freeVars cs
       lenMods = Data.List.length $ keys extMods
       idxMods = zip mdnames [0..]
@@ -124,18 +123,17 @@ senarioSAT = do
   forM_ vars $ \(vn, xv) ->
     forM_ idxmods $ \(mn, id) ->
       let vers = Data.Map.keys $ idxvers ! mn
-          svers = implode $ Data.List.map fromIntegral $ Data.Map.elems $ idxvers ! mn
+          svers = SL.implode $ Data.List.map fromIntegral $ Data.Map.elems $ idxvers ! mn
           name = "The " ++ show id ++ "th element of " ++ vn ++ " must be in " ++ show vers
       -- ラベルxvのid番目の要素はsversに含まれる
-      in namedConstraint name $ (xv Data.SBV.List..!! fromIntegral id) `Data.SBV.List.elem` svers
+      in namedConstraint name $ (xv SL.!! fromIntegral id) `SL.elem` svers
   -- 全変数の長さはモジュールの数と同じ
   forM_ vars $ \(vn, xv) ->
-    let name = "variable " ++ show vn ++ " has length " ++ show l
-    in namedConstraint name $ SL.length xv .== fromIntegral l
-    -- constrain $ SL.length xv .== fromIntegral l
+    -- let name = "variable " ++ show vn ++ " has length " ++ show l
+    -- in namedConstraint name $ SL.length xv .== fromIntegral l
+    constrain $ SL.length xv .== fromIntegral l
   -- 型推論が生成した制約
   cons <- compileConstraints =<< gets constraints
-  forM_ cons $ uncurry namedConstraint
 
   lift $ query $ do
     cs <- checkSat
@@ -154,9 +152,9 @@ senarioOPT = do
   forM_ vars $ \(vn, xv) ->
     forM_ idxmods $ \(mn, id) ->
       let vers = Data.Map.keys $ idxvers ! mn
-          svers = implode $ Data.List.map fromIntegral $ Data.Map.elems $ idxvers ! mn
+          svers = SL.implode $ Data.List.map fromIntegral $ Data.Map.elems $ idxvers ! mn
           name = "The " ++ show id ++ "th element of " ++ vn ++ " must be in " ++ show vers
-      in namedConstraint name $ (xv Data.SBV.List..!! fromIntegral id) `Data.SBV.List.elem` svers
+      in namedConstraint name $ (xv SL.!! fromIntegral id) `SL.elem` svers
   -- 全変数の長さはモジュールの数と同じ
   forM_ vars $ \(vn, xv) ->
     -- let name = "variable " ++ show vn ++ " has length " ++ show l
@@ -164,7 +162,7 @@ senarioOPT = do
     constrain $ SL.length xv .== fromIntegral l
   -- 型推論が生成した制約
   cons <- compileConstraints =<< gets constraints
-  forM_ cons $ uncurry namedConstraint
+
   -- 複数の選択肢のうち最新版
   -- ラベル内の各要素(0->TBD, 1->newest, ..) の総和が最小
   let sumOfVersionNumbers :: [SList SVersion] -> SInteger
@@ -188,22 +186,42 @@ varsMap `lu` k = fromMaybe
   (error $ putDocString $ ppP "key :" <+> ppP k <> line <> ppP "map :" <+> ppP (show varsMap) <> line ) $
   Data.Map.lookup k varsMap
 
-compileConstraints :: Constraints -> SolverEnv [(String, SBool)]
+-- そう簡単ではない
+compileConstraints :: Constraints -> SolverEnv SBool
 compileConstraints cs = do
   vars <- Data.Map.fromList <$> gets variables
   l <- gets numberOfExternalModules
   let isSubsequenceOf' = isSubsequenceOf l
-  foldM (\acc (CSubset c1 c2) -> do
-    case c2 of
-      TyLabels labels -> do
-        let h = getName c1 ++ " <= " ++ putDocString (brackets $ ppP labels)
-        ls <- compileLabels c2
-        return $ ( h, foldl1 (.||) [ l `restrict` (vars `lu` getName c1) | l <- ls ] ) : acc
-      TyVar _ -> do
-        let h = getName c1 ++ " <= " ++ getName c2
-        return $ ( h, (vars `lu` getName c1) `isSubsequenceOf'` (vars `lu` getName c2) ) : acc
-      _ -> error "")
-    [] cs
+  case cs of
+    CSubset c1 c2 -> do
+      case c2 of
+        TyLabels labels -> do
+          let h = getName c1 ++ " <= " ++ putDocString (brackets $ ppP labels)
+          ls <- compileLabels c2
+          let compiled = foldl1 (.||) [ l `restrict` (vars `lu` getName c1) | l <- ls ]
+          -- namedConstraint h compiled
+          constrain compiled
+          return compiled
+        TyVar _ -> do
+          let h = getName c1 ++ " <= " ++ getName c2
+              compiled = (vars `lu` getName c1) `isSubsequenceOf'` (vars `lu` getName c2)
+          -- namedConstraint h compiled
+          constrain compiled
+          return compiled
+        _ -> error ""
+    CAnd c1 c2 -> do
+      let h = putDocString $ ppP cs
+      compiled <- (.&&) <$> compileConstraints c1 <*> compileConstraints c2
+      -- namedConstraint h compiled
+      constrain compiled
+      return compiled
+    COr c1 c2 -> do
+      let h = putDocString $ ppP cs
+      compiled <- (.||) <$> compileConstraints c1 <*> compileConstraints c2
+      -- namedConstraint h compiled
+      constrain compiled
+      return compiled
+    CTop -> return sTrue
 
 ---------------------
 
@@ -338,3 +356,5 @@ instance (SolverContext m, Monad m) => SolverContext (EnvT m) where
   addAxiom s ss = lift $ addAxiom s ss
   contextState :: (SolverContext m, Monad m) => EnvT m Data.SBV.Internals.State
   contextState = lift contextState
+  addSMTDefinition :: (SolverContext m, Monad m) => String -> [String] -> EnvT m ()
+  addSMTDefinition s ss = lift $ addAxiom s ss

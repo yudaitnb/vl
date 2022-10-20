@@ -129,10 +129,10 @@ kind ty = do
       putKindingLog sigma ty result
       return result
     
-    CSubset c1 c2 -> do
-      sigma <- gets uEnv
-      hasLabelsKind c1
-      hasLabelsKind c2
-      let result = ConstraintKind
-      putKindingLog sigma ty result
-      return result
+    -- CSubset c1 c2 -> do
+    --   sigma <- gets uEnv
+    --   hasLabelsKind c1
+    --   hasLabelsKind c2
+    --   let result = ConstraintKind
+    --   putKindingLog sigma ty result
+    --   return result

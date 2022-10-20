@@ -1,13 +1,14 @@
 module Syntax.Type (
   ModuleName(..), QName(..), Name(..),
-  Coeffect, Type(..), Constraint(..), Constraints(..), emptyConstraints, landC,
+  Coeffect, Type(..), 
+  --Constraint(..), 
+  Constraints(..), emptyConstraints, landC,
   consOn, isClosed,
   coeff0, coeff1,
   tyint, tybool, tychar,
   (.+), (.*), (.<),
   HasName(..),
   tySym,
-  tsortConstraints,
 ) where
 
 import Data.Map ( Map, toList, union )
@@ -47,14 +48,6 @@ instance HasName Type where
   getName _ = error "The getName function is not defined for a given expresion."
 
 type Coeffect = Type
-type Constraint = Type
-type Constraints = [Constraint]
-
-emptyConstraints :: Constraints
-emptyConstraints = []
-
-landC :: Constraints -> Constraints -> Constraints
-landC c1 c2 = c1 ++ c2 -- [TODO]
 
 -- | A type qualified with a context.
 --   An unqualified type has an empty context.
@@ -65,11 +58,36 @@ data Type
   | TyBox Coeffect Type -- ^ promoted types / □_r A
   | TyBottom            -- ^ coeffect / coeffect-0
   | TyLabels Labels -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
-  -- | TyLabels Labels
   | CAdd Coeffect Coeffect -- ^ A constraint gnerated by (.+) when either of the coeffs is a type variable
   | CMul Coeffect Coeffect -- ^ A constraint gnerated by (.*) when either of the coeffs is a type variable
-  | CSubset Coeffect Coeffect -- ^ A constraint note that c1 ≤ c2
+  -- | CSubset Coeffect Coeffect -- ^ A constraint note that c1 ≤ c2
   deriving (Ord,Show)
+
+-- type Constraint = Type
+-- type Constraints = [Constraint]
+
+-- landC :: Constraints -> Constraints -> Constraints
+-- landC c1 c2 = c1 ++ c2 -- [TODO]
+
+data Constraints
+  = CSubset Coeffect Coeffect
+  | CAnd Constraints Constraints
+  | COr Constraints Constraints
+  | CTop
+  deriving (Show)
+
+emptyConstraints :: Constraints
+emptyConstraints = CTop
+
+landC :: Constraints -> Constraints -> Constraints
+landC CTop c2 = c2
+landC c1 CTop = c1
+landC c1 c2   = CAnd c1 c2
+
+lorC :: Constraints -> Constraints -> Constraints
+lorC CTop _ = CTop
+lorC _ CTop = CTop
+lorC c1 c2  = COr c1 c2
 
 instance Eq Type where
   TyVar n1 == TyVar n2 = getName n1 == getName n2
@@ -80,7 +98,7 @@ instance Eq Type where
   TyLabels l == TyLabels l' = l == l'
   CAdd c1 c2 == CAdd c1' c2' = c1 == c1' && c2 == c2'
   CMul c1 c2 == CMul c1' c2' = c1 == c1' && c2 == c2'
-  CSubset c1 c2 == CSubset c1' c2' = c1 == c1' && c2 == c2'
+  -- CSubset c1 c2 == CSubset c1' c2' = c1 == c1' && c2 == c2'
   t1 == t2 = False  
 
 tySym :: Type -> Type -> Bool
@@ -92,7 +110,7 @@ tySym TyBottom TyBottom = True
 tySym (TyLabels l) (TyLabels l') = l == l'
 tySym (CAdd c1 c2) (CAdd c1' c2') = tySym c1 c1' && tySym c2 c2'
 tySym (CMul c1 c2) (CMul c1' c2') = tySym c1 c1' && tySym c2 c2'
-tySym (CSubset c1 c2) (CSubset c1' c2') = tySym c1 c1' && tySym c2 c2'
+-- tySym (CSubset c1 c2) (CSubset c1' c2') = tySym c1 c1' && tySym c2 c2'
 tySym t1 t2 = False  
 
 tyint :: Type
@@ -126,7 +144,16 @@ instance HasVar Type where
         CAdd c1 c2  -> freeTyVars' c1 ++ freeTyVars' c2
         CMul c1 c2  -> freeTyVars' c1 ++ freeTyVars' c2
         -- Constraints
-        CSubset c1 c2 -> freeTyVars' c1 ++ freeTyVars' c2
+        -- CSubset c1 c2 -> freeTyVars' c1 ++ freeTyVars' c2
+  freeVars' = freeVars
+  vars  = freeVars
+
+instance HasVar Constraints where
+  freeVars cs = case cs of
+    CTop          -> []
+    CSubset c1 c2 -> nub $ freeVars c1 ++ freeVars c2
+    CAnd c1 c2    -> nub $ freeVars c1 ++ freeVars c2
+    COr c1 c2     -> nub $ freeVars c1 ++ freeVars c2
   freeVars' = freeVars
   vars  = freeVars
 
@@ -146,7 +173,7 @@ consOn ty = nub $ consOn' ty
       CAdd c1 c2  -> consOn' c1 ++ consOn' c2
       CMul c1 c2  -> consOn' c1 ++ consOn' c2
       -- Constraints
-      CSubset c1 c2 -> consOn' c1
+      -- CSubset c1 c2 -> consOn' c1
 
 isClosed :: Type -> Bool
 isClosed ty = Data.List.null $ freeVars ty
@@ -180,17 +207,6 @@ isClosed ty = Data.List.null $ freeVars ty
 (.<) (TyLabels s1) (TyLabels s2) = s1 `isSubsetOf` s2
 (.<) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
-tsortConstraints :: Constraints -> Constraints
-tsortConstraints cs = tsortBy g getN cs
-  where
-    nodes = nub $ concatMap freeVars cs
-    edges = distEdges $ Data.List.map makeE cs
-    g = Graph (nodes, edges)
-    makeE (CSubset (TyVar n1) c2) = (getName n1, freeVars c2)
-    makeE _ = error "tsortConstraints : makeE"
-    getN (CSubset (TyVar n1) _) = getName n1
-    getN _ = error "tsortConstraints : getN"
-
 -------------------------
 
 instance PrettyAST Type where
@@ -217,10 +233,10 @@ instance PrettyAST Type where
         nest 2 $ ppE "(CMul" <> line
     <+> ppE c1 <> line
     <+> ppE c2 <> ppE ")"
-  ppE (CSubset c1 c2) =
-        nest 2 $ ppE "(CSubset" <> line
-    <+> ppE c1 <> line
-    <+> ppE c2 <> ppE ")"
+  -- ppE (CSubset c1 c2) =
+  --       nest 2 $ ppE "(CSubset" <> line
+  --   <+> ppE c1 <> line
+  --   <+> ppE c2 <> ppE ")"
   -- ^ Types
   ppP (TyCon qName) = ppP qName
   ppP (TyFun t1 t2) = parens $ ppP t1 <+> ppP "->" <+> ppP t2
@@ -234,7 +250,7 @@ instance PrettyAST Type where
   ppP (CAdd c1 c2) = ppP c1 <+> ppP ".+" <+> ppP c2
   ppP (CMul c1 c2) = ppP c1 <+> ppP ".*" <+> ppP c2
   -- ^ Constraints
-  ppP (CSubset c1 c2) = ppP c1 <+> ppP "≤" <+> ppP c2
+  -- ppP (CSubset c1 c2) = ppP c1 <+> ppP "≤" <+> ppP c2
 
 instance PrettyAST QName where
   ppE (Qual modName qName) =
@@ -255,8 +271,20 @@ instance PrettyAST ModuleName where
   ppE (ModuleName str) = nest 2 $ parens $ ppE "ModuleName" <+> ppE str
   ppP (ModuleName str) = ppP str
 
+-- instance PrettyAST Constraints where
+--   ppE [] = ppE "⊤" -- [TODO]
+--   ppE cs = concatWith (surround $ comma <> space) $ Data.List.map ppP cs
+--   ppP [] = ppP "⊤"
+--   ppP cs = concatWith (surround $ comma <> space) $ Data.List.map ppP cs
+
 instance PrettyAST Constraints where
-  ppE [] = ppE "⊤" -- [TODO]
-  ppE cs = concatWith (surround $ comma <> space) $ Data.List.map ppP cs
-  ppP [] = ppP "⊤"
-  ppP cs = concatWith (surround $ comma <> space) $ Data.List.map ppP cs
+  ppE cs = case cs of
+    CTop -> ppE "⊤"
+    CSubset c1 c2 -> ppE c1 <+> ppE "≤" <+> ppE c2
+    CAnd c1 c2 -> ppE c1 <+> ppE "and" <+> ppE c2
+    COr c1 c2 -> parens (ppE c1) <+> ppE "or" <+> parens (ppE c2)
+  ppP cs = case cs of
+    CTop -> ppP "⊤"
+    CSubset c1 c2 -> ppP c1 <+> ppP "≤" <+> ppP c2
+    CAnd c1 c2 -> ppP c1 <+> ppP "and" <+> ppP c2
+    COr c1 c2 -> parens (ppP c1) <+> ppP "or" <+> parens (ppP c2)

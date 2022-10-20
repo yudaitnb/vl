@@ -134,14 +134,14 @@ gradeTEnv = Data.Map.map gradeTy
 
 -- genConstraintByと不等号が逆
 genConstraint :: Coeffect -> TEnv -> Constraints
-genConstraint c = Data.Map.foldl (\acc envty -> genCon c envty : acc) []
+genConstraint c = Data.Map.foldl (\acc envty -> genCon c envty `landC` acc) CTop
   where
     genCon _ (NType _ _) = error "genConstraint: `genCon` cannot produce constraints from NType."
     genCon c1 (GrType _ _ c2) = CSubset c1 c2
 
 -- genConstraintと不等号が逆
 genConstraintBy :: Coeffect -> TEnv -> Constraints
-genConstraintBy c = Data.Map.foldl (\acc envty -> genConBy c envty : acc) []
+genConstraintBy c = Data.Map.foldl (\acc envty -> genConBy c envty `landC` acc) CTop
   where
     genConBy c (NType _ _) = error "genConstraintBy: `genCon` cannot produce constraints from NType."
     genConBy c1 (GrType _ _ c2) = CSubset c2 c1

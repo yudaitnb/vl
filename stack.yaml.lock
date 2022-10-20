@@ -17,8 +17,7 @@ packages:
     url: https://github.com/yudaitnb/vl-haskell-src-exts/archive/d3591d04110e7c79ac5a42740f3b65935b3b1ae6.tar.gz
 snapshots:
 - completed:
-    size: 619161
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/17.yaml
-    sha256: 7f47507fd037228a8d23cf830f5844e1f006221acebdd7cb49f2f5fb561e0546
-  original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/17.yaml
+    size: 644482
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/10/18.yaml
+    sha256: 895204e9116cba1f32047525ec5bad7423216587706e5df044c4a7c191a5d8cb
+  original: nightly-2022-10-18

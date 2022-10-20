@@ -15,11 +15,12 @@ main = let xx = (unversion (g a))
            yy = (unversion (h a))
        in xx + yy -- Rejected
 
--- a67 <= (B:1.0.0), (bundled w)
--- a103 <= a80, a80 <= a79, a79 <= a68, a68 <= (B:1.0.0), (B:1.0.1), (bundled y)
--- a103 <= a65, a65 <= (B:1.0.0), (bundled g)
--- a97 <= a80, a80 <= a79, a79 <= a68, a68 <= (B:1.0.0), (B:1.0.1), (bundled y)
--- a97 <= a66, a66 <= (B:1.0.1), (bundled h)
+-- 0. 各モジュールの各バージョンの型検査が終わった後に一回z3で制約を解き、最般型を求める (型だけが同型であればよい)
+-- 1. 型検査の前に各外部モジュール変数の名前を区別し、TEnv中にそれらをコピーする（制約はどうする？）
+-- 2. バンドリング：
+--    a_bundled <= av1 && a_bundled <= av2 && a_bundled <= [Av1,Av2] ではなく、
+--    ((a_bundled <= av1) || (a_bundled <= av2)) && a_bundled <= [Av1,Av2]
+-- 3. コンパイルバックのために全てのシンボルについてベクトルを保存する
 
 -- a : [...]_{a0}
 -- old

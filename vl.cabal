@@ -9,9 +9,9 @@ version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/yudaitnb/vl#readme>
 homepage:       https://github.com/yudaitnb/vl#readme
 bug-reports:    https://github.com/yudaitnb/vl/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2022 Author name here
+author:         Yudai Tanabe
+maintainer:     yudaitnb@gmail.com
+copyright:      2022 Yudai Tanabe
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -50,6 +50,7 @@ library
       Translation.Girard
       Translation.Normalize
       Translation.Promote
+      Translation.RenameExVars
       Translation.Renamer
       Util
   other-modules:

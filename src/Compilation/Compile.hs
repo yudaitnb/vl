@@ -14,13 +14,12 @@ import Syntax.Label
 
 import Translation.Desugar (desugarAST)
 import Translation.Girard (girardFwd)
-import Translation.Renamer (alphaRename)
 import Inference.TypeInference (getInterface, TypedExp)
 import Compilation.Bundling
 
 import DependencyGraph
 import Util
-import Syntax.Type (Type(..), Constraints, landC)
+import Syntax.Type (Type(..), Constraints(..), landC)
 import Syntax.Version (Version(Root))
 import Translation.Promote
 import Translation.Normalize (normalize)
@@ -82,7 +81,7 @@ genEnvFromImports modules = do
                               , accC `landC` c))
                             ( emptyEnv :: TEnv
                             , emptyEnv :: UEnv
-                            , [])
+                            , CTop)
                             envs
   return (newTEnv, newUEnv, newCons)
   where
