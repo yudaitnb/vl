@@ -1,4 +1,5 @@
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Syntax.Substitution where
 
 import Data.Maybe (fromMaybe)
@@ -124,10 +125,20 @@ typeSubstitution s_table ty =
       let c1' = tysubst c1
           c2' = tysubst c2
       in CMul c1' c2'
-    CSubset c1 c2 ->
-      let c1' = tysubst c1
-          c2' = tysubst c2
-      in CSubset c1' c2'
+    -- CSubset c1 c2 ->
+    --   let c1' = tysubst c1
+    --       c2' = tysubst c2
+    --   in CSubset c1' c2'
+
+constraintsSubstitution :: Subst -> Constraints -> Constraints
+constraintsSubstitution s_table cs =
+  let tySubst = typeSubstitution s_table
+      csSubst = constraintsSubstitution s_table in
+  case cs of
+    CTop          -> CTop
+    CSubset c1 c2 -> CSubset (tySubst c1) (tySubst c2)
+    CAnd c1 c2    -> CAnd (csSubst c1) (csSubst c2)
+    COr c1 c2     -> COr (csSubst c1) (csSubst c2)
 
 ----------------------------
 

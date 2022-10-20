@@ -187,7 +187,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
                 putTyInfLog sigma gamma exp result
                 return result
               Imported -> do
-                -- tya中の全型変数をfrashにする
+                -- tya中の全型変数をfreshにする
                 -- (tyaFresh, newConstraints) <- fresh tya
                 let tyaFresh = tya
                     newConstraints = emptyConstraints
@@ -215,10 +215,10 @@ instance Typable (VL.Exp SrcSpanInfo) where
                 return result
               Imported -> do
                 hasLabelsKind r
-                -- tya中の全型変数をfrashにする
-                (tyaFresh, newConstraints) <- fresh tya
-                -- let tyaFresh = tya
-                --     newConstraints = emptyConstraints
+                -- tya中の全型変数をfreshにする
+                -- (tyaFresh, newConstraints) <- fresh tya
+                let tyaFresh = tya
+                    newConstraints = emptyConstraints
                 let result =
                       ( tyaFresh
                       -- , makeEnv [(x, GrType Imported tyaFresh coeff1)]
@@ -319,8 +319,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
         (tya, sigma2, theta, c1) <- infer t
         let c2 = genConstraintBy r gamma'_dont_care_inside_vext
             result =  ( tya
-                      -- , r .** delta -- tの型付けがどうなっていようと、tの型付けではrを使用としたと見做す
-                      -- , delta
+                      -- , delta -- -- , r .** delta -- tの型付けがどうなっていようと、tの型付けではrを使用としたと見做す
                       , sigma2
                       , theta,
                       c1 `landC` c2
@@ -334,7 +333,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
         sigma <- gets uEnv
         -- (tya, delta, sigma', theta', c1) <- infer t
         (tya, sigma', theta', c1) <- infer t
-        let tyb = case tya of (TyBox c tya') -> tya'
+        let tyb = case tya of (TyBox _ tya') -> tya'
                               _              -> error $ putDocString $ ppP "=>_Ext rule expects tya to be graded type, but it has " <> ppP tya
         let result =  ( tyb
                       -- , delta
@@ -348,37 +347,37 @@ instance Typable (VL.Exp SrcSpanInfo) where
 
 
 -- 型中の型変数を全て新しい型変数にリネームする
-fresh :: Type -> Env (Type, Constraints)
-fresh ty = do
-  uenv <- gets uEnv
-  case ty of
-    TyVar name -> do
-      k <- kind ty
-      newtv <- genNewTyVar k
-      return (newtv, [CSubset newtv ty])
-    TyCon qn -> return (TyCon qn, [])
-    TyFun t1 t2 -> do
-      (t1', cs1) <- fresh t1
-      (t2', cs2) <- fresh t2
-      return (TyFun t1' t2', cs1 ++ cs2)
-    TyBox c ty -> do
-      (c',  cs1) <- fresh c
-      (ty', cs2) <- fresh ty
-      return (TyBox c' ty', cs1 ++ cs2)
-    TyBottom -> return (TyBottom, [])
-    TyLabels ls -> return (TyLabels ls, [])
-    CAdd c1 c2 -> do
-      (c1', cs1) <- fresh c1
-      (c2', cs2) <- fresh c2
-      return (CAdd c1' c2', cs1 ++ cs2)
-    CMul c1 c2 -> do
-      (c1', cs1) <- fresh c1
-      (c2', cs2) <- fresh c2
-      return (CMul c1' c2', cs1 ++ cs2)
-    CSubset c1 c2 -> do
-      (c1', cs1) <- fresh c1
-      (c2', cs2) <- fresh c2
-      return (CSubset c1' c2', cs1 ++ cs2)
+-- fresh :: Type -> Env (Type, Constraints)
+-- fresh ty = do
+--   uenv <- gets uEnv
+--   case ty of
+--     TyVar name -> do
+--       k <- kind ty
+--       newtv <- genNewTyVar k
+--       return (newtv, [CSubset newtv ty])
+--     TyCon qn -> return (TyCon qn, [])
+--     TyFun t1 t2 -> do
+--       (t1', cs1) <- fresh t1
+--       (t2', cs2) <- fresh t2
+--       return (TyFun t1' t2', cs1 ++ cs2)
+--     TyBox c ty -> do
+--       (c',  cs1) <- fresh c
+--       (ty', cs2) <- fresh ty
+--       return (TyBox c' ty', cs1 ++ cs2)
+--     TyBottom -> return (TyBottom, [])
+--     TyLabels ls -> return (TyLabels ls, [])
+--     CAdd c1 c2 -> do
+--       (c1', cs1) <- fresh c1
+--       (c2', cs2) <- fresh c2
+--       return (CAdd c1' c2', cs1 ++ cs2)
+--     CMul c1 c2 -> do
+--       (c1', cs1) <- fresh c1
+--       (c2', cs2) <- fresh c2
+--       return (CMul c1' c2', cs1 ++ cs2)
+--     CSubset c1 c2 -> do
+--       (c1', cs1) <- fresh c1
+--       (c2', cs2) <- fresh c2
+--       return (CSubset c1' c2', cs1 ++ cs2)
 
 -- newtype TypedExp = TypedExp (String, Type, Constraints) deriving (Eq, Ord, Show)
 data TypedExp = TypedExp
@@ -387,7 +386,7 @@ data TypedExp = TypedExp
   , constraints :: Constraints
   , uenv :: UEnv
   }
-  deriving (Eq, Ord, Show)
+  deriving (Show)
 
 -- [TODO] 難読。再帰も不明瞭。書き直す
 getInterface :: TEnv -> UEnv -> Constraints -> Int -> VL.Module SrcSpanInfo -> ([(TypedExp, Logs)], Int)
@@ -412,7 +411,8 @@ getInterface importedTEnv importedUEnv initCon initC (VL.Module _ _ _ decls) =
       -- 対象の宣言の型検査
       -- (ty, _, uenv, sub, con) <- infer exp
       (ty, uenv, sub, con) <- infer exp
-      let con' = nub $ map (typeSubstitution sub) con
+      let con' = constraintsSubstitution sub con
+          -- con' = nub $ map (typeSubstitution sub) con
           -- inc = [ c | c <- con', null $ consOn c `intersect` freeTyVars ty ]
           -- exc = [ c | c <- con', not . null $ consOn c `intersect` freeTyVars ty ]
           exu = filterEnvBy (freeVars ty) uenv
@@ -441,6 +441,10 @@ tsortDecls decls = tsortBy g getName decls
     nodes = map (\(VL.PatBind _ p _) -> getName p) decls
     edges = distEdges $ map (\(VL.PatBind _ pat exp) -> (getName pat, VL.freeVars exp)) decls
     g = Graph (nodes, edges)
+
+aggregateConstraints :: [TypedExp] -> Constraints
+aggregateConstraints [] = CTop
+aggregateConstraints ((TypedExp _ _ c _) : rst) = CAnd c $ aggregateConstraints rst
 
 ------------------------------
 

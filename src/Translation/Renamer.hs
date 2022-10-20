@@ -158,7 +158,7 @@ instance Renamer T.Type where
     (T.CAdd c1 c2) -> T.CAdd <$> rename c1 <*> rename c2
     (T.CMul c1 c2) -> T.CMul <$> rename c1 <*> rename c2
     -- ^ Constraints
-    (T.CSubset c1 c2) -> T.CSubset <$> rename c1 <*> rename c2
+    -- (T.CSubset c1 c2) -> T.CSubset <$> rename c1 <*> rename c2
 
 -- ^ 個々のTEnvの型変数は変数空間が独立な事を仮定
 -- ^ Γ = {f : T, g : S}
@@ -191,18 +191,18 @@ instance Renamer String where
 -- instance Renamer K.Kind where
 --   rename = return
 
-instance Renamer T.Constraints where
-  rename = mapM rename
+-- instance Renamer T.Constraints where
+--   rename = mapM rename
 
--- 暗黙に各要素はModuleに対応しているため、モジュールを跨ぐ再帰のタイミングでテーブルを初期化
-instance Renamer [(E.TEnv, E.UEnv, Constraints)] where
-  rename [] = return []
-  rename ((tenv, uenv, con) : lst) = do
-    -- 同じテーブルでtenv, uenv, conをrename
-    tenv' <- rename tenv
-    uenv' <- rename uenv
-    con' <- rename con
-    -- カウントだけそのまま、テーブルは初期化して残りをrename
-    initializeTable
-    lst' <- rename lst
-    return $ (tenv', uenv', con') : lst'
+-- -- 暗黙に各要素はModuleに対応しているため、モジュールを跨ぐ再帰のタイミングでテーブルを初期化
+-- instance Renamer [(E.TEnv, E.UEnv, Constraints)] where
+--   rename [] = return []
+--   rename ((tenv, uenv, con) : lst) = do
+--     -- 同じテーブルでtenv, uenv, conをrename
+--     tenv' <- rename tenv
+--     uenv' <- rename uenv
+--     con' <- rename con
+--     -- カウントだけそのまま、テーブルは初期化して残りをrename
+--     initializeTable
+--     lst' <- rename lst
+--     return $ (tenv', uenv', con') : lst'

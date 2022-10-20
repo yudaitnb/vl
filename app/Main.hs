@@ -10,8 +10,8 @@ import System.Environment ( getArgs )
 
 import DependencyGraph
 import Compilation.Compile
-import Inference.TypeInference (TypedExp(..))
-import Syntax.Type (landC, tsortConstraints)
+import Inference.TypeInference (TypedExp(..), aggregateConstraints)
+import Syntax.Type (landC)
 import qualified Data.List
 import Syntax.Version (Version(..))
 
@@ -59,12 +59,12 @@ main = do
   logP result
 
   logP "=== Constraints ==="
-  let consMain = foldl (\acc (TypedExp _ _ c _) -> c ++ acc) [] result
-      consDepMods = concat . elems $ bundledConstraints env
-      cons = tsortConstraints $ nub $ consMain `landC` consDepMods
+  let consMain = aggregateConstraints result
+      consDepMods = foldl1 landC $ elems $ bundledConstraints env
+      cons = consMain `landC` consDepMods
       -- [TODO] namedConstraintの名前が被らないように入れているnubが余計かもしれない
       -- リソース変数が同じでも制約名を区別できるようになればnub不要
-  logP $ putDocString $ concatWith (surround $ comma <> line) $ Data.List.map ppP cons
+  logP $ putDocString $ ppP cons
 
   logP "=== Solver result ==="
   let fvCons = freeVars cons

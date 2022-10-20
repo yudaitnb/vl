@@ -67,16 +67,16 @@ bundle mn initC m =
             error "The value types of all versions must be equal."
           let
             -- U_{x,y,z} (aNew ≤ a_X_x.y.z)
-            cs = Data.List.map (\(TyBox r ty) -> CSubset newLabel r) types
+            cs = foldl1 landC $ Data.List.map (\(TyBox r ty) -> CSubset newLabel r) types
             -- aNew ≤ (Available versions)
             newc = CSubset newLabel (TyLabels $ Data.Set.fromList $ Data.List.map (Label <$> Data.Map.singleton mn) $ vers ! sym)
           return
             ( insertEnv sym (GrType Imported ty newLabel) accTEnv -- バンドル後は必ずimported env type
             , accUEnv `Data.Map.union` (mapu ! sym) `Data.Map.union` uLabelAdded
-            , accCons `landC` (cons ! sym) `landC` [newc] `landC` cs
+            , accCons `landC` (cons ! sym) `landC` newc `landC` cs
             )
         )
-        (emptyEnv :: TEnv, emptyEnv :: UEnv, [] :: Constraints)
+        (emptyEnv :: TEnv, emptyEnv :: UEnv, CTop :: Constraints)
         (keys tys))
       initC
     in
