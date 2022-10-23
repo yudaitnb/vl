@@ -8,24 +8,26 @@ import Data.Monoid
 import Syntax.Version
 import Util
 
-type Labels = Set Label
-
-newtype Label = Label (Map String Version)
-  deriving (Eq,Ord,Show)
+-- e.g.)
+-- fromList [ ("A", [v100,v101])
+--          , ("B", [v100])
+--          , ("C", []) ]
+type Labels = Map String [Version]
 
 emptyLabels :: Labels
-emptyLabels = Data.Set.empty
+emptyLabels = Data.Map.empty
 
 ------------------------
 
-instance PrettyAST Label where
-  ppE (Label m) = nest 2 $ ppE "(Label" <+> pplist ppE (Data.Map.toList m) <> ppE ")"
-  ppP (Label m) = 
-    parens $ concatWith (surround comma) $
-      Data.List.map
-        (\(k,v) -> ppP k <> ppP ":" <> ppP v)
-        (Data.Map.toList m)
+-- instance PrettyAST Label where
+--   ppE (Label m) = nest 2 $ ppE "(Label" <+> pplist ppE (Data.Map.toList m) <> ppE ")"
+--   ppP (Label m) = 
+--     parens $ concatWith (surround comma) $
+--       Data.List.map
+--         (\(k,v) -> ppP k <> ppP ":" <> ppP v)
+--         (Data.Map.toList m)
 
 instance PrettyAST Labels where
-  ppE set = concatWith (surround $ comma <> space) $ Data.List.map ppE (Data.Set.toList set)
-  ppP set = concatWith (surround $ comma <> space) $ Data.List.map ppP (Data.Set.toList set)
+  -- ppE = Data.Map.foldrWithKey (\mn vs acc -> ppE mn <> colon <> ppE vs <> comma <+> acc) emptyDoc
+  ppE labels = braces $ concatWith (surround $ comma <> space) $ Data.List.map (\(mn,vers) -> ppE mn <> colon <> ppE vers) $ Data.Map.toList labels
+  ppP labels = braces $ concatWith (surround $ comma <> space) $ Data.List.map (\(mn,vers) -> ppP mn <> colon <> ppP vers) $ Data.Map.toList labels

@@ -275,7 +275,12 @@ w : (Int@[a52] -> (Int@[a55] -> Int))@[a63] | a57 ≤ a52 and a58 ≤ a55 | a52:
 ============================================
 [DEBUG] Add tenv        : f:[(Int@[a3] -> Int)]_(a64), g:[(Int@[a39] -> Int)]_(a65), h:[(Int@[a15] -> Int)]_(a66), w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67), y:[Int]_(a68)
 [DEBUG] Add uenv        : a0:Labels, a11:Labels, a15:Labels, a23:Labels, a24:Labels, a27:Labels, a3:Labels, a35:Labels, a39:Labels, a47:Labels, a52:Labels, a55:Labels, a63:Labels, a64:Labels, a65:Labels, a66:Labels, a67:Labels, a68:Labels
-[DEBUG] Add constraints : a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [(B:1.0.0), (B:1.0.1)] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [(B:1.0.0)] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [(B:1.0.1)] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [(B:1.0.0)] and a67 ≤ a63 and a68 ≤ [(B:1.0.0), (B:1.0.1)] and a68 ≤ a0 and a68 ≤ a24
+[DEBUG] Add constraints : a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [B
+1.0.1, 1.0.0] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [B
+1.0.0] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [B
+1.0.1] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [B
+1.0.0] and a67 ≤ a63 and a68 ≤ [B
+1.0.1, 1.0.0] and a68 ≤ a0 and a68 ≤ a24
 [DEBUG] New counter     : 69
 [DEBUG] bundledTEnv: (B,f:[(Int@[a3] -> Int)]_(a64), g:[(Int@[a39] -> Int)]_(a65), h:[(Int@[a15] -> Int)]_(a66), w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67), y:[Int]_(a68))
 [DEBUG] List of modules not yet compiled:
@@ -315,7 +320,12 @@ a = [(f [(f [y])])]
 === Types (Syntax.VL) ===
 [DEBUG] Imported TEnv       : f:[(Int@[a3] -> Int)]_(a64), g:[(Int@[a39] -> Int)]_(a65), h:[(Int@[a15] -> Int)]_(a66), w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67), y:[Int]_(a68)
 [DEBUG] Imported UEnv       : a0:Labels, a11:Labels, a15:Labels, a23:Labels, a24:Labels, a27:Labels, a3:Labels, a35:Labels, a39:Labels, a47:Labels, a52:Labels, a55:Labels, a63:Labels, a64:Labels, a65:Labels, a66:Labels, a67:Labels, a68:Labels
-[DEBUG] Initial constraints : a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [(B:1.0.0), (B:1.0.1)] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [(B:1.0.0)] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [(B:1.0.1)] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [(B:1.0.0)] and a67 ≤ a63 and a68 ≤ [(B:1.0.0), (B:1.0.1)] and a68 ≤ a0 and a68 ≤ a24
+[DEBUG] Initial constraints : a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [B
+1.0.1, 1.0.0] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [B
+1.0.0] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [B
+1.0.1] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [B
+1.0.0] and a67 ≤ a63 and a68 ≤ [B
+1.0.1, 1.0.0] and a68 ≤ a0 and a68 ≤ a24
 [DEBUG] Initial counter     : 69
 
 
@@ -379,7 +389,12 @@ a = [(f [y])]
 === Types (Syntax.VL) ===
 [DEBUG] Imported TEnv       : f:[(Int@[a3] -> Int)]_(a64), g:[(Int@[a39] -> Int)]_(a65), h:[(Int@[a15] -> Int)]_(a66), w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67), y:[Int]_(a68)
 [DEBUG] Imported UEnv       : a0:Labels, a11:Labels, a15:Labels, a23:Labels, a24:Labels, a27:Labels, a3:Labels, a35:Labels, a39:Labels, a47:Labels, a52:Labels, a55:Labels, a63:Labels, a64:Labels, a65:Labels, a66:Labels, a67:Labels, a68:Labels
-[DEBUG] Initial constraints : a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [(B:1.0.0), (B:1.0.1)] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [(B:1.0.0)] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [(B:1.0.1)] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [(B:1.0.0)] and a67 ≤ a63 and a68 ≤ [(B:1.0.0), (B:1.0.1)] and a68 ≤ a0 and a68 ≤ a24
+[DEBUG] Initial constraints : a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [B
+1.0.1, 1.0.0] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [B
+1.0.0] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [B
+1.0.1] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [B
+1.0.0] and a67 ≤ a63 and a68 ≤ [B
+1.0.1, 1.0.0] and a68 ≤ a0 and a68 ≤ a24
 [DEBUG] Initial counter     : 74
 
 
@@ -403,7 +418,8 @@ a : Int@[a76] | a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 | a76:Labels
 ============================================
 [DEBUG] Add tenv        : a:[Int]_(a77)
 [DEBUG] Add uenv        : a73:Labels, a76:Labels, a77:Labels
-[DEBUG] Add constraints : a3 ≤ a68 and a3 ≤ a68 and a3 ≤ a64 and a73 ≤ a68 and a73 ≤ a64 and a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 and a77 ≤ [(A:1.0.0), (A:1.0.1)] and a77 ≤ a73 and a77 ≤ a76
+[DEBUG] Add constraints : a3 ≤ a68 and a3 ≤ a68 and a3 ≤ a64 and a73 ≤ a68 and a73 ≤ a64 and a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 and a77 ≤ [A
+1.0.1, 1.0.0] and a77 ≤ a73 and a77 ≤ a76
 [DEBUG] New counter     : 78
 [DEBUG] bundledTEnv: (A,a:[Int]_(a77)), (B,f:[(Int@[a3] -> Int)]_(a64), g:[(Int@[a39] -> Int)]_(a65), h:[(Int@[a15] -> Int)]_(a66), w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67), y:[Int]_(a68))
 [DEBUG] List of modules not yet compiled:
@@ -496,7 +512,13 @@ main = ((\[xx].((\[yy].[((+ [xx]) [yy])]) [((unversion [h]) [a])])) [((unversion
 === Types (Syntax.VL) ===
 [DEBUG] Imported TEnv       : a:[Int]_(a77), f:[(Int@[a3] -> Int)]_(a64), g:[(Int@[a39] -> Int)]_(a65), h:[(Int@[a15] -> Int)]_(a66), w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67), y:[Int]_(a68)
 [DEBUG] Imported UEnv       : a0:Labels, a11:Labels, a15:Labels, a23:Labels, a24:Labels, a27:Labels, a3:Labels, a35:Labels, a39:Labels, a47:Labels, a52:Labels, a55:Labels, a63:Labels, a64:Labels, a65:Labels, a66:Labels, a67:Labels, a68:Labels, a73:Labels, a76:Labels, a77:Labels
-[DEBUG] Initial constraints : a3 ≤ a68 and a3 ≤ a68 and a3 ≤ a64 and a73 ≤ a68 and a73 ≤ a64 and a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 and a77 ≤ [(A:1.0.0), (A:1.0.1)] and a77 ≤ a73 and a77 ≤ a76 and a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [(B:1.0.0), (B:1.0.1)] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [(B:1.0.0)] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [(B:1.0.1)] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [(B:1.0.0)] and a67 ≤ a63 and a68 ≤ [(B:1.0.0), (B:1.0.1)] and a68 ≤ a0 and a68 ≤ a24
+[DEBUG] Initial constraints : a3 ≤ a68 and a3 ≤ a68 and a3 ≤ a64 and a73 ≤ a68 and a73 ≤ a64 and a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 and a77 ≤ [A
+1.0.1, 1.0.0] and a77 ≤ a73 and a77 ≤ a76 and a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [B
+1.0.1, 1.0.0] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [B
+1.0.0] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [B
+1.0.1] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [B
+1.0.0] and a67 ≤ a63 and a68 ≤ [B
+1.0.1, 1.0.0] and a68 ≤ a0 and a68 ≤ a24
 [DEBUG] Initial counter     : 78
 
 
@@ -584,7 +606,13 @@ None
 === Compilation Result ===
 main : Int@[a90] | a84 ≤ a79 and a85 ≤ a82 and a90 ≤ a82 and a90 ≤ a79 and a91 ≤ a66 and a15 ≤ a77 and a82 ≤ a77 and a96 ≤ a65 and a39 ≤ a77 and a79 ≤ a77 | a90:Labels
 === Constraints ===
-a84 ≤ a79 and a85 ≤ a82 and a90 ≤ a82 and a90 ≤ a79 and a91 ≤ a66 and a15 ≤ a77 and a82 ≤ a77 and a96 ≤ a65 and a39 ≤ a77 and a79 ≤ a77 and ⊤ and a3 ≤ a68 and a3 ≤ a68 and a3 ≤ a64 and a73 ≤ a68 and a73 ≤ a64 and a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 and a77 ≤ [(A:1.0.0), (A:1.0.1)] and a77 ≤ a73 and a77 ≤ a76 and a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [(B:1.0.0), (B:1.0.1)] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [(B:1.0.0)] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [(B:1.0.1)] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [(B:1.0.0)] and a67 ≤ a63 and a68 ≤ [(B:1.0.0), (B:1.0.1)] and a68 ≤ a0 and a68 ≤ a24
+a84 ≤ a79 and a85 ≤ a82 and a90 ≤ a82 and a90 ≤ a79 and a91 ≤ a66 and a15 ≤ a77 and a82 ≤ a77 and a96 ≤ a65 and a39 ≤ a77 and a79 ≤ a77 and ⊤ and a3 ≤ a68 and a3 ≤ a68 and a3 ≤ a64 and a73 ≤ a68 and a73 ≤ a64 and a3 ≤ a68 and a76 ≤ a68 and a76 ≤ a64 and a77 ≤ [A
+1.0.1, 1.0.0] and a77 ≤ a73 and a77 ≤ a76 and a5 ≤ a3 and a29 ≤ a27 and a64 ≤ [B
+1.0.1, 1.0.0] and a64 ≤ a11 and a64 ≤ a35 and a41 ≤ a39 and a65 ≤ [B
+1.0.0] and a65 ≤ a47 and a17 ≤ a15 and a66 ≤ [B
+1.0.1] and a66 ≤ a23 and a57 ≤ a52 and a58 ≤ a55 and a67 ≤ [B
+1.0.0] and a67 ≤ a63 and a68 ≤ [B
+1.0.1, 1.0.0] and a68 ≤ a0 and a68 ≤ a24
 === Solver result ===
 a84 : A:1.0.1, B:1.0.1
 a79 : A:1.0.1, B:1.0.1

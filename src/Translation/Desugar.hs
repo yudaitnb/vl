@@ -147,4 +147,4 @@ vbsToCs (Absyn.VBinds _ vbs) = vbsToCs' vbs
       (Absyn.VBind _ mn v):rst ->
         let mn' = getName mn
             v'  = vnToV v
-        in  Data.Set.fromList [Label $ Data.Map.fromList [(mn', v')]] <> vbsToCs' rst
+        in  Data.Map.fromList [(mn', [v'])] <> vbsToCs' rst

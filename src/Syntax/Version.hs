@@ -45,3 +45,7 @@ instance PrettyAST Version where
     TBD -> ppP "TBD"
     Version major minor patch ->
       ppP major <> ppP "." <> ppP minor <> ppP "."  <> ppP patch 
+
+instance PrettyAST [Version] where
+  ppE v = brackets $ concatWith (surround $ comma <> space) $ map ppE v
+  ppP v = brackets $ concatWith (surround $ comma <> space) $ map ppP v
