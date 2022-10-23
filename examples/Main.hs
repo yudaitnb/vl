@@ -7,13 +7,13 @@ import B
 --            yy = unversion (h (version {A=1.0.1} of a))
 --        in xx + yy -- OK
 
--- main = let xx = (unversion g) a
---            yy = (unversion h) a
---        in xx + yy -- OK
+main = let xx = (unversion g) a
+           yy = (unversion h) a
+       in xx + yy -- OK
 
-main = let xx = (unversion (g a))
-           yy = (unversion (h a))
-       in xx + yy -- Rejected
+-- main = let xx = (unversion (g a))
+--            yy = (unversion (h a))
+--        in xx + yy -- Rejected
 
 -- 0. 各モジュールの各バージョンの型検査が終わった後に一回z3で制約を解き、最般型を求める (型だけが同型であればよい)
 -- 1. 型検査の前に各外部モジュール変数の名前を区別し、TEnv中にそれらをコピーする（制約はどうする？）

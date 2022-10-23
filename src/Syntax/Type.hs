@@ -6,12 +6,12 @@ module Syntax.Type (
   consOn, isClosed,
   coeff0, coeff1,
   tyint, tybool, tychar,
-  (.+), (.*), (.<),
+  (.+), (.*), --(.<),
   HasName(..),
   tySym,
 ) where
 
-import Data.Map ( Map, toList, union )
+import Data.Map ( Map, toList, union, unionWith, null )
 import Data.Set ( Set, union, isSubsetOf, empty, toList, null, cartesianProduct, map )
 import Data.List ( nub, null, map )
 
@@ -186,7 +186,8 @@ isClosed ty = Data.List.null $ freeVars ty
   | s1 == emptyLabels = t2
 (.+) t1 t2@(TyLabels s2)
   | s2 == emptyLabels = t1
-(.+) t1@(TyLabels s1) t2@(TyLabels s2) = TyLabels $ Data.Set.map (\(Label a, Label b) -> Label $ Data.Map.union a b) $ cartesianProduct s1 s2 -- [TODO]
+(.+) t1@(TyLabels labels1) t2@(TyLabels labels2) = --TyLabels $ Data.Set.map (\(Label a, Label b) -> Label $ Data.Map.union a b) $ cartesianProduct s1 s2 -- [TODO]
+    TyLabels $ Data.Map.unionWith (++) labels1 labels2 -- [TODO]
 (.+) c1 c2 = CAdd c1 c2
 -- (.+) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
@@ -197,15 +198,16 @@ isClosed ty = Data.List.null $ freeVars ty
   | s1 == emptyLabels = t2
 (.*) t1 t2@(TyLabels s2)
   | s2 == emptyLabels = t1
-(.*) t1@(TyLabels s1) t2@(TyLabels s2) = TyLabels $ Data.Set.map (\(Label a, Label b) -> Label $ Data.Map.union a b) $ cartesianProduct s1 s2 -- [TODO]
+(.*) t1@(TyLabels labels1) t2@(TyLabels labels2) = --TyLabels $ Data.Set.map (\(Label a, Label b) -> Label $ Data.Map.union a b) $ cartesianProduct s1 s2 -- [TODO]
+    TyLabels $ Data.Map.unionWith (++) labels1 labels2 -- [TODO]
 (.*) c1 c2 = CMul c1 c2
 -- (.*) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
-(.<) :: Coeffect -> Coeffect -> Bool
-(.<) TyBottom _ = True
-(.<) _ TyBottom = False
-(.<) (TyLabels s1) (TyLabels s2) = s1 `isSubsetOf` s2
-(.<) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
+-- (.<) :: Coeffect -> Coeffect -> Bool
+-- (.<) TyBottom _ = True
+-- (.<) _ TyBottom = False
+-- (.<) (TyLabels s1) (TyLabels s2) = s1 `isSubsetOf` s2
+-- (.<) t1 t2 = error $ "The types " ++ show t1 ++ " and " ++ show t2 ++ " are not coeffect types."
 
 -------------------------
 
@@ -244,7 +246,7 @@ instance PrettyAST Type where
   ppP (TyBox c ty)  = ppP ty <> ppP "@" <> brackets (ppP c)
   -- ^ Coeffects
   ppP TyBottom      = ppP "⊥" -- coeef 0
-  ppP (TyLabels labels) = if Data.Set.null labels
+  ppP (TyLabels labels) = if Data.Map.null labels
     then ppP "{}" -- coeff 1
     else brackets $ ppP labels
   ppP (CAdd c1 c2) = ppP c1 <+> ppP ".+" <+> ppP c2

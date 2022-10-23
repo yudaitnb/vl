@@ -25,6 +25,11 @@ Finally install z3 solver.
 % sudo apt install z3
 ```
 
+If you need hspec to run the unittests, install libtinfo-dev.
+```
+sudo apt install libtinfo-dev
+```
+
 ## Installation
 TBD
 

@@ -2,6 +2,7 @@
 module Util (
   pp, logPpLn,
   module Prettyprinter,
+  module Prettyprinter.Render.Text,
   removeFileIfExists, createDirectoryIfMissing,
   PrettyAST(..),
   putDocString,

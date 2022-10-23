@@ -18,7 +18,7 @@ import qualified Data.Set
 import Data.Functor.Classes (Eq1(..))
 import Util
 import Syntax.Kind (Kind (LabelsKind))
-import Syntax.Label (Label(..))
+import Syntax.Label 
 
 data BundleEnv' = BundleEnv'
   { resources   :: Map String [Version]
@@ -69,7 +69,8 @@ bundle mn initC m =
             -- U_{x,y,z} (aNew ≤ a_X_x.y.z)
             cs = foldl1 landC $ Data.List.map (\(TyBox r ty) -> CSubset newLabel r) types
             -- aNew ≤ (Available versions)
-            newc = CSubset newLabel (TyLabels $ Data.Set.fromList $ Data.List.map (Label <$> Data.Map.singleton mn) $ vers ! sym)
+            -- newc = CSubset newLabel (TyLabels $ Data.Set.fromList $ Data.List.map (Label <$> Data.Map.singleton mn) $ vers ! sym)
+            newc = CSubset newLabel (TyLabels $ Data.Map.singleton mn (vers ! sym))
           return
             ( insertEnv sym (GrType Imported ty newLabel) accTEnv -- バンドル後は必ずimported env type
             , accUEnv `Data.Map.union` (mapu ! sym) `Data.Map.union` uLabelAdded

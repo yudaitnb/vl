@@ -65,7 +65,7 @@ mkSolverEnv em cs =
   let mdnames = keys em
       extMods = Data.Map.map (Data.List.reverse . sort) em -- (TBD,) newest, 2nd newest, ...
       fvCons  = nub $ freeVars cs
-      lenMods = Data.List.length $ keys extMods
+      lenMods = Data.Map.size extMods
       idxMods = zip mdnames [0..]
       idxVers = Data.Map.map (\vs -> Data.Map.fromList $ (TBD, 0) : zip vs [1..]) extMods
   in Env
@@ -84,9 +84,9 @@ solve em cs = do
   let senv = mkSolverEnv em cs
   mbCore <- runSolverEnv runSMT senarioSAT senv
   case mbCore of
-    -- Satisfiable -> unsat coreから制約を満たさないnamedConstraintのリストを出力
+    -- Unsatisfiable -> unsat coreから制約を満たさないnamedConstraintのリストを出力
     Just core -> return $ Left ("Unsatisfiable", core)
-    -- UnSatisfiable -> 解集合のうち最般かつ最新のものを出力
+    -- Satisfiable -> 解集合のうち最般かつ最新のものを出力
     Nothing   -> do
       let optimizeWithStyle = optimize Lexicographic
       LexicographicResult result <- runSolverEnv optimizeWithStyle senarioOPT senv
@@ -169,16 +169,15 @@ senarioOPT = do
       sumOfVersionNumbers = Data.List.foldl (\acc k -> acc + bsum l k) 0
   msMinimize "newest version" $ sumOfVersionNumbers (Data.List.map snd vars)
 
-
 -----------------------
 
 compileLabels :: Type -> SolverEnv [SBV SLabel]
-compileLabels (TyLabels l) = do
-  mapM (uncurry mkSLabel)
-    [ (mn, v)
-    | Label m <- Data.Set.toList l
-    , (mn, v) <- Data.Map.toList m
-    ]
+compileLabels (TyLabels labels) = do
+  -- mapM (uncurry mkSLabel) $ Data.Map.toList labels
+  let xs =  [ (mn, v)
+            | (mn, vers) <- Data.Map.toList labels
+            , v <- vers]
+  mapM (uncurry mkSLabel) xs
 compileLabels _ = error ""
 
 lu :: (Ord a, PrettyAST a, Show a, Show b) => Map a b -> a -> b
@@ -186,7 +185,6 @@ varsMap `lu` k = fromMaybe
   (error $ putDocString $ ppP "key :" <+> ppP k <> line <> ppP "map :" <+> ppP (show varsMap) <> line ) $
   Data.Map.lookup k varsMap
 
--- そう簡単ではない
 compileConstraints :: Constraints -> SolverEnv SBool
 compileConstraints cs = do
   vars <- Data.Map.fromList <$> gets variables
@@ -264,11 +262,11 @@ mkVer = Version
 mkVar :: String -> Type
 mkVar s = TyVar $ Ident s
 
-mkLabel :: [(String, Version)] -> Label
-mkLabel [] = Label mempty
-mkLabel ((mn,v):rst) =
-  let Label rst' = mkLabel rst
-  in Label $ Data.Map.insert mn v rst'
+mkLabels :: [(String, [Version])] -> Labels
+mkLabels [] = mempty
+mkLabels ((mn,vers):rst) =
+  let rst' = mkLabels rst
+  in Data.Map.insert mn vers rst'
 
 mkSLabel :: String -> Version -> SolverEnv (SBV SLabel)
 mkSLabel s v = do
