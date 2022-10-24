@@ -2,14 +2,15 @@ module SolverGTSpec (spec) where
 
 import Test.Hspec
 import Prelude
+
+import qualified Data.Map
+import qualified Data.Either
 import qualified Data.Set hiding (map)
 
 import Syntax.Label
 import Syntax.Version
 import Syntax.Type
 import SolverGT
-import qualified Data.Map
-import qualified Data.Either
 
 spec :: Spec
 spec = do
@@ -101,26 +102,6 @@ spec = do
   --       , ("a66",  [("A", []), ("B", v101)])
   --       ]
 
--- a:[Int]_(a80),
--- f:[(Int@[a3] -> Int)]_(a64),
--- g:[(Int@[a39] -> Int)]_(a65),
--- h:[(Int@[a15] -> Int)]_(a66),
--- w:[(Int@[a52] -> (Int@[a55] -> Int))]_(a67),
--- y:[Int]_(a68)
--- [(f [y])] : Int@[a79]
--- [(h [a])] : Int@[a97]
--- [(g [a])] : Int@[a103]
--- mkGtLabels "a67" b100
--- mkGtVar "a79" "a68"
--- mkGtLabels "a68" [b100, b101]
--- mkGtVar "a103" "a80"
--- mkGtVar "a103" "a65"
--- mkGtLabels "a65" b100
--- mkGtVar "a97" "a80"
--- mkGtVar "a97" "a66"
--- mkGtLabels "a66" b101
--- mkGtVar "a80" "a79"
-
 -------------------
 
 mkGtLabels :: String -> Labels -> Constraints
@@ -151,5 +132,5 @@ cand :: [Constraints] -> Constraints
 cand = foldr landC CTop
 
 v100, v101 :: Version
-v100 = mkVer 1 0 0
-v101 = mkVer 1 0 1
+v100 = Version 1 0 0
+v101 = Version 1 0 1
