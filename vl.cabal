@@ -110,6 +110,7 @@ test-suite vl-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      RenameExVarSpec
       SolverGTSpec
       SolverSpec
       Paths_vl

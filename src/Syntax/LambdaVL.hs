@@ -6,6 +6,7 @@ module Syntax.LambdaVL (
   Literal(..),
   HasVar(..),
   Absyn.Annotated(..),
+  getDecls, getBind
 ) where
 
 import qualified Syntax.Absyn as Absyn
@@ -30,7 +31,13 @@ getDecls (Module l _ _ decls) = decls
 data Decl l
      = PatBind      l (Pat l) (Exp l)
      -- ^ A pattern binding
-  deriving (Eq,Ord,Show,Functor)
+  deriving (Ord,Show,Functor)
+
+getBind :: Decl l -> Exp l
+getBind (PatBind _ _ e) = e
+
+instance Eq l => Eq (Decl l) where
+  PatBind _ p e == PatBind _ p' e' = p == p' && e == e'
 
 -- | A pattern, to be matched against a value.
 data Pat l
@@ -54,10 +61,20 @@ data Exp l
     -- | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     -- | Paren l (Exp l)                       -- ^ parenthesised expression
     -- | LCase l [Alt l]                       -- ^ @\case@ /alts/
-    -- | VRes l Labels (Exp l)
-    | VRes l Labels (Exp l)
+    -- | VRes l Label (Exp l)
+    | VRes l Label (Exp l)
     | VExt l (Exp l)
-  deriving (Eq,Ord,Show,Functor)
+  deriving (Ord,Show,Functor)
+
+instance Eq l => Eq (Exp l) where
+  Var _ qn1 == Var _ qn2 = qn1 == qn2
+  Lit _ l1 == Lit _ l2 = l1 == l2
+  App _ e1 e2 == App _ e1' e2'= e1 == e1' && e2 == e2'
+  Lambda _ p e == Lambda _ p' e' = e == e' && p == p'
+  If _ e1 e2 e3 == If _ e1' e2' e3' = e1 == e1' && e2 == e2' && e3 == e3'
+  Pr _ e == Pr _ e' = e == e'
+  VRes _ l e == VRes _ l' e' = l == l' && e == e'
+  VExt _ e == VExt _ e' = e == e'
 
 instance HasName (Decl l) where
   getName (PatBind _ p _) = getName p
@@ -82,7 +99,7 @@ instance HasVar (Exp l) where
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
-      Lambda _ p e  -> freeVars e \\ boundVars p
+      Lambda _ p e  -> filter (`notElem` boundVars p) (freeVars e)
       Pr _ e        -> freeVars e
       VRes _ vbs e  -> freeVars e
       VExt _ e      -> freeVars e
@@ -114,10 +131,11 @@ instance HasVar (Exp l) where
 -- boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
 
 boundVars :: Pat l -> [String]
-boundVars (PVar _ name) = [getName name]
-boundVars (PLit {})  = []
-boundVars (PWildCard _) = []
-boundVars (PBox _ p)    = boundVars p
+boundVars p = case p of
+  PVar _ name -> [getName name]
+  PLit {}     -> []
+  PWildCard _ -> []
+  PBox _ p    -> boundVars p
 
 -----------
 

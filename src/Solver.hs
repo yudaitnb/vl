@@ -262,7 +262,7 @@ mkVer = Version
 mkVar :: String -> Type
 mkVar s = TyVar $ Ident s
 
-mkLabels :: [(String, [Version])] -> Labels
+mkLabels :: [(String, [Version])] -> Label
 mkLabels [] = mempty
 mkLabels ((mn,vers):rst) =
   let rst' = mkLabels rst
