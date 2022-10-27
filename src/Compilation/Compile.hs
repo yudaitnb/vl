@@ -23,6 +23,7 @@ import Syntax.Type (Type(..), Constraints(..), landC)
 import Syntax.Version (Version(Root))
 import Translation.Promote
 import Translation.Normalize (normalize)
+import Translation.RenameExVars (renameExVarModule, duplicateEnvs, CounterTable)
 
 type BundledTEnv = Map String TEnv
 type BundledUEnv = Map String UEnv
@@ -32,8 +33,10 @@ type BundledConstraints = Map String Constraints
 data CompileEnv' = CompileEnv'
   { pending :: [VLMod]  -- コンパイル待ちのモジュール、先頭からコンパイルされる
   , counter :: Int      -- 型変数生成用の通し番号
+  , counterTable :: CounterTable -- 複製された外部モジュール変数の登場回数の通し番号
   , mapParsedAST :: Map VLMod (Module SrcSpanInfo) -- パース済みのAST
   , globalTEnv :: Map VLMod [TypedExp] -- 型検査後の型情報をそのまま格納するグローバル環境
+  , globalConstraints :: Constraints -- 全ての制約が入っているグローバル制約環境
   , bundledTEnv :: BundledTEnv -- バンドル後の型情報が格納されている型環境
   , bundledUEnv :: BundledUEnv -- バンドル後の型変数情報が格納されている環境
   , bundledConstraints :: BundledConstraints -- bundledTEnvに対応する制約が格納されている環境
@@ -48,6 +51,9 @@ addCounter i = modify $ \env -> env { counter = i + counter env }
 setCounter :: Int -> CompileEnv ()
 setCounter i = modify $ \env -> env { counter = i }
 
+setCounterTable :: CounterTable -> CompileEnv ()
+setCounterTable ct = modify $ \env -> env { counterTable = ct }
+
 getNextModule :: CompileEnv (Maybe VLMod)
 getNextModule = state $ \env -> case pending env of
   []  -> (Nothing, env)
@@ -61,6 +67,9 @@ getParsedAST vlmod = do
 
 addGlobalTEnv :: VLMod -> [TypedExp] -> CompileEnv ()
 addGlobalTEnv vlmod tyexp = state $ \env -> ((), env { globalTEnv = insert vlmod tyexp $ globalTEnv env })
+
+addGlobalConstraints :: Constraints -> CompileEnv ()
+addGlobalConstraints cs = modify $ \env -> env { globalConstraints = cs `landC` globalConstraints env }
 
 addBundledTEnv :: String -> TEnv -> CompileEnv ()
 addBundledTEnv s tenv = state $ \env -> ((), env { bundledTEnv = insert s tenv $ bundledTEnv env })
@@ -159,6 +168,10 @@ compile target@(VLMod mn v) = do
       promoteTopVal $ girardFwd ast_normalized
   logP astVL
 
+  logP "\n=== AST (Syntax.VL), external variables duplicated ==="
+  let (astVLDuplicated, ct) = renameExVarModule astVL
+  logP astVLDuplicated
+
   logP "\n=== Types (Syntax.VL) ==="
   (importedTEnv, importedUEnv, initConstraints) <- genEnvFromImports importMods
   initCounter <- gets counter
@@ -167,8 +180,16 @@ compile target@(VLMod mn v) = do
   logPD $ ppP "[DEBUG] Initial constraints :" <+> ppP initConstraints -- import宣言から得られたラベル制約
   logPD $ ppP "[DEBUG] Initial counter     :" <+> ppP initCounter     -- 型変数生成用の通し番号
   logPD line
+  let (typedExpWithLogs, c) = getInterface importedTEnv importedUEnv initCounter astVL -- 型推論
 
-  let (typedExpWithLogs, c) = getInterface importedTEnv importedUEnv initConstraints initCounter astVL -- 型推論
+  ---------------
+  let (tenvDuplicated, uenvDuplicated, csDuplicated) = duplicateEnvs ct (importedTEnv, importedUEnv, initConstraints)
+  logPD $ ppP "[DEBUG] Duplicated TEnv        :" <+> ppP tenvDuplicated
+  logPD $ ppP "[DEBUG] Duplicated UEnv        :" <+> ppP uenvDuplicated
+  logPD $ ppP "[DEBUG] Duplicated Constraints :" <+> ppP csDuplicated
+  ----
+  -- let (typedExpWithLogs, c) = getInterface tenvDuplicated uenvDuplicated initCounter astVL -- 型推論
+  -- 
   forM_ typedExpWithLogs logP
   let typedExp = Data.List.map fst typedExpWithLogs
   addGlobalTEnv target typedExp

@@ -60,7 +60,7 @@ main = do
 
   logP "=== Constraints ==="
   let consMain = aggregateConstraints result
-      consDepMods = foldl1 landC $ elems $ bundledConstraints env
+      consDepMods = foldl1 landC $ (elems . bundledConstraints) env
       cons = consMain `landC` consDepMods
       -- [TODO] namedConstraintの名前が被らないように入れているnubが余計かもしれない
       -- リソース変数が同じでも制約名を区別できるようになればnub不要
