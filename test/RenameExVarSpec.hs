@@ -24,5 +24,5 @@ spec = do
     let code3 = "main a = f a + f a"
     it code3 $ getFVRenamed code3 `shouldBe` ["__f_0", "__f_1"]
   where
-    getFVRenamed = freeVars . getBind . fst . renameExVarDecl . getVLMain
-    getVLMain  =  head . getDecls . girardFwd . normalize . desugarAST . parseString
+    getFVRenamed = freeVars . getBind . head . getDecls . fst . renameExVarModule . getVLMod 
+    getVLMod  =  girardFwd . normalize . desugarAST . parseString

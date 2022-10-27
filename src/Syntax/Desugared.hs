@@ -168,7 +168,8 @@ instance PrettyAST (Module SrcSpanInfo) where
     <+> pplist ppE importDecl <> line
     <+> pplist ppE decl
   ppP (Module srcLocInfo moduleHead importDecl decl) =
-        ppP "module" <+> ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
+        -- ppP "module" <+> 
+        ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
 
 instance PrettyAST (Decl SrcSpanInfo) where
   ppE (PatBind srcLocInfo pat rhd) =

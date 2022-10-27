@@ -91,6 +91,14 @@ instance Environment UEnv where
   exclude = difference
   varsInEnv = keys
 
+
+instance HasVar EnvType where
+  freeVars et = case et of
+    NType  tag ty   -> freeVars ty
+    GrType tag ty c -> freeVars ty ++ freeVars c
+  freeVars' = freeVars
+  vars  = freeVars
+
 (.++) :: TEnv -> TEnv -> TEnv
 (.++) = unionWith concat
   where

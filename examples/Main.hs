@@ -17,9 +17,9 @@ import B
 --            yy = unversion (h (version {A=1.0.1} of a))
 --        in xx + yy -- OK
 
--- main = let xx = (unversion g) a
---            yy = (unversion h) a
---        in xx + yy -- OK
+main = let xx = (unversion g) a
+           yy = (unversion h) a
+       in xx + yy -- OK
 
 -- main = let xx = (unversion (g a))
 --            yy = (unversion (h a))
