@@ -138,10 +138,10 @@ instance Desugaring (Absyn.Exp l) where
 
   desugar _ = error ""
 
-vbsToCs :: Absyn.VBinds l -> Labels
+vbsToCs :: Absyn.VBinds l -> Label
 vbsToCs (Absyn.VBinds _ vbs) = vbsToCs' vbs
   where
-    vbsToCs' :: [Absyn.VBind l] -> Labels
+    vbsToCs' :: [Absyn.VBind l] -> Label
     vbsToCs' vbs = case vbs of
       []     -> mempty
       (Absyn.VBind _ mn v):rst ->

@@ -57,7 +57,7 @@ data Type
   | TyVar Name          -- ^ type variable / α
   | TyBox Coeffect Type -- ^ promoted types / □_r A
   | TyBottom            -- ^ coeffect / coeffect-0
-  | TyLabels Labels -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
+  | TyLabels Label -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
   | CAdd Coeffect Coeffect -- ^ A constraint gnerated by (.+) when either of the coeffs is a type variable
   | CMul Coeffect Coeffect -- ^ A constraint gnerated by (.*) when either of the coeffs is a type variable
   -- | CSubset Coeffect Coeffect -- ^ A constraint note that c1 ≤ c2

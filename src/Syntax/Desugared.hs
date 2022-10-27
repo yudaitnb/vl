@@ -52,8 +52,8 @@ data Exp l
     -- | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     -- | Paren l (Exp l)                       -- ^ parenthesised expression
     -- Versioned expressions
-    -- | VRes l Labels (Exp l)
-    | VRes l Labels (Exp l)
+    -- | VRes l Label (Exp l)
+    | VRes l Label (Exp l)
     | VExt l (Exp l)
     -- LambdaCase
     -- | LCase l [Alt l]                       -- ^ @\case@ /alts/

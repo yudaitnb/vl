@@ -1,33 +1,48 @@
 module Syntax.Label where
 
-import Data.Map
-import Data.List
+import qualified Data.Map as M
+import Data.Map (Map)
+import qualified Data.List as L
 import Data.Set
 import Data.Monoid
 
 import Syntax.Version
 import Util
 
+-- Label: その値の取りうる各モジュールのバージョンの候補を集めたもの
 -- e.g.)
--- fromList [ ("A", [v100,v101])
---          , ("B", [v100])
---          , ("C", []) ]
-type Labels = Map String [Version]
+-- fromList [ ("A", [v100,v101]) Aへの依存性はv100,v101のいずれかであり、他のバージョンではない
+--          , ("B", [v100])      Bへの依存性はv100であり、他のバージョンではない
+--          , ("C", []) ]        Cについては無制約
+type Label = Map String [Version]
 
-emptyLabels :: Labels
-emptyLabels = Data.Map.empty
+
+-- FixedLabel: 全てのモジュールについてバージョンが一つに定まっているラベル
+-- e.g.)
+-- fromList [ ("A", v101) Aへの依存性はv100,v101のいずれかであり、他のバージョンではない
+--          , ("B", v100)      Bへの依存性はv100であり、他のバージョンではない
+--          , ("C", v100) ]        Cについては無制約
+type FixedLabel = Map String Version
+
+isValidFixedLabel :: Label -> FixedLabel -> Bool
+isValidFixedLabel label fl = M.difference label fl == M.empty && 
+                             M.isSubmapOfBy L.elem fl label
+
+emptyLabels :: Label
+emptyLabels = M.empty
+
+pickVersion :: ([Version] -> Version) -> Label -> FixedLabel
+pickVersion = M.map
+
+pickLatestVersion :: Label -> FixedLabel
+pickLatestVersion = pickVersion maximum -- Version 1 0 0 <= Version 1 0 1
 
 ------------------------
 
--- instance PrettyAST Label where
---   ppE (Label m) = nest 2 $ ppE "(Label" <+> pplist ppE (Data.Map.toList m) <> ppE ")"
---   ppP (Label m) = 
---     parens $ concatWith (surround comma) $
---       Data.List.map
---         (\(k,v) -> ppP k <> ppP ":" <> ppP v)
---         (Data.Map.toList m)
+instance PrettyAST Label where
+  ppE labels = braces $ concatWith (surround $ comma <> space) $ L.map (\(mn,vers) -> ppE mn <> colon <> ppE vers) $ M.toList labels
+  ppP labels = braces $ concatWith (surround $ comma <> space) $ L.map (\(mn,vers) -> ppP mn <> colon <> ppP vers) $ M.toList labels
 
-instance PrettyAST Labels where
-  -- ppE = Data.Map.foldrWithKey (\mn vs acc -> ppE mn <> colon <> ppE vs <> comma <+> acc) emptyDoc
-  ppE labels = braces $ concatWith (surround $ comma <> space) $ Data.List.map (\(mn,vers) -> ppE mn <> colon <> ppE vers) $ Data.Map.toList labels
-  ppP labels = braces $ concatWith (surround $ comma <> space) $ Data.List.map (\(mn,vers) -> ppP mn <> colon <> ppP vers) $ Data.Map.toList labels
+instance PrettyAST FixedLabel where
+  ppE fl = braces $ concatWith (surround $ comma <> space) $ L.map (\(mn,vers) -> ppE mn <> colon <> ppE vers) $ M.toList fl
+  ppP fl = braces $ concatWith (surround $ comma <> space) $ L.map (\(mn,vers) -> ppP mn <> colon <> ppP vers) $ M.toList fl
