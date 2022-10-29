@@ -19,71 +19,118 @@ import Data.Functor.Classes (Eq1(..))
 import Util
 import Syntax.Kind (Kind (LabelsKind))
 import Syntax.Label 
+import Language.Haskell.Exts (KnownExtension(ConstraintKinds))
 
-data BundleEnv' = BundleEnv'
+data CollectEnv' = CollectEnv'
   { resources   :: Map String [Version]
-  , types       :: Map String [Type]
-  , constraints :: Map String Constraints
+  , types       :: Map String (Map Version Type)
+  , constraints :: Map String (Map Version Constraints)
   , uenv        :: Map String UEnv
   }
   deriving (Show)
-type BundleEnv a = State BundleEnv' a
+type CollectEnv a = State CollectEnv' a
 
-addResource :: String -> Version -> BundleEnv ()
+addResource :: String -> Version -> CollectEnv ()
 addResource s v = state $ \env ->
   let m' = v : (resources env ! s)
   in ((), env {resources = insert s m' $ resources env})
 
-checkTypes :: [Type] -> Bool
-checkTypes [] = True
-checkTypes (t:ts) = all (tySym t) ts
+checkTypes :: Map Version Type -> Bool
+checkTypes tys = 
+  let t = snd . head $ toList tys
+  in all (tySym t) (elems tys)
 
-genNewLabelsVar :: State Int (Type, UEnv)
+data BundleEnv' = BundleEnv'
+  { counter      :: Int
+  , bTEnv        :: TEnv
+  , bUEnv        :: UEnv
+  , bConstraints :: Constraints
+  , bConsScheme  :: Map String Constraints 
+  }
+  deriving (Show)
+type BundleEnv a = State BundleEnv' a
+
+-- genNewLabelsVar :: State Int (Type, UEnv)
+-- genNewLabelsVar = do
+--   c <- get
+--   let name = prefixNewTyVar ++ show c
+--       uenv' = makeEnv [(name, LabelsKind)]
+--       tyvar = TyVar (Ident name)
+--   modify $ \c -> c + 1
+--   return (tyvar, uenv')
+
+-- 新しいラベル変数を生成し、型変数環境をその新ラベル変数で更新
+genNewLabelsVar :: BundleEnv Type
 genNewLabelsVar = do
-  c <- get
+  c <- gets counter
   let name = prefixNewTyVar ++ show c
-      uenv' = makeEnv [(name, LabelsKind)]
       tyvar = TyVar (Ident name)
-  modify $ \c -> c + 1
-  return (tyvar, uenv')
+  modify $ \env -> env
+    { counter = 1 + counter env
+    , bUEnv = insert name LabelsKind (bUEnv env) }
+  return tyvar
+
+-- 見本の型を一つ受け取り、その型と同型でリソース変数だけ新しい型を生成する
+-- f : !_a1 (!_a0 Int -> Int) -> f : f : !_a2 (!_a3 Int -> Int) (a2,a3は逆でも問題なし)
+genSampleType :: Type -> BundleEnv Type
+genSampleType ty = case ty of
+  TyCon _ -> return ty
+  TyVar name -> genNewLabelsVar
+  TyFun t1 t2 -> TyFun <$> genSampleType t1 <*> genSampleType t2
+  TyBox c t -> TyBox <$> genSampleType c <*> genSampleType t
+  TyBottom   -> return ty
+  TyLabels _ -> return ty
+
+-- 特定のバージョンの型と見本の型を受け取り、その間の制約を生成する
+genConstraints :: Type -> Type -> BundleEnv Constraints
+genConstraints t1 t2 = case (t1, t2) of
+  (TyCon _, TyCon _) -> return CTop
+  (TyVar _, TyVar _) -> return $ CSubset t1 t2
+  (TyFun t1 t2, TyFun t1' t2') -> landC <$> genConstraints t1 t1' <*> genConstraints t2 t2'
+  (TyBox c t, TyBox c' t') -> landC <$> genConstraints c c' <*> genConstraints t t'
+  (TyBottom, TyBottom)   -> return CTop
+  (TyLabels _, TyLabels _) -> return CTop
 
 -- 各バージョンの同名モジュールのコンパイル結果を受け取り、bundlingされた結果の変数名とリソースのMapを返す
 -- 1. そのトップレベルシンボルの全てのバージョンの型がtySymの関係の上で同型か検査
 -- 2. そのトップレベルシンボルの実装が存在する全てのバージョンをresourcesに収集
 -- 3. そのトップレベルシンボルに関する全てのバージョン制約をconstraintsに収集
-bundle :: String -> Int -> Map VLMod [TypedExp] -> (TEnv, UEnv, Constraints, Int)
+bundle :: String -> Int -> Map VLMod [TypedExp] -> (TEnv, UEnv, Constraints, Map String Constraints, Int)
 bundle mn initC m =
   let
-    initEnv = BundleEnv' empty empty empty empty
-    BundleEnv' vers tys cons mapu = execState collectAcrossVersion initEnv
-    ((newTEnv, newUEnv, newCons), newc) = runState
-      (foldM
-        (\(accTEnv, accUEnv, accCons) sym -> do
-          (newLabel, uLabelAdded) <- genNewLabelsVar
-          let types = tys ! sym
-              TyBox _ ty = head types
-          -- types中の型は名前の付け替えを無視すれば全て同一か？
-          unless (checkTypes types) $
-            error "The value types of all versions must be equal."
-          let
-            -- U_{x,y,z} (aNew ≤ a_X_x.y.z)
-            cs = foldl1 landC $ Data.List.map (\(TyBox r ty) -> CSubset newLabel r) types
-            -- aNew ≤ (Available versions)
-            -- newc = CSubset newLabel (TyLabels $ Data.Set.fromList $ Data.List.map (Label <$> Data.Map.singleton mn) $ vers ! sym)
-            newc = CSubset newLabel (TyLabels $ Data.Map.singleton mn (vers ! sym))
-          return
-            ( insertEnv sym (GrType Imported ty newLabel) accTEnv -- バンドル後は必ずimported env type
-            , accUEnv `Data.Map.union` (mapu ! sym) `Data.Map.union` uLabelAdded
-            , accCons `landC` (cons ! sym) `landC` newc `landC` cs
-            )
-        )
-        (emptyEnv :: TEnv, emptyEnv :: UEnv, CTop :: Constraints)
-        (keys tys))
-      initC
-    in
-      (newTEnv, newUEnv, newCons, newc)
+    CollectEnv' vers tys cons mapu = execState collectAcrossVersion (CollectEnv' empty empty empty empty)
+    BundleEnv' newCounter newTEnv newUEnv newCons newScheme =
+      execState
+        (forM_ (toList tys) $ \(vn, tysForV) -> bundleOfVnMn vn mn tysForV)
+        (BundleEnv' initC mempty mempty CTop mempty)
+  in  ( newTEnv
+      , newUEnv
+      , newCons
+      , newScheme
+      , newCounter)
   where
-    collectAcrossVersion :: BundleEnv ()
+    -- あるシンボルのバージョン毎の型を受け取り、bundle後のTEnv, 増えたラベルのUEnv, 増えたラベルと前のラベルの間のリソースを計算する
+    bundleOfVnMn :: String -> String -> Map Version Type -> BundleEnv ()
+    bundleOfVnMn vn mn tymap = do
+      let tymaplst = toList tymap
+          tyhead = snd . head $ tymaplst
+      sampleTy <- genSampleType tyhead
+      let TyBox samc samty = sampleTy
+      let newEnvTy = GrType Imported samty samc
+      csOfV <- fmap (foldl1 lorC) $ forM tymaplst $ \(v, ty) -> do
+        landC
+          <$> genConstraints sampleTy ty
+          <*> return (CSubset samc (TyLabels (singleton mn [v])))
+      modify $ \env -> env
+        { bConstraints = csOfV `landC` bConstraints env
+        , bTEnv = insert vn newEnvTy (bTEnv env)
+        , bConsScheme = insert vn csOfV (bConsScheme env) } -- bUEnvはラベル生成時に更新済み
+
+    -- -- 収集されたConstraints情報を単純にandする
+    -- bundleConstraints :: Map String (Map Version Constraints) -> Constraints
+    -- bundleConstraints m = foldl1 landC $ Prelude.map (foldl1 landC . elems) $ elems m
+  
+    collectAcrossVersion :: CollectEnv ()
     collectAcrossVersion =
       let m' = toList m in do
       forM_ m' $ \(VLMod mn v, lstTyExp) -> do
@@ -92,11 +139,13 @@ bundle mn initC m =
           -- uEnv：全てのバージョンについて収集する
           gets (Data.Map.lookup s . types) >>= \case
             Nothing -> do
-              modify ( \env -> env { types = insert s [ty] (types env) } )
+              modify ( \env -> env { types = insert s (singleton v ty) (types env) } )
               exu' <- gets (insert s exu . uenv)
               modify ( \env -> env { uenv = exu' } )
             Just ty' -> do
-              modify ( \env -> env { types = update (\ty' -> Just (ty:ty')) s (types env) } )
+              oldTysOfS <- gets $ (! s) . types
+              let newTysOfS = insert v ty oldTysOfS
+              modify ( \env -> env { types = insert s newTysOfS (types env) } )
               exu' <- gets $ (! s) . uenv
               modify ( \env -> env { uenv = insert s (exu `union` exu') (uenv env) } )
           -- そのトップレベルシンボルの実装が存在する全てのバージョンをresourcesに収集
@@ -109,10 +158,12 @@ bundle mn initC m =
           -- そのトップレベルシンボルに関する全てのバージョン制約をconstraintsに収集
           gets (Data.Map.lookup s . constraints) >>= \case
             Nothing -> do
-              c' <- gets (insert s c . constraints)
+              c' <- gets (insert s (singleton v c) . constraints)
               modify ( \env -> env { constraints = c' } )
             Just ty -> do
-              c' <- gets (landC c . (! s) .  constraints)
-              modify ( \env -> env { constraints = insert s c' (constraints env) } )
+              oldCsOfS <- gets $ (! s) .constraints
+              let newCsOfS = insert v c oldCsOfS 
+              -- c' <- gets (landC c . (! s) .  constraints)
+              modify ( \env -> env { constraints = insert s newCsOfS (constraints env) } )
 
 

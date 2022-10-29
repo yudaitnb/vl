@@ -3,7 +3,7 @@ module RenameExVarSpec (spec) where
 import Test.Hspec
 import Prelude
 
-import qualified Data.Map
+import qualified Data.Map as M
 import Data.Map (fromList)
 import qualified Data.Either
 
@@ -24,5 +24,5 @@ spec = do
     let code3 = "main a = f a + f a"
     it code3 $ getFVRenamed code3 `shouldBe` ["__f_0", "__f_1"]
   where
-    getFVRenamed = freeVars . getBind . head . getDecls . fst . renameExVarModule . getVLMod 
+    getFVRenamed = freeVars . getBind . head . getDecls . fst . (renameExVarModule M.empty) . getVLMod 
     getVLMod  =  girardFwd . normalize . desugarAST . parseString

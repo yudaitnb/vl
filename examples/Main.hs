@@ -7,6 +7,7 @@ import B
 -- main = a + 1 -- OK
 
 -- main = g a + h a -- Rejected
+-- main = (unversion (g y)) + (unversion (h y)) -- RejectedだがOKにしたい
 
 -- main =
 --   let xx = g a
@@ -17,10 +18,10 @@ import B
 --            yy = unversion (h (version {A=1.0.1} of a))
 --        in xx + yy -- OK
 
-main = let xx = (unversion g) a
-           yy = (unversion h) a
-       in xx + yy -- OK
+-- main = let xx = (unversion g) a
+--            yy = (unversion h) a
+--        in xx + yy -- OK
 
--- main = let xx = (unversion (g a))
---            yy = (unversion (h a))
---        in xx + yy -- RejectedだがOKにしたい
+main = let xx = (unversion (g a))
+           yy = (unversion (h a))
+       in xx + yy -- RejectedだがOKにしたい

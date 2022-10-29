@@ -345,46 +345,11 @@ instance Typable (VL.Exp SrcSpanInfo) where
 
       _ -> error "The function `infer` is not defined for a given expression."
 
-
--- 型中の型変数を全て新しい型変数にリネームする
--- fresh :: Type -> Env (Type, Constraints)
--- fresh ty = do
---   uenv <- gets uEnv
---   case ty of
---     TyVar name -> do
---       k <- kind ty
---       newtv <- genNewTyVar k
---       return (newtv, [CSubset newtv ty])
---     TyCon qn -> return (TyCon qn, [])
---     TyFun t1 t2 -> do
---       (t1', cs1) <- fresh t1
---       (t2', cs2) <- fresh t2
---       return (TyFun t1' t2', cs1 ++ cs2)
---     TyBox c ty -> do
---       (c',  cs1) <- fresh c
---       (ty', cs2) <- fresh ty
---       return (TyBox c' ty', cs1 ++ cs2)
---     TyBottom -> return (TyBottom, [])
---     TyLabels ls -> return (TyLabels ls, [])
---     CAdd c1 c2 -> do
---       (c1', cs1) <- fresh c1
---       (c2', cs2) <- fresh c2
---       return (CAdd c1' c2', cs1 ++ cs2)
---     CMul c1 c2 -> do
---       (c1', cs1) <- fresh c1
---       (c2', cs2) <- fresh c2
---       return (CMul c1' c2', cs1 ++ cs2)
---     CSubset c1 c2 -> do
---       (c1', cs1) <- fresh c1
---       (c2', cs2) <- fresh c2
---       return (CSubset c1' c2', cs1 ++ cs2)
-
--- newtype TypedExp = TypedExp (String, Type, Constraints) deriving (Eq, Ord, Show)
 data TypedExp = TypedExp
-  { name :: String
-  , inferredType :: Type
-  , constraints :: Constraints
-  , uenv :: UEnv
+  { name         :: String      -- シンボル名
+  , inferredType :: Type        -- 推論された型
+  , constraints  :: Constraints -- 推論された型が満たすべき制約
+  , uenv         :: UEnv        -- この型付けで生成された型変数
   }
   deriving (Show)
 
@@ -415,10 +380,10 @@ getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ decls) =
           -- con' = nub $ map (typeSubstitution sub) con
           -- inc = [ c | c <- con', null $ consOn c `intersect` freeTyVars ty ]
           -- exc = [ c | c <- con', not . null $ consOn c `intersect` freeTyVars ty ]
-          exu = filterEnvBy (freeVars ty) uenv
+          -- exu = filterEnvBy (freeVars ty) uenv
       l <- gets (reverseLogs . log)
       return $
-        (TypedExp (getName pat) ty con' exu, l) : decls'
+        (TypedExp (getName pat) ty con' uenv, l) : decls'
 
     -- ^ addDeclToTEnv (x : ty, c) => x : [ty]@[a_new] | C U c
     addDeclToTEnv :: TypedExp -> Env ()
@@ -473,12 +438,12 @@ instance PrettyAST TyInfRes where
 instance PrettyAST TypedExp where
   ppE (TypedExp s ty c uenv) =
         ppE s <+> colon <+> ppE ty
-    <+> ppE "|" <+> ppE c
-    <+> ppE "|" <+> ppE uenv
+    -- <+> ppE "|" <+> ppE c
+    -- <+> ppE "|" <+> ppE uenv
   ppP (TypedExp s ty c uenv) =
         ppP s <+> colon <+> ppP ty
-    <+> ppP "|" <+> ppP c
-    <+> ppP "|" <+> ppP uenv
+    -- <+> ppP "|" <+> ppP c
+    -- <+> ppP "|" <+> ppP uenv
 
 instance PrettyAST [TypedExp] where
   ppE lst = concatWith (surround line) $ map ppE lst
