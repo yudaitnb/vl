@@ -5,4 +5,4 @@ f x = x + 1
 
 g x = x + 1
 
-w x y = x + y
+-- w x y = x + y

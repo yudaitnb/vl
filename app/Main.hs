@@ -2,7 +2,9 @@ module Main where
 
 import Control.Monad ( forM_, when )
 import Control.Monad.State ( execStateT, execState )
-import Data.Map ( (!), empty, elems )
+
+import Data.List (nub)
+import Data.Map ( (!), empty, elems, mapWithKey )
 
 import System.Directory ( createDirectoryIfMissing )
 import System.FilePath ( splitFileName, splitExtension )
@@ -11,13 +13,13 @@ import System.Environment ( getArgs )
 import DependencyGraph
 import Compilation.Compile
 import Inference.TypeInference (TypedExp(..), aggregateConstraints)
-import Syntax.Type (landC)
+import Syntax.Type (landC, Constraints(..))
 import qualified Data.List
 import Syntax.Version (Version(..))
 
 import Solver
+import SolverGT
 import Util
-import Data.List (nub)
 
 
 -- import qualified Language.Haskell.Interpreter as I
@@ -51,20 +53,12 @@ main = do
   logP "=== Compilation order ==="
   logP sorted
 
-  let initCompEnv = CompileEnv' (tail sorted) 0 mapParsedAst empty empty empty empty logfile
+  let initCompEnv = CompileEnv' (tail sorted) 0 Data.Map.empty mapParsedAst empty CTop empty empty empty empty logfile
   env <- execStateT (compile $ head sorted) initCompEnv
 
-  logP "=== Compilation Result ==="
-  let result = (! root) $ globalTEnv env
-  logP result
-
   logP "=== Constraints ==="
-  let consMain = aggregateConstraints result
-      consDepMods = foldl1 landC $ (elems . bundledConstraints) env
-      cons = consMain `landC` consDepMods
-      -- [TODO] namedConstraintの名前が被らないように入れているnubが余計かもしれない
-      -- リソース変数が同じでも制約名を区別できるようになればnub不要
-  logP $ putDocString $ ppP cons
+  let cons = globalConstraints env
+  logP $ putDocString $ ppP cons <> line
 
   logP "=== Solver result ==="
   let fvCons = freeVars cons
@@ -78,11 +72,20 @@ main = do
               doc = header <+> maintxt
           logP $ putDocString doc
 
-  solve extMods cons >>= \case
+  -- logP "=== SolverGT ==="
+  SolverGT.solve extMods cons >>= \case
     Left (h,r)   -> do
         logP h
         logP $ putDocString $ concatWith (surround $ comma <> space) $ map ppP r
-    Right res -> printResult maxWHeader maxWItem res
+    Right res ->
+      logP $ putDocString $ concatWith (surround line) $ mapWithKey (\vn l -> ppP vn <+> colon <+> ppP l) res
+  -- logP "=== Solver ==="
+  -- Solver.solve extMods cons >>= \case
+  --   Left (h,r)   -> do
+  --       logP h
+  --       logP $ putDocString $ concatWith (surround $ comma <> space) $ map ppP r
+  --   Right res ->
+  --     printResult maxWHeader maxWItem res
 
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func

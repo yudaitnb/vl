@@ -35,13 +35,13 @@ import Control.Monad.Trans (lift)
 --            , (1, [(0, v100), (1, v101)])]
 -- l = length idxmods
 
+
+separator = "---"
+
 lulist :: (Show a, Show b, Eq a) => [(a, b)] -> a -> b
 lulist map k = fromMaybe
               (error $ "cannot find " ++ show k ++ " in map " ++ show map) $
               lookup k map
-
--- idxVerOf mn v = fromIntegral $ (idxvers `lulist` mn) `lulist` v
--- idxModOf mn = idxmods `lulist` mn
 
 ---
 
@@ -108,7 +108,7 @@ solve em cs = do
   where
     parseVarName :: String -> (String, String, Version)
     parseVarName str = 
-      let [vn,mn,vstr] = splitOn "_" str
+      let [vn,mn,vstr] = splitOn separator str
           [major,minor,patch] = map (\x -> read x :: Int) $ splitOn "." vstr
       in (vn, mn, Version major minor patch)
     -- [("a0_A_1.0.0", [0,1])] -> fromList [("a0", fromList [("A",[v100,v101])])]
@@ -116,13 +116,15 @@ solve em cs = do
     resToLabels []             = mempty
     resToLabels ((var, bit):ss) =
       let ss' = resToLabels ss in
-      if bit == 1
-        then
+      -- if bit == 1
+        -- then
           let (vn, mn, v) = parseVarName var
               oldLabelofVn = fromMaybe mempty $ M.lookup vn ss'
-              newLabelOfVn = insertWith (++) mn [v] oldLabelofVn
+              newLabelOfVn = if bit == 1
+                              then insertWith (++) mn [v] oldLabelofVn
+                              else oldLabelofVn
           in insert vn newLabelOfVn ss'
-        else ss'
+        -- else ss'
 
 senario :: Env -> Symbolic ()
 senario env = do
@@ -130,12 +132,12 @@ senario env = do
   let svars = map snd labels
       env' = env { variables = labels }
   constrain $ compileConstraints env' (constraints env')
-  msMaximize purpose $ numberOfFalse svars
+  msMaximize purpose $ numberOfTBD svars
   where
     numberOfTBDInVar :: SLabel -> SInteger
     numberOfTBDInVar = foldr (\row acc -> acc + foldr (\b acc -> acc + ite (b .== sTBD) 1 0) 0 row) 0
-    numberOfFalse :: [SLabel] -> SInteger
-    numberOfFalse = foldr (\row acc -> acc + numberOfTBDInVar row) 0
+    numberOfTBD :: [SLabel] -> SInteger
+    numberOfTBD = foldr (\row acc -> acc + numberOfTBDInVar row) 0
 
 mkSLabelSq :: Env -> String -> Symbolic (String, SLabel)
 mkSLabelSq env vn = do
@@ -143,7 +145,7 @@ mkSLabelSq env vn = do
       exmods = versionsOfExternalModules env
   sv <- forM idxmods $ \(mn, mni) -> do
     forM (snd $ exmods !! mni) $ \v -> do
-      sInt (putDocString $ ppP vn <> ppP "_" <> ppP mn <> ppP "_" <> ppP v)
+      sInt (putDocString $ ppP vn <> ppP separator <> ppP mn <> ppP separator <> ppP v)
   return (vn, sv)
 
 compileConstraints :: Env -> Constraints -> SBool
@@ -190,10 +192,10 @@ subsetOf l1 l2 =
     (\row1 row2 ->
       foldl1 (.&&) $ zipWith
         -- 以下のいずれか一方
-        -- 1. b2がsMayDep /sNotDep = l2はmnのそのビットの位置のバージョンが候補に含まれる/含まれない
+        -- 1. b2がsMayDep /sNotDep, すなわちl2はmnのそのビットの位置のバージョンが候補に含まれる/含まれない
         --    -> l1も同じバージョンに依存する/依存しない
-        -- 2. b2がsTBD = l2はmnのそのビットの位置のバージョンについて制約なし
-        --    -> l1のについては無制約
+        -- 2. b2がsTBD, すなわちl2はmnのそのビットの位置のバージョンについて制約なし
+        --    -> l1については無制約
         (\b1 b2 ->
           (b2 .== sMayDep .&& b1 .== sMayDep) .<+>
           (b2 .== sNotDep .&& b1 .== sNotDep) .<+>
