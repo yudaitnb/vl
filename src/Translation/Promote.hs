@@ -4,7 +4,7 @@ import Syntax.LambdaVL
 import Syntax.Name
 
 promoteMain :: Module l -> Module l
-promoteMain (Module l mh imp decls) = Module l mh imp (map promoteDecl decls)
+promoteMain (Module l mh pragmas imp decls) = Module l mh pragmas imp (map promoteDecl decls)
   where
     promoteDecl :: Decl l -> Decl l
     promoteDecl (PatBind l1 pvar exp)
@@ -18,7 +18,7 @@ promoteMain (Module l mh imp decls) = Module l mh imp (map promoteDecl decls)
       _ -> Pr (ann exp) exp
 
 promoteTopVal :: Module l -> Module l
-promoteTopVal (Module l mh imp decls) = Module l mh imp (map promoteDecl decls)
+promoteTopVal (Module l mh pragmas imp decls) = Module l mh pragmas imp (map promoteDecl decls)
   where
     promoteDecl :: Decl l -> Decl l
     promoteDecl (PatBind l1 pvar exp) 

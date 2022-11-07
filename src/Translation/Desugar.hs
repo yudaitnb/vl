@@ -10,11 +10,11 @@ import qualified Data.Set
 import qualified Data.Map
 
 desugarAST :: Absyn.Module l -> Desugared.Module l
-desugarAST (Absyn.Module l mh _ imp decls) =
+desugarAST (Absyn.Module l mh pragmas imp decls) =
   let
     decls' = map desugar $ Absyn.decomposeDecl decls
   in
-    Desugared.Module l mh imp decls'
+    Desugared.Module l mh pragmas imp decls'
 desugarAST _ = error ""
 
 class Desugaring ast where
@@ -23,7 +23,7 @@ class Desugaring ast where
 
 instance Desugaring (Absyn.Module l) where
   type Desugared (Absyn.Module l) = (Desugared.Module l)
-  desugar (Absyn.Module l moduleHead _ importDecl decl) = Desugared.Module l moduleHead importDecl (fmap desugar decl)
+  desugar (Absyn.Module l moduleHead pragmas importDecl decl) = Desugared.Module l moduleHead pragmas importDecl (fmap desugar decl)
   desugar _ = error "The desugaring translation is not defined for a given expression."
 
 instance Desugaring (Absyn.Pat l) where

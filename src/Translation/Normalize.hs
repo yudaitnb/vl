@@ -47,9 +47,9 @@ instance Normalize (Exp l) where
     VExt l e        -> return $ VExt l e
 
 instance Normalize (Module l) where
-  normal (Module l moduleHead importDecl decl) = do
+  normal (Module l moduleHead pragmas importDecl decl) = do
     decl' <- mapM normal decl
-    return $ Module l moduleHead importDecl decl'
+    return $ Module l moduleHead pragmas importDecl decl'
 
 instance Normalize (Decl l) where
   normal pb@(PatBind srcLocInfo pat e) = do

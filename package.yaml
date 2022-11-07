@@ -33,6 +33,10 @@ dependencies:
 - split
 - sbv
 - transformers
+# - haskell-names
+
+- ghc-paths
+- ghc
 
 library:
   source-dirs: src

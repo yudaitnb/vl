@@ -17,6 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
+# resolver: nightly-2022-02-07
 resolver: nightly-2022-10-18
   # url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/17.yaml
 
@@ -44,6 +45,8 @@ packages:
 extra-deps:
 - github: yudaitnb/vl-haskell-src-exts
   commit: d3591d04110e7c79ac5a42740f3b65935b3b1ae6
+- github: yudaitnb/vl-haskell-names
+  commit: c8c5504900b45379d98eeeaf4d1ca30cfa187470
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

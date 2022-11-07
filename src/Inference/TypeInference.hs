@@ -355,7 +355,7 @@ data TypedExp = TypedExp
 
 -- [TODO] 難読。再帰も不明瞭。書き直す
 getInterface :: TEnv -> UEnv -> Int -> VL.Module SrcSpanInfo -> ([(TypedExp, Logs)], Int)
-getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ decls) =
+getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) =
   let initEnv = Env' initC importedTEnv importedUEnv emptyREnv emptyLogs initLC
       (typedExpLogs, env) = runState (getInterface' $ reverse $ tsortDecls decls) initEnv
       typedExpLogs' = rearrange typedExpLogs
