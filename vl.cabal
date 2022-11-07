@@ -25,8 +25,7 @@ source-repository head
 
 library
   exposed-modules:
-      Compilation.Bundling
-      Compilation.Compile
+      Compile
       DependencyGraph
       Graph
       Inference.Kinding
@@ -47,7 +46,9 @@ library
       Syntax.Substitution
       Syntax.Type
       Syntax.Version
+      Translation.Bundling
       Translation.Desugar
+      Translation.Extraction
       Translation.Girard
       Translation.Normalize
       Translation.Promote
@@ -70,6 +71,8 @@ library
     , containers
     , directory
     , filepath
+    , ghc
+    , ghc-paths
     , haskell-src-exts
     , mtl
     , prettyprinter
@@ -97,6 +100,8 @@ executable vl-exe
     , containers
     , directory
     , filepath
+    , ghc
+    , ghc-paths
     , haskell-src-exts
     , mtl
     , prettyprinter
@@ -129,6 +134,8 @@ test-suite vl-test
     , containers
     , directory
     , filepath
+    , ghc
+    , ghc-paths
     , haskell-src-exts
     , hspec
     , mtl

@@ -63,12 +63,15 @@ h = [(\[x].((* [x]) [1]))]
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : {}
 [DEBUG] Imported UEnv      : {}
-[DEBUG] global constraints : ⊤
-
 === Duplicate External Symbols (Syntax.VL) ===
 [DEBUG] Duplicated Imported TEnv        : {}
 [DEBUG] Duplicated Imported UEnv        : {}
 [DEBUG] Duplicated Imported Constraints : ⊤
+
+[DEBUG] add duplicated constraints                 : 
+⊤
+[DEBUG] add duplicated external variable resources : 
+{}
 
 [DEBUG] Initial Counter     : 0
 
@@ -212,12 +215,15 @@ g = [(\[x].((+ [x]) [1]))]
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : {}
 [DEBUG] Imported UEnv      : {}
-[DEBUG] global constraints : (a5 ≤ a3) and (a17 ≤ a15)
-
 === Duplicate External Symbols (Syntax.VL) ===
 [DEBUG] Duplicated Imported TEnv        : {}
 [DEBUG] Duplicated Imported UEnv        : {}
 [DEBUG] Duplicated Imported Constraints : ⊤
+
+[DEBUG] add duplicated constraints                 : 
+⊤
+[DEBUG] add duplicated external variable resources : 
+{}
 
 [DEBUG] Initial Counter     : 24
 
@@ -351,12 +357,20 @@ a = [(__f_0 [(__f_1 [__y_0])])]
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : f:[(Int@[a49] -> Int)]_(a48), g:[(Int@[a51] -> Int)]_(a50), h:[(Int@[a53] -> Int)]_(a52), y:[Int]_(a54)
 [DEBUG] Imported UEnv      : a48:Label, a49:Label, a50:Label, a51:Label, a52:Label, a53:Label, a54:Label
-[DEBUG] global constraints : (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
-
 === Duplicate External Symbols (Syntax.VL) ===
 [DEBUG] Duplicated Imported TEnv        : __f_0:[(Int@[a49_0] -> Int)]_(a48_0), __f_1:[(Int@[a49_1] -> Int)]_(a48_1), __y_0:[Int]_(a54_0), g:[(Int@[a51] -> Int)]_(a50), h:[(Int@[a53] -> Int)]_(a52)
 [DEBUG] Duplicated Imported UEnv        : a48_0:Label, a48_1:Label, a49_0:Label, a49_1:Label, a50:Label, a51:Label, a52:Label, a53:Label, a54_0:Label
-[DEBUG] Duplicated Imported Constraints : (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}])))
+[DEBUG] Duplicated Imported Constraints : (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}])))
+
+[DEBUG] add duplicated constraints                 : 
+(((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}])))
+[DEBUG] add duplicated external variable resources : 
+__f_0 -> f
+a48_0,
+__f_1 -> f
+a48_1,
+__y_0 -> y
+a54_0
 
 [DEBUG] Initial Counter     : 55
 
@@ -391,7 +405,7 @@ a : Int@[a59]
 [DEBUG] Add global constraints : (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0)
 [DEBUG] Counter: 60
 [DEBUG] globalConstraints:
-(a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
+(a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
 
 [DEBUG] bundledConsSchemes:
 B
@@ -441,12 +455,18 @@ a = [(__f_2 [__y_1])]
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : f:[(Int@[a49] -> Int)]_(a48), g:[(Int@[a51] -> Int)]_(a50), h:[(Int@[a53] -> Int)]_(a52), y:[Int]_(a54)
 [DEBUG] Imported UEnv      : a48:Label, a49:Label, a50:Label, a51:Label, a52:Label, a53:Label, a54:Label
-[DEBUG] global constraints : (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
-
 === Duplicate External Symbols (Syntax.VL) ===
 [DEBUG] Duplicated Imported TEnv        : __f_2:[(Int@[a49_2] -> Int)]_(a48_2), __y_1:[Int]_(a54_1), g:[(Int@[a51] -> Int)]_(a50), h:[(Int@[a53] -> Int)]_(a52)
 [DEBUG] Duplicated Imported UEnv        : a48_2:Label, a49_2:Label, a50:Label, a51:Label, a52:Label, a53:Label, a54_1:Label
-[DEBUG] Duplicated Imported Constraints : (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}])))
+[DEBUG] Duplicated Imported Constraints : (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}])))
+
+[DEBUG] add duplicated constraints                 : 
+(((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}])))
+[DEBUG] add duplicated external variable resources : 
+__f_2 -> f
+a48_2,
+__y_1 -> y
+a54_1
 
 [DEBUG] Initial Counter     : 60
 
@@ -481,7 +501,7 @@ a : Int@[a62]
 [DEBUG] Add bundled constraints schemes : (a,(((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))))
 [DEBUG] Counter     : 64
 [DEBUG] globalConstraints:
-(((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
+(((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
 
 [DEBUG] bundledConsSchemes:
 A
@@ -521,29 +541,29 @@ import B
 
 
 
-main = let xx = (unversion (g a))
-           yy = (unversion (h a))
+main = let xx = (unversion (g (version {A=1.0.1} of a)))
+           yy = (unversion (h (version {A=1.0.0} of a)))
        in xx + yy
 
 
 === Desugared AST (Syntax.Desugared) ===
 module Main where where
-main = ((\xx.((\yy.((+ xx) yy)) (unversion (h a)))) (unversion (g a)))
+main = ((\xx.((\yy.((+ xx) yy)) (unversion (h (version {A:[1.0.0]} of a))))) (unversion (g (version {A:[1.0.1]} of a))))
 
 
 === Normalized AST (Syntax.Desugared) ===
 module Main where where
-main = ((\xx.((\yy.((+ xx) yy)) (unversion (h a)))) (unversion (g a)))
+main = ((\xx.((\yy.((+ xx) yy)) (unversion (h (version {A:[1.0.0]} of a))))) (unversion (g (version {A:[1.0.1]} of a))))
 
 
 === AST (Syntax.VL) ===
 module Main where where
-main = ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(h [a])])])) [(unversion [(g [a])])])
+main = ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(h [(version {A:[1.0.0]} of a)])])])) [(unversion [(g [(version {A:[1.0.1]} of a)])])])
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module Main where where
-main = ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [__a_0])])])) [(unversion [(__g_0 [__a_1])])])
+main = ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [(version {A:[1.0.0]} of __a_0)])])])) [(unversion [(__g_0 [(version {A:[1.0.1]} of __a_1)])])])
 
 [DEBUG] ct     : f->3, y->2
 [DEBUG] ct'    : a->2, f->3, g->1, h->1, y->2
@@ -553,12 +573,22 @@ main = ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [__a_0])])])) [(un
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : a:[Int]_(a63), f:[(Int@[a49] -> Int)]_(a48), g:[(Int@[a51] -> Int)]_(a50), h:[(Int@[a53] -> Int)]_(a52), y:[Int]_(a54)
 [DEBUG] Imported UEnv      : a48:Label, a49:Label, a50:Label, a51:Label, a52:Label, a53:Label, a54:Label, a63:Label
-[DEBUG] global constraints : (((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
-
 === Duplicate External Symbols (Syntax.VL) ===
 [DEBUG] Duplicated Imported TEnv        : __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0)
 [DEBUG] Duplicated Imported UEnv        : a50_0:Label, a51_0:Label, a52_0:Label, a53_0:Label, a63_0:Label, a63_1:Label
-[DEBUG] Duplicated Imported Constraints : (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}])))
+[DEBUG] Duplicated Imported Constraints : (((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}]))) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}])))
+
+[DEBUG] add duplicated constraints                 : 
+(((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}]))) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}])))
+[DEBUG] add duplicated external variable resources : 
+__a_0 -> a
+a63_0,
+__a_1 -> a
+a63_1,
+__g_0 -> g
+a50_0,
+__h_0 -> h
+a52_0
 
 [DEBUG] Initial Counter     : 64
 
@@ -599,54 +629,62 @@ main : Int@[a76]
 |||(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0), xx:[a66]_(a65) |- (\[yy].[((+ [xx]) [yy])]) => ((Int@[a68] -> Int@[a76]); (a73 ↦ (Int@[a71] -> Int), a66 ↦ Int, a69 ↦ Int, a67 ↦ Int@[a68], a72 ↦ a70, a74 ↦ a71, a75 ↦ Int); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65))
 ||||||||(Kinding) |- a52_0 : Label
 |||||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- __h_0 => ((Int@[a53_0] -> Int); (); ⊤)
-|||||||||(Kinding) |- a63_0 : Label
-||||||||(TypeInf) __a_0:[Int]_(a63_0) |- __a_0 => (Int; (); ⊤)
-|||||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- [__a_0] => (Int@[a77]; (); (a77 ≤ a63_0))
+|||||||||(Kinding) |- [{A:[1.0.0]}] : Label
+|||||||||||(Kinding) |- [{A:[1.0.0]}] : Label
+|||||||||||(Kinding) |- a63_0 : Label
+||||||||||(Kinding) |- [{A:[1.0.0]}] .* a63_0 : Label
+|||||||||(TypeInf) __a_0:[Int]_([{A:[1.0.0]}] .* a63_0) |- __a_0 => (Int; (); ⊤)
+||||||||(TypeInf) __a_0:[Int]_(a63_0) |- (version {A:[1.0.0]} of __a_0) => (Int; (); (a63_0 ≤ [{A:[1.0.0]}]))
+|||||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- [(version {A:[1.0.0]} of __a_0)] => (Int@[a77]; (); (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0))
 |||||||||(TyUnify)  |- Int ~ Int ▷ ()
 |||||||||(TyUnify)  |- a77 ~ a53_0 ▷ (a77 ↦ a53_0)
 ||||||||(TyUnify)  |- Int@[a77] ~ Int@[a53_0] ▷ (a77 ↦ a53_0)
 ||||||||(TyUnify)  |- Int ~ a78 ▷ (a78 ↦ Int)
 |||||||(TyUnify)  |- (Int@[a53_0] -> Int) ~ (Int@[a77] -> a78) ▷ (a77 ↦ a53_0, a78 ↦ Int)
-||||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- (__h_0 [__a_0]) => (Int; (a77 ↦ a53_0, a78 ↦ Int); (a77 ≤ a63_0))
-|||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- [(__h_0 [__a_0])] => (Int@[a79]; (a77 ↦ a53_0, a78 ↦ Int); (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
-||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- (unversion [(__h_0 [__a_0])]) => (Int; (a77 ↦ a53_0, a78 ↦ Int); (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
-|||(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0), xx:[a66]_(a65) |- [(unversion [(__h_0 [__a_0])])] => (Int@[a80]; (a77 ↦ a53_0, a78 ↦ Int); (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
+||||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- (__h_0 [(version {A:[1.0.0]} of __a_0)]) => (Int; (a77 ↦ a53_0, a78 ↦ Int); (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0))
+|||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- [(__h_0 [(version {A:[1.0.0]} of __a_0)])] => (Int@[a79]; (a77 ↦ a53_0, a78 ↦ Int); (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
+||||(TypeInf) __a_0:[Int]_(a63_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- (unversion [(__h_0 [(version {A:[1.0.0]} of __a_0)])]) => (Int; (a77 ↦ a53_0, a78 ↦ Int); (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
+|||(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0), xx:[a66]_(a65) |- [(unversion [(__h_0 [(version {A:[1.0.0]} of __a_0)])])] => (Int@[a80]; (a77 ↦ a53_0, a78 ↦ Int); (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
 |||||(TyUnify)  |- Int ~ Int ▷ ()
 |||||(TyUnify)  |- a80 ~ a68 ▷ (a80 ↦ a68)
 ||||(TyUnify)  |- Int@[a80] ~ Int@[a68] ▷ (a80 ↦ a68)
 ||||(TyUnify)  |- Int@[a76] ~ a81 ▷ (a81 ↦ Int@[a76])
 |||(TyUnify)  |- (Int@[a68] -> Int@[a76]) ~ (Int@[a80] -> a81) ▷ (a80 ↦ a68, a81 ↦ Int@[a76])
-||(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0), xx:[a66]_(a65) |- ((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [__a_0])])]) => (Int@[a76]; (a73 ↦ (Int@[a71] -> Int), a75 ↦ Int, a77 ↦ a53_0, a78 ↦ Int, a66 ↦ Int, a67 ↦ Int@[a68], a69 ↦ Int, a72 ↦ a70, a74 ↦ a71, a80 ↦ a68, a81 ↦ Int@[a76]); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
-|(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- (\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [__a_0])])])) => ((Int@[a65] -> Int@[a76]); (a73 ↦ (Int@[a71] -> Int), a75 ↦ Int, a77 ↦ a53_0, a78 ↦ Int, a66 ↦ Int, a64 ↦ Int@[a65], a67 ↦ Int@[a68], a69 ↦ Int, a72 ↦ a70, a74 ↦ a71, a80 ↦ a68, a81 ↦ Int@[a76]); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
+||(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0), xx:[a66]_(a65) |- ((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [(version {A:[1.0.0]} of __a_0)])])]) => (Int@[a76]; (a73 ↦ (Int@[a71] -> Int), a75 ↦ Int, a77 ↦ a53_0, a78 ↦ Int, a66 ↦ Int, a67 ↦ Int@[a68], a69 ↦ Int, a72 ↦ a70, a74 ↦ a71, a80 ↦ a68, a81 ↦ Int@[a76]); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
+|(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- (\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [(version {A:[1.0.0]} of __a_0)])])])) => ((Int@[a65] -> Int@[a76]); (a73 ↦ (Int@[a71] -> Int), a75 ↦ Int, a77 ↦ a53_0, a78 ↦ Int, a66 ↦ Int, a64 ↦ Int@[a65], a67 ↦ Int@[a68], a69 ↦ Int, a72 ↦ a70, a74 ↦ a71, a80 ↦ a68, a81 ↦ Int@[a76]); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0))
 ||||||(Kinding) |- a50_0 : Label
 |||||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- __g_0 => ((Int@[a51_0] -> Int); (); ⊤)
-|||||||(Kinding) |- a63_1 : Label
-||||||(TypeInf) __a_1:[Int]_(a63_1) |- __a_1 => (Int; (); ⊤)
-|||||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- [__a_1] => (Int@[a82]; (); (a82 ≤ a63_1))
+|||||||(Kinding) |- [{A:[1.0.1]}] : Label
+|||||||||(Kinding) |- [{A:[1.0.1]}] : Label
+|||||||||(Kinding) |- a63_1 : Label
+||||||||(Kinding) |- [{A:[1.0.1]}] .* a63_1 : Label
+|||||||(TypeInf) __a_1:[Int]_([{A:[1.0.1]}] .* a63_1) |- __a_1 => (Int; (); ⊤)
+||||||(TypeInf) __a_1:[Int]_(a63_1) |- (version {A:[1.0.1]} of __a_1) => (Int; (); (a63_1 ≤ [{A:[1.0.1]}]))
+|||||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- [(version {A:[1.0.1]} of __a_1)] => (Int@[a82]; (); (a63_1 ≤ [{A:[1.0.1]}]) and (a82 ≤ a63_1))
 |||||||(TyUnify)  |- Int ~ Int ▷ ()
 |||||||(TyUnify)  |- a82 ~ a51_0 ▷ (a82 ↦ a51_0)
 ||||||(TyUnify)  |- Int@[a82] ~ Int@[a51_0] ▷ (a82 ↦ a51_0)
 ||||||(TyUnify)  |- Int ~ a83 ▷ (a83 ↦ Int)
 |||||(TyUnify)  |- (Int@[a51_0] -> Int) ~ (Int@[a82] -> a83) ▷ (a82 ↦ a51_0, a83 ↦ Int)
-||||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- (__g_0 [__a_1]) => (Int; (a82 ↦ a51_0, a83 ↦ Int); (a82 ≤ a63_1))
-|||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- [(__g_0 [__a_1])] => (Int@[a84]; (a82 ↦ a51_0, a83 ↦ Int); (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
-||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- (unversion [(__g_0 [__a_1])]) => (Int; (a82 ↦ a51_0, a83 ↦ Int); (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
-|(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- [(unversion [(__g_0 [__a_1])])] => (Int@[a85]; (a82 ↦ a51_0, a83 ↦ Int); (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
+||||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- (__g_0 [(version {A:[1.0.1]} of __a_1)]) => (Int; (a82 ↦ a51_0, a83 ↦ Int); (a63_1 ≤ [{A:[1.0.1]}]) and (a82 ≤ a63_1))
+|||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- [(__g_0 [(version {A:[1.0.1]} of __a_1)])] => (Int@[a84]; (a82 ↦ a51_0, a83 ↦ Int); (a63_1 ≤ [{A:[1.0.1]}]) and (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
+||(TypeInf) __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0) |- (unversion [(__g_0 [(version {A:[1.0.1]} of __a_1)])]) => (Int; (a82 ↦ a51_0, a83 ↦ Int); (a63_1 ≤ [{A:[1.0.1]}]) and (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
+|(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- [(unversion [(__g_0 [(version {A:[1.0.1]} of __a_1)])])] => (Int@[a85]; (a82 ↦ a51_0, a83 ↦ Int); (a63_1 ≤ [{A:[1.0.1]}]) and (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
 |||(TyUnify)  |- Int ~ Int ▷ ()
 |||(TyUnify)  |- a85 ~ a65 ▷ (a85 ↦ a65)
 ||(TyUnify)  |- Int@[a85] ~ Int@[a65] ▷ (a85 ↦ a65)
 ||(TyUnify)  |- Int@[a76] ~ a86 ▷ (a86 ↦ Int@[a76])
 |(TyUnify)  |- (Int@[a65] -> Int@[a76]) ~ (Int@[a85] -> a86) ▷ (a85 ↦ a65, a86 ↦ Int@[a76])
-(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [__a_0])])])) [(unversion [(__g_0 [__a_1])])]) => (Int@[a76]; (a73 ↦ (Int@[a71] -> Int), a75 ↦ Int, a77 ↦ a53_0, a78 ↦ Int, a81 ↦ Int@[a76], a82 ↦ a51_0, a83 ↦ Int, a64 ↦ Int@[a65], a66 ↦ Int, a67 ↦ Int@[a68], a69 ↦ Int, a72 ↦ a70, a74 ↦ a71, a80 ↦ a68, a85 ↦ a65, a86 ↦ Int@[a76]); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
+(TypeInf) __a_0:[Int]_(a63_0), __a_1:[Int]_(a63_1), __g_0:[(Int@[a51_0] -> Int)]_(a50_0), __h_0:[(Int@[a53_0] -> Int)]_(a52_0) |- ((\[xx].((\[yy].[((+ [xx]) [yy])]) [(unversion [(__h_0 [(version {A:[1.0.0]} of __a_0)])])])) [(unversion [(__g_0 [(version {A:[1.0.1]} of __a_1)])])]) => (Int@[a76]; (a73 ↦ (Int@[a71] -> Int), a75 ↦ Int, a77 ↦ a53_0, a78 ↦ Int, a81 ↦ Int@[a76], a82 ↦ a51_0, a83 ↦ Int, a64 ↦ Int@[a65], a66 ↦ Int, a67 ↦ Int@[a68], a69 ↦ Int, a72 ↦ a70, a74 ↦ a71, a80 ↦ a68, a85 ↦ a65, a86 ↦ Int@[a76]); (a72 ≤ a65) and (a74 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a63_0 ≤ [{A:[1.0.0]}]) and (a77 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a63_1 ≤ [{A:[1.0.1]}]) and (a82 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1))
 
 === Inferred Types (Syntax.VL) ===
 main : Int@[a76]
 
 [DEBUG] Add global env : main : Int@[a76]
-[DEBUG] Add global constraints : (a70 ≤ a65) and (a71 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a53_0 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a51_0 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1)
+[DEBUG] Add global constraints : (a70 ≤ a65) and (a71 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a63_0 ≤ [{A:[1.0.0]}]) and (a53_0 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a63_1 ≤ [{A:[1.0.1]}]) and (a51_0 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1)
 [DEBUG] Counter: 87
 [DEBUG] globalConstraints:
-(a70 ≤ a65) and (a71 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a53_0 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a51_0 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}]))) and (((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
+(a70 ≤ a65) and (a71 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a63_0 ≤ [{A:[1.0.0]}]) and (a53_0 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a63_1 ≤ [{A:[1.0.1]}]) and (a51_0 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1) and (((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}]))) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
 
 [DEBUG] bundledConsSchemes:
 A
@@ -656,8 +694,19 @@ A
 [DEBUG] List of modules not yet compiled:
 None
 
+=== External Variables ===
+__a_0 Main-Root a63_0
+__a_1 Main-Root a63_1
+__f_0 A-1.0.1 a48_0
+__f_1 A-1.0.1 a48_1
+__f_2 A-1.0.0 a48_2
+__g_0 Main-Root a50_0
+__h_0 Main-Root a52_0
+__y_0 A-1.0.1 a54_0
+__y_1 A-1.0.0 a54_1
+
 === Constraints ===
-(a70 ≤ a65) and (a71 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a53_0 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a51_0 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}]))) and (((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
+(a70 ≤ a65) and (a71 ≤ a68) and (a76 ≤ a68) and (a76 ≤ a65) and (a63_0 ≤ [{A:[1.0.0]}]) and (a53_0 ≤ a63_0) and (a79 ≤ a52_0) and (a79 ≤ a63_0) and (a63_1 ≤ [{A:[1.0.1]}]) and (a51_0 ≤ a63_1) and (a84 ≤ a50_0) and (a84 ≤ a63_1) and (((a63_0 ≤ a62) and (a63_0 ≤ [{A:[1.0.0]}])) or ((a63_0 ≤ a59) and (a63_0 ≤ [{A:[1.0.1]}]))) and (((a63_1 ≤ a62) and (a63_1 ≤ [{A:[1.0.0]}])) or ((a63_1 ≤ a59) and (a63_1 ≤ [{A:[1.0.1]}]))) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a50_0 ≤ a47) and (a51_0 ≤ a39) and (a50_0 ≤ [{B:[1.0.0]}]) and (a52_0 ≤ a23) and (a53_0 ≤ a15) and (a52_0 ≤ [{B:[1.0.1]}]) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (((a63 ≤ a62) and (a63 ≤ [{A:[1.0.0]}])) or ((a63 ≤ a59) and (a63 ≤ [{A:[1.0.1]}]))) and (a49_2 ≤ a54_1) and (a62 ≤ a54_1) and (a62 ≤ a48_2) and (((a48_2 ≤ a35) and (a49_2 ≤ a27) and (a48_2 ≤ [{B:[1.0.0]}])) or ((a48_2 ≤ a11) and (a49_2 ≤ a3) and (a48_2 ≤ [{B:[1.0.1]}]))) and (((a54_1 ≤ a24) and (a54_1 ≤ [{B:[1.0.0]}])) or ((a54_1 ≤ a0) and (a54_1 ≤ [{B:[1.0.1]}]))) and (a49_1 ≤ a54_0) and (a49_0 ≤ a54_0) and (a49_0 ≤ a48_1) and (a59 ≤ a54_0) and (a59 ≤ a48_1) and (a59 ≤ a48_0) and (((a48_0 ≤ a35) and (a49_0 ≤ a27) and (a48_0 ≤ [{B:[1.0.0]}])) or ((a48_0 ≤ a11) and (a49_0 ≤ a3) and (a48_0 ≤ [{B:[1.0.1]}]))) and (((a48_1 ≤ a35) and (a49_1 ≤ a27) and (a48_1 ≤ [{B:[1.0.0]}])) or ((a48_1 ≤ a11) and (a49_1 ≤ a3) and (a48_1 ≤ [{B:[1.0.1]}]))) and (((a54_0 ≤ a24) and (a54_0 ≤ [{B:[1.0.0]}])) or ((a54_0 ≤ a0) and (a54_0 ≤ [{B:[1.0.1]}]))) and (((a54 ≤ a24) and (a54 ≤ [{B:[1.0.0]}])) or ((a54 ≤ a0) and (a54 ≤ [{B:[1.0.1]}]))) and (a52 ≤ a23) and (a53 ≤ a15) and (a52 ≤ [{B:[1.0.1]}]) and (a50 ≤ a47) and (a51 ≤ a39) and (a50 ≤ [{B:[1.0.0]}]) and (((a48 ≤ a35) and (a49 ≤ a27) and (a48 ≤ [{B:[1.0.0]}])) or ((a48 ≤ a11) and (a49 ≤ a3) and (a48 ≤ [{B:[1.0.1]}]))) and (a29 ≤ a27) and (a41 ≤ a39) and (a5 ≤ a3) and (a17 ≤ a15)
 
 === Solver result ===
 a0 : {}
@@ -673,7 +722,7 @@ a35 : {}
 a39 : {}
 a41 : {}
 a47 : {}
-a48 : {B:[1.0.0]}
+a48 : {B:[1.0.1]}
 a48_0 : {B:[1.0.0]}
 a48_1 : {B:[1.0.0]}
 a48_2 : {B:[1.0.1]}
@@ -690,7 +739,7 @@ a52 : {B:[1.0.1]}
 a52_0 : {B:[1.0.1]}
 a53 : {}
 a53_0 : {A:[1.0.0], B:[1.0.1]}
-a54 : {B:[1.0.0]}
+a54 : {B:[1.0.1]}
 a54_0 : {B:[1.0.0]}
 a54_1 : {B:[1.0.1]}
 a59 : {B:[1.0.0]}
@@ -705,3 +754,52 @@ a71 : {}
 a76 : {}
 a79 : {A:[1.0.0], B:[1.0.1]}
 a84 : {A:[1.0.1], B:[1.0.0]}
+
+=== Labels of External Variables ===
+__a_0 : a : Main-Root : a63_0 : {A:[1.0.0], B:[1.0.1]}
+__a_1 : a : Main-Root : a63_1 : {A:[1.0.1], B:[1.0.0]}
+__f_0 : f : A-1.0.1 : a48_0 : {B:[1.0.0]}
+__f_1 : f : A-1.0.1 : a48_1 : {B:[1.0.0]}
+__f_2 : f : A-1.0.0 : a48_2 : {B:[1.0.1]}
+__g_0 : g : Main-Root : a50_0 : {B:[1.0.0]}
+__h_0 : h : Main-Root : a52_0 : {B:[1.0.1]}
+__y_0 : y : A-1.0.1 : a54_0 : {B:[1.0.0]}
+__y_1 : y : A-1.0.0 : a54_1 : {B:[1.0.1]}
+
+=== Prettyprint ===
+
+-- A v1.0.0
+module A where
+import B
+a = f y
+
+-- A v1.0.1
+module A where
+import B
+a = f (f y)
+
+-- B v1.0.0
+module B where
+y = 1
+f x = x + 1
+g x = x + 1
+
+-- B v1.0.1
+module B where
+y = 2
+f x = x + 2
+h x = x * 1
+
+-- Main vRoot
+module Main where
+import A
+import B
+main
+  = let xx = (unversion (g (version A = 1.0.1 of a)))
+        yy = (unversion (h (version A = 1.0.0 of a)))
+      in xx + yy
+
+=== Extraction ===
+(\ xx ->
+   (\ yy -> (+) xx yy) ((\ x -> (*) x 1) ((\ x -> (+) x 1) 1)))
+  ((\ x -> (+) x 1) ((\ x -> (+) x 1) 1))

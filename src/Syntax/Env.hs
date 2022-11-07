@@ -6,6 +6,7 @@ module Syntax.Env (
   TEnv, setTEnv, initializeTEnv, putTEnv,
   UEnv, setUEnv, initializeUEnv,
   REnv(..), setREnv, initializeREnv, mulREnv, emptyREnv,
+  ExVarResources(..),
   -- setCEnv, initializeCEnv, putCEnv,
   setLogs, initializeLogs, putLog, debugE, debugP, debug,
   addLC, subLC, initializeLC, initLC,
@@ -29,6 +30,7 @@ import Syntax.Kind
 import Control.Monad.State
 import Util
 import qualified Data.List
+import DependencyGraph (VLMod(..))
 
 prefixNewTyVar :: String
 prefixNewTyVar = "a"
@@ -48,6 +50,7 @@ type TEnv = Map String EnvType
 type UEnv = Map String Kind
 data REnv = EmptyREnv | REnv Coeffect
   deriving (Show)
+type ExVarResources = Map String (String, Type) -- 元の名前, 付与されたリソース変数
 
 class Environment env where
   type Key env
@@ -90,7 +93,6 @@ instance Environment UEnv where
       Just res -> res == v
   exclude = difference
   varsInEnv = keys
-
 
 instance HasVar EnvType where
   freeVars et = case et of
@@ -343,6 +345,15 @@ instance PrettyAST REnv where
   ppE (REnv c) = ppE c
   ppP EmptyREnv = ppP "-"
   ppP (REnv c) = ppP c
+
+instance PrettyAST ExVarResources where
+  ppE = foldlWithKey
+    (\acc k v -> acc <+>
+      ppE k <> comma <> ppE v)
+    emptyDoc
+  ppP m
+    | m == empty = emptyset
+    | otherwise  = concatWith (surround $ comma <> line) $ Prelude.map (\(k,v) -> ppP k <+> ppP "->" <+> ppP v) (toList m)
 
 instance PrettyAST Logs where
   ppE (Logs l) = concatWith (surround line) $ Prelude.map ppE l

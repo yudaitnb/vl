@@ -18,15 +18,16 @@ import Syntax.SrcLoc
 import Syntax.Type (Constraints)
 import Syntax.Label
 import Data.List ((\\), nub)
+import Language.Haskell.Exts (ModulePragma)
 
 -- | A complete Desugared source module.
 data Module l
-    = Module l (Maybe (Absyn.ModuleHead l)) [Absyn.ImportDecl l] [Decl l]
+    = Module l (Maybe (Absyn.ModuleHead l)) [Absyn.ModulePragma l] [Absyn.ImportDecl l] [Decl l]
     -- ^ an ordinary Desugared module
   deriving (Eq,Ord,Show,Functor)
 
 getDecls :: Module l -> [Decl l]
-getDecls (Module l _ _ decls) = decls
+getDecls (Module l _ _ _ decls) = decls
 
 -- | A top-level declaration.
 data Decl l
@@ -64,8 +65,8 @@ instance HasName (Pat l) where
   getName _             = "Patterns without PVar do not have a name field."
 
 instance Absyn.Annotated Module where
-  ann (Module l _ _ _) = l
-  amap f (Module l mmh iss dcls) = Module (f l) mmh iss dcls
+  ann (Module l _ _ _ _) = l
+  amap f (Module l mmh pragmas iss dcls) = Module (f l) mmh pragmas iss dcls
 
 instance Absyn.Annotated Decl where
   ann (PatBind l _ _) = l
@@ -144,9 +145,9 @@ instance HasVar (Decl l) where
   vars (PatBind _ pat e) = vars e
 
 instance HasVar (Module l) where
-  freeVars (Module _ _ _ ds) = nub $ concatMap freeVars ds
-  freeVars' (Module _ _ _ ds) = nub $ concatMap freeVars' ds
-  vars (Module _ _ _ ds) = nub $ concatMap vars ds
+  freeVars (Module _ _ _ _ ds) = nub $ concatMap freeVars ds
+  freeVars' (Module _ _ _ _ ds) = nub $ concatMap freeVars' ds
+  vars (Module _ _ _ _ ds) = nub $ concatMap vars ds
 
 boundVarsPats :: [Pat l] -> [String]
 boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
@@ -161,13 +162,13 @@ boundVars (PWildCard _) = []
 ---------------------
 
 instance PrettyAST (Module SrcSpanInfo) where
-  ppE (Module srcLocInfo moduleHead importDecl decl) =
+  ppE (Module srcLocInfo moduleHead pragmas importDecl decl) =
         nest 2 $ parens $ ppE "Module" <> line
     <+> ppE srcLocInfo <> line
     <+> ppE moduleHead <> line
     <+> pplist ppE importDecl <> line
     <+> pplist ppE decl
-  ppP (Module srcLocInfo moduleHead importDecl decl) =
+  ppP (Module srcLocInfo moduleHead pragmas importDecl decl) =
         -- ppP "module" <+> 
         ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
 

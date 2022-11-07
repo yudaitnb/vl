@@ -1,30 +1,29 @@
-module Compilation.Compile where
+module Compile where
 
 import Data.Map
-import Data.Set hiding (insert)
 import Data.List (find, map, filter, null, foldl)
 import Data.Maybe (fromMaybe)
 import Control.Monad
 import Control.Monad.State
 
-import Syntax.Absyn (getImports, Module (..))
+import qualified Syntax.Absyn as AB (getImports, Module (..))
+import qualified Syntax.LambdaVL as VL (Exp (..), Decl (..), getDecls, splitDeclsToMap)
 import Syntax.Env hiding (setCounter, counter)
 import Syntax.SrcLoc (SrcSpanInfo)
-import Syntax.Label
+import Syntax.Type (Type(..), Constraints(..), landC)
+import Syntax.Version (Version(..))
 
 import Translation.Desugar (desugarAST)
 import Translation.Girard (girardFwd)
 import Inference.TypeInference (getInterface, TypedExp (..))
-import Compilation.Bundling
+import Translation.Bundling
 
 import DependencyGraph
 import Util
-import Syntax.Type (Type(..), Constraints(..), landC)
-import Syntax.Version (Version(Root))
+
 import Translation.Promote
 import Translation.Normalize (normalize)
 import Translation.RenameExVars (renameExVarModule, duplicateEnvs, CounterTable)
-import qualified Data.IntMap as M
 
 type BundledTEnv = Map String TEnv
 type BundledUEnv = Map String UEnv
@@ -35,13 +34,15 @@ data CompileEnv' = CompileEnv'
   { pending :: [VLMod]  -- コンパイル待ちのモジュール、先頭からコンパイルされる
   , counter :: Int      -- 型変数生成用の通し番号
   , counterTable :: CounterTable -- 複製された外部モジュール変数の登場回数の通し番号
-  , mapParsedAST :: Map VLMod (Module SrcSpanInfo) -- パース済みのAST
+  , mapParsedAST :: Map VLMod (AB.Module SrcSpanInfo) -- パース済みのAST
+  , mapVLDecls :: Map String (VL.Exp SrcSpanInfo) -- 全ての変換処理を終えたDecls -- [TODO] 複数のモジュールで同一変数をちゃんと処理できるようにする
   , globalEnv :: Map VLMod [TypedExp] -- 型検査後の型情報をそのまま格納するグローバル環境
   , globalConstraints :: Constraints -- 全ての制約が入っているグローバル制約環境
   , bundledTEnv :: BundledTEnv -- バンドル後の型情報が格納されている型環境
   , bundledUEnv :: BundledUEnv -- バンドル後の型変数情報が格納されている環境
   , bundledConstraints :: BundledConstraints -- bundledTEnvに対応する制約が格納されている環境
   , bundledConsSchemes :: Map String (Map String Constraints) -- 各モジュールの各シンボルのバンドル後の制約（後で複製される）
+  , exVarResources :: Map String (String, VLMod, Type) -- 複製された外部変数と(元の名前, 複製されたモジュール, リソース変数)のマップ, duplicationフェーズで保存される
   , logFilePath :: FilePath  -- ログファイルの相対パス
   }
   deriving (Show)
@@ -61,11 +62,17 @@ getNextModule = state $ \env -> case pending env of
   []  -> (Nothing, env)
   lst -> (Just $ head lst, env { pending = tail lst })
 
-getParsedAST :: VLMod -> CompileEnv (Module SrcSpanInfo)
+getParsedAST :: VLMod -> CompileEnv (AB.Module SrcSpanInfo)
 getParsedAST vlmod = do
   mapParsedAST <- gets mapParsedAST
   let message = show vlmod ++ " cannot be found in " ++ show (keys mapParsedAST)
   return $ fromMaybe (error message) $ Data.Map.lookup vlmod mapParsedAST
+
+addVLDecls :: [VL.Decl SrcSpanInfo] -> CompileEnv ()
+addVLDecls decls = modify $ \env -> 
+  let oldDeclsOfVlMod = mapVLDecls env
+      newDeclsOfVlMod = VL.splitDeclsToMap decls `union` oldDeclsOfVlMod
+  in env { mapVLDecls = newDeclsOfVlMod }
 
 addGlobalEnv :: VLMod -> [TypedExp] -> CompileEnv ()
 addGlobalEnv vlmod tyexp = state $ \env -> ((), env { globalEnv = insert vlmod tyexp $ globalEnv env })
@@ -87,6 +94,12 @@ addBundledConstraints s c = state $ \env -> ((), env { bundledConstraints = inse
 
 addBundledConsSchemes :: String -> Map String Constraints -> CompileEnv ()
 addBundledConsSchemes mn schs = state $ \env -> ((), env { bundledConsSchemes = insert mn schs $ bundledConsSchemes env })
+
+addExVarResources :: VLMod -> ExVarResources -> CompileEnv ()
+addExVarResources vlmod exr = modify $ \env -> 
+  let oldExVarResourcesOfVlMod = exVarResources env
+      newExVarResourcesOfVlMod = Data.Map.map (\(orig, tv) -> (orig, vlmod, tv)) exr `union` oldExVarResourcesOfVlMod
+  in env { exVarResources = newExVarResourcesOfVlMod }
 
 genEnvFromImports :: [String] -> CompileEnv (TEnv, UEnv)
 genEnvFromImports modules = do
@@ -140,7 +153,7 @@ compile target@(VLMod mn v) = do
   logPD $ ppP "=== Start compiling module" <+> ppP target
   logP "==================================="
   ast <- getParsedAST target
-  let importMods = getImports ast
+  let importMods = AB.getImports ast
 
   logP "\n=== AST (Syntax.Absyn) ==="
   logP ast
@@ -172,7 +185,7 @@ compile target@(VLMod mn v) = do
   logPD $ (ppP "[DEBUG] ctdiff : " <>) $ concatWith (surround $ comma <> space) $ mapWithKey (\k v -> ppP k <> ppP "->" <> ppP v) ctdiff
   logPD $ (ppP "[DEBUG] ctstart: " <>) $ concatWith (surround $ comma <> space) $ mapWithKey (\k v -> ppP k <> ppP "->" <> ppP v) ctstart
   setCounterTable ct'
-
+  addVLDecls $ VL.getDecls astVLDuplicated
 
   logP "\n=== Importing Exteranal ModulesType (Syntax.VL) ==="
   (importedTEnv, importedUEnv) <- genEnvFromImports importMods
@@ -182,17 +195,18 @@ compile target@(VLMod mn v) = do
   consSchemes <- flattenSchemeLst <$> forM importMods (\mn -> gets $ (! mn) . bundledConsSchemes)
   -- lift $ print consSchemes
   -- [TODO] A.fとB.fを同時にimport出来なくなっているので名前解決をちゃんとやる必要がある
-  gcs <- gets globalConstraints
   logPD $ ppP "[DEBUG] Imported TEnv      :" <+> ppP importedTEnv    -- import宣言から得られた型環境
   logPD $ ppP "[DEBUG] Imported UEnv      :" <+> ppP importedUEnv    -- import宣言から得られた型変数環境
-  logPD $ ppP "[DEBUG] global constraints :" <+> ppP gcs <> line
 
   logP "=== Duplicate External Symbols (Syntax.VL) ==="
-  let (tenvDuplicated, uenvDuplicated, consDuplicated) = duplicateEnvs ctdiff ctstart (importedTEnv, importedUEnv, consSchemes)
-  addGlobalConstraints consDuplicated
+  let (tenvDuplicated, uenvDuplicated, consDuplicated, exVarResourcesDuplicated) = duplicateEnvs ctdiff ctstart (importedTEnv, importedUEnv, consSchemes)
   logPD $ ppP "[DEBUG] Duplicated Imported TEnv        :" <+> ppP tenvDuplicated
   logPD $ ppP "[DEBUG] Duplicated Imported UEnv        :" <+> ppP uenvDuplicated
   logPD $ ppP "[DEBUG] Duplicated Imported Constraints :" <+> ppP consDuplicated <> line
+  addGlobalConstraints consDuplicated
+  addExVarResources target exVarResourcesDuplicated
+  logPD $ ppP "[DEBUG] add duplicated constraints                 : " <> line <> ppP consDuplicated
+  logPD $ ppP "[DEBUG] add duplicated external variable resources : " <> line <> ppP exVarResourcesDuplicated <> line
 
   initCounter <- gets counter
   logPD $ ppP "[DEBUG] Initial Counter     :" <+> ppP initCounter <> line    -- 型変数生成用の通し番号
@@ -206,7 +220,7 @@ compile target@(VLMod mn v) = do
   logP "=== Inferred Types (Syntax.VL) ==="
   let typedExps = Data.List.map fst typedExpsWithLogs
       consOfTarget = foldl1 landC $ Prelude.map (\(TypedExp _ _ con _)  -> con) typedExps
-  forM_ typedExps logP -- 型推論木付き
+  forM_ typedExps logP -- 型推論の結果のみ
   logP ""
 
   addGlobalEnv target typedExps

@@ -1,7 +1,9 @@
 module Translation.RenameExVars where
 
 import Control.Monad.Trans.State
+import Control.Monad (forM_, forM)
 
+import Data.List (nub)
 import Data.Map (Map, (!))
 import qualified Data.Map as M
 
@@ -12,8 +14,7 @@ import Syntax.Env
 import Syntax.Type
 
 import Util
-import Control.Monad (forM_, forM)
-import Data.List (nub)
+import Syntax.Version (Version(..))
 
 -- exp中の外部モジュール由来の値を参照する変数(f)の複製に従い,
 -- tenv, uenv, cs中の各fに関連する型制約, 型制約, 制約を複製する
@@ -27,10 +28,12 @@ import Data.List (nub)
 -- 結局a2_v1/a2_v2のバージョンは1つに決まらなければならないが、これは言語設計の制約の一つなので問題ない
 
 type CounterTable = Map String Int
+type DuplVarTable = Map String 
+
 
 data RenameEnv' = RenameEnv'
   { counterTable :: CounterTable  -- 各外部モジュール変数の累積数
-  , boundVars :: [String] -- そのスコープにおける束縛変数のリスト
+  , boundVars :: [String]         -- そのスコープにおける束縛変数のリスト
   } deriving (Show)
 type RenameEnv a = State RenameEnv' a
 
@@ -97,9 +100,9 @@ addBoundVarFromPat p = case p of
 ----------------
 
 renameExVarModule :: CounterTable -> Module SrcSpanInfo -> (Module SrcSpanInfo, CounterTable)
-renameExVarModule ct mod@(Module l mh imps decls) =
+renameExVarModule ct mod@(Module l mh pragmas imps decls) =
   let (decls', renv) = runState (forM decls renameExVarDecl) (mkInitRenameEnv ct decls)
-  in (Module l mh imps decls', counterTable renv)
+  in (Module l mh pragmas imps decls', counterTable renv)
 
 renameExVarDecl :: Decl SrcSpanInfo -> RenameEnv (Decl SrcSpanInfo)
 renameExVarDecl pb@(PatBind l p@(PVar _ name) e) = PatBind l p <$> renameExVar e
@@ -126,25 +129,25 @@ renameExVar exp = case exp of
 
 -------------------
 
-duplicateEnvs :: CounterTable -> CounterTable -> (TEnv, UEnv, Map String Constraints) -> (TEnv, UEnv, Constraints)
-duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctdiff) ctstart csschm (tenv, uenv, CTop)
-  -- counetr : 型変数用の通し番号。uenvの複製に使う
-  -- ct : 各外部モジュール変数がdecls内で総計何回複製されたか
+-- 各外部変数(s)の各環境に対し、ctstart ! sから始まるインデックスを用いてctdiff ! s回の複製を行う
+-- duplicateEnvs (["f", 0])　(["f", 2]) ([f : [!_a1 Int -> Int]_a0], [a0:Labels,a1:Labels], [a0 <= C_a0, a1 <= C_a1])
+-- -> ( [__f_0 : [!_a1_0 Int -> Int]_a0_0, __f_1 : [!_a1_1 Int -> Int]_a0_1,]
+--    , [a0_0:Labels, a1_0:Labels, a0_1:Labels, a1_1:Labels]
+--    , [a0_0 <= C_a0, a1_0 <= C_a1, a0_1 <= C_a0, a1_1 <= C_a1])
+duplicateEnvs :: CounterTable -> CounterTable -> (TEnv, UEnv, Map String Constraints) -> (TEnv, UEnv, Constraints, ExVarResources)
+duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctdiff) ctstart csschm (tenv, uenv, CTop, mempty)
   where
-    -- (["f", 2]) ([f : [!_a1 Int -> Int]_a0], [a0:Labels,a1:Labels], [a0 <= C_a0, a1 <= C_a1])
-    -- -> ( [__f_0 : [!_a1_0 Int -> Int]_a0_0, __f_1 : [!_a1_1 Int -> Int]_a0_1,]
-    --    , [a0_0:Labels, a1_0:Labels, a0_1:Labels, a1_1:Labels]
-    --    , [a0_0 <= C_a0, a1_0 <= C_a1, a0_1 <= C_a0, a1_1 <= C_a1])
-    duplicateEnvs' :: [(String,Int)] -> CounterTable -> Map String Constraints -> (TEnv, UEnv, Constraints) -> (TEnv, UEnv, Constraints)
-    duplicateEnvs' []          ctstart csschm envs = envs
-    duplicateEnvs' ((s,i):rst) ctstart csschm (oldTEnv, oldUEnv, oldCs) = 
+    duplicateEnvs' :: [(String,Int)] -> CounterTable -> Map String Constraints -> (TEnv, UEnv, Constraints, ExVarResources) -> (TEnv, UEnv, Constraints, ExVarResources)
+    duplicateEnvs' []          ctstart csschm envs = envs 
+    duplicateEnvs' ((s,i):rst) ctstart csschm (oldTEnv, oldUEnv, oldCs, oldResVarMap) = 
       let fvOfS = freeVars $ oldTEnv ! s
           cstart = ctstart ! s
           csschmOfS = csschm ! s
           newTEnv = duplicateVarsTEnv s i cstart oldTEnv
           newUEnv = duplicateTyVarsUEnv fvOfS i cstart oldUEnv
-          newCs   = duplicateTyVarsCons csschmOfS i cstart `landC` oldCs
-      in duplicateEnvs' rst ctstart csschm (newTEnv, newUEnv, newCs)
+          newCs   = oldCs `landC` duplicateTyVarsCons csschmOfS i cstart
+          newResVarMap = oldResVarMap `M.union` duplicateResVarMap s i cstart oldTEnv
+      in duplicateEnvs' rst ctstart csschm (newTEnv, newUEnv, newCs, newResVarMap)
     duplicateTyVarsUEnv :: [String] -> Int -> Int -> UEnv -> UEnv 
     duplicateTyVarsUEnv []       i cstart uenv = uenv
     duplicateTyVarsUEnv (tyn:ss) i cstart uenv = 
@@ -154,44 +157,43 @@ duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctd
             uenvDeleted
             (newNamesOfExTyVar tyn i cstart) -- ["a0_(cstart)", "a0_(cstart+1)"]
       in duplicateTyVarsUEnv ss i cstart newUEnv
-    -- CAnd c1 c2
     duplicateTyVarsCons :: Constraints -> Int -> Int -> Constraints
     duplicateTyVarsCons csschmOfS i cstart = if i == 0 then csschmOfS else
-      let duplicated = foldl1 landC $ map (\id -> renameConsWithIdx id csschmOfS) $ take i $ iterate (+1) cstart
-      in duplicated
-      -- case cs of
-      --   CTop          -> CTop
-      --   CSubset t1 t2 -> case t1 of
-      --     TyVar n ->
-      --       let s = getName n in
-      --       if s `elem` ss
-      --         then CSubset t1 t2 `landC`
-      --               foldl
-      --                 (\acc newtyn -> CSubset (TyVar $ Ident newtyn) t2 `landC` acc)
-      --                 CTop (newNamesOfExTyVar s i cstart) -- ["a0_(cstart)", "a0_(cstart+1)"]
-      --         else cs
-      --     _       -> cs
-      --   CAnd c1 c2    -> CAnd (duplicateTyVarsCons ss i cstart csschm c1) (duplicateTyVarsCons ss i cstart csschm c2)
-      --   COr c1 c2     -> COr  (duplicateTyVarsCons ss i cstart csschm c1) (duplicateTyVarsCons ss i cstart csschm c2)
+      foldl1 landC $ map (`renameConsWithIdx` csschmOfS) $ take i $ iterate (+1) cstart
     duplicateVarsTEnv :: String -> Int -> Int -> TEnv -> TEnv
     duplicateVarsTEnv s i cstart tenv =
       let envty = tenv ! s -- [!_a1 Int -> Int]_a0]
           tenvDeleted = M.delete s tenv
-          newTEnv = foldl (\acc (i, newvn) -> M.insert newvn (renameEnvTyWithIdx i envty) acc)
-              tenvDeleted $
-              zip (iterate (+1) cstart) (newNamesOfExVar s i cstart) -- [(cstart, "__f_cstart"), (cstart+1, "__f_cstart+1")]
-      in newTEnv
+      in foldl (\acc (i, newvn) -> M.insert newvn (renameEnvTyWithIdx i envty) acc)
+          tenvDeleted $
+          zip (iterate (+1) cstart) (newNamesOfExVar s i cstart) -- [(cstart, "__f_cstart"), (cstart+1, "__f_cstart+1")]
+    duplicateResVarMap :: String -> Int -> Int -> TEnv -> ExVarResources
+    duplicateResVarMap s i cstart tenv =
+      case tenv ! s of
+        NType _ _    -> error ""
+        GrType _ _ c -> M.fromList $ zip
+                          (newNamesOfExVar s i cstart)
+                          (map ((s,) . TyVar . Ident) $ newNamesOfExTyVar (getName c) i cstart)
+          
 
+-- renameConsWithIdx: Resource Schemeの左側の制約だけidxを付ける
+-- renameConsWithIdx 2 (CSubset a1 a2) = CSubset a1_2 a2
 renameConsWithIdx :: Int -> Constraints -> Constraints
 renameConsWithIdx i cs = case cs of
-  CSubset t1 t2 -> CSubset (renameTyWithIdx i t1) t2  -- Schemeの左側だけindexを付ける
+  CSubset t1 t2 -> CSubset (renameTyWithIdx i t1) t2
   CAnd c1 c2    -> CAnd (renameConsWithIdx i c1) (renameConsWithIdx i c2)
   COr c1 c2     -> COr  (renameConsWithIdx i c1) (renameConsWithIdx i c2)
   CTop          -> CTop
+
+-- renameEnvTyWithIdx: 全ての型変数にidxを付ける
+-- renameEnvTyWithIdx 2 (GrType t c) = GrType t c
 renameEnvTyWithIdx :: Int -> EnvType -> EnvType
 renameEnvTyWithIdx i et = case et of
   NType  tag t   -> NType tag (renameTyWithIdx i t)
   GrType tag t c -> GrType tag (renameTyWithIdx i t) (renameTyWithIdx i c)
+
+-- renameTyWithIdx: 全ての型変数にidxをつける
+-- renameTyWithIdx 2 (TyVar a1) = TyVar a1_2
 renameTyWithIdx :: Int -> Type -> Type
 renameTyWithIdx i ty = case ty of
   TyVar (Ident n) -> TyVar (Ident $ newNameOfExTyVar n i)

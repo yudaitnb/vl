@@ -1,4 +1,4 @@
-module Compilation.Bundling (
+module Translation.Bundling (
   bundle
 ) where
 

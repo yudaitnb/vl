@@ -6,11 +6,13 @@ module Syntax.LambdaVL (
   Literal(..),
   HasVar(..),
   Absyn.Annotated(..),
-  getDecls, getBind
+  getDecls, getBind,
+  splitDeclToMap, splitDeclsToMap
 ) where
 
 import qualified Syntax.Absyn as Absyn
-import Data.List
+import Data.List ((\\))
+import Data.Map (Map, fromList, empty, union)
 
 import Syntax.Literal
 import Syntax.Name
@@ -21,11 +23,17 @@ import Syntax.Label
 
 -- | A complete Lambda VL source module.
 data Module l
-    = Module l (Maybe (Absyn.ModuleHead l)) [Absyn.ImportDecl l] [Decl l]
+    = Module l (Maybe (Absyn.ModuleHead l)) [Absyn.ModulePragma l] [Absyn.ImportDecl l] [Decl l]
   deriving (Eq,Ord,Show,Functor)
 
 getDecls :: Module l -> [Decl l]
-getDecls (Module l _ _ decls) = decls
+getDecls (Module l _ _ _ decls) = decls
+
+splitDeclToMap :: Decl l -> Map String (Exp l)
+splitDeclToMap d@(PatBind _ p e) = fromList [(getName p, e)]
+
+splitDeclsToMap :: [Decl l] -> Map String (Exp l)
+splitDeclsToMap = foldr (\d acc -> acc `union` splitDeclToMap d) empty
 
 -- | A top-level declaration.
 data Decl l
@@ -75,6 +83,7 @@ instance Eq l => Eq (Exp l) where
   Pr _ e == Pr _ e' = e == e'
   VRes _ l e == VRes _ l' e' = l == l' && e == e'
   VExt _ e == VExt _ e' = e == e'
+  _ == _ = False
 
 instance HasName (Decl l) where
   getName (PatBind _ p _) = getName p
@@ -140,8 +149,8 @@ boundVars p = case p of
 -----------
 
 instance Absyn.Annotated Module where
-  ann (Module l _ _ _) = l
-  amap f (Module l mmh iss dcls) = Module (f l) mmh iss dcls
+  ann (Module l _ _ _ _) = l
+  amap f (Module l mmh pragmas iss dcls) = Module (f l) mmh pragmas iss dcls
 
 instance Absyn.Annotated Decl where
   ann (PatBind l _ _) = l
@@ -187,13 +196,13 @@ instance Absyn.Annotated Exp where
 ---------------------
 
 instance PrettyAST (Module SrcSpanInfo) where
-  ppE (Module srcLocInfo moduleHead importDecl decl) =
+  ppE (Module srcLocInfo moduleHead pragmas importDecl decl) =
         nest 2 $ parens $ ppE "Module" <> line
     <+> ppE srcLocInfo <> line
     <+> ppE moduleHead <> line
     <+> pplist ppE importDecl <> line
     <+> pplist ppE decl
-  ppP (Module srcLocInfo moduleHead importDecl decl) =
+  ppP (Module srcLocInfo moduleHead pragmas importDecl decl) =
         -- ppP "module" <+> 
         ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
 
