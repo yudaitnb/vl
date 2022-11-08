@@ -22,6 +22,14 @@ import B
 --            yy = (unversion h) a
 --        in xx + yy -- OK
 
+-- main = let xx = (unversion (g a))
+--            yy = (unversion (h a))
+--        in xx + yy -- duplicatingによってOKになった
+
 main = let xx = (unversion (g (version {A=1.0.1} of a)))
            yy = (unversion (h (version {A=1.0.0} of a)))
-       in xx + yy -- RejectedだがOKにしたい
+       in xx + yy -- OK。gやhによって暗黙的にaのバージョンが決まっている。
+
+-- main = let xx = (unversion (g (version {A=1.0.1} of a)))
+--            yy = (unversion (h (version {A=1.0.1} of a)))
+--        in xx + yy -- Rejected。v1.0.1のaは複数のBのバージョンに依存できないため。
