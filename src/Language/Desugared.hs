@@ -1,22 +1,20 @@
-module Syntax.Desugared (
+module Language.Desugared (
   Module(..),
   Decl(..),
   Exp(..),
   Pat(..),
   Literal(..),
+  Alt(..),
   Absyn.Annotated(..),
-  module Syntax.Name
+  module Syntax.Common
 ) where
 
-import qualified Syntax.Absyn as Absyn
+import qualified Language.Absyn as Absyn
 import Util
 
-import Syntax.Name
-import Syntax.Literal
-import Syntax.Version
-import Syntax.SrcLoc
+import Syntax.Common
+
 import Syntax.Type (Constraints)
-import Syntax.Label
 import Data.List ((\\), nub)
 import Language.Haskell.Exts (ModulePragma)
 
@@ -38,8 +36,11 @@ data Decl l
 -- | A pattern, to be matched against a value.
 data Pat l
     = PVar l (Name l)                       -- ^ variable
-    | PLit l (Absyn.Sign l) (Literal l)           -- ^ literal constant
+    | PLit l (Absyn.Sign l) (Literal l)     -- ^ literal constant
     | PWildCard l                           -- ^ wildcard pattern: @_@
+    | PTuple l [Pat l]                      -- ^ tuple pattern
+    | PList l [Pat l]                       -- ^ list pattern 
+    | PApp l (QName l) [Pat l]              -- ^ Pattern application
   deriving (Eq,Ord,Show,Functor)
 
 -- | Desugared expressions.
@@ -48,16 +49,22 @@ data Exp l
     | Lit l (Literal l)                     -- ^ literal constant
     | App l (Exp l) (Exp l)                 -- ^ ordinary application
     | Lambda l (Pat l) (Exp l)              -- ^ lambda expression
+    | Tuple l [Exp l]                       -- ^ tuple
+    | List l [Exp l]                        -- ^ list
     | If l (Exp l) (Exp l) (Exp l)          -- ^ @if@ /exp/ @then@ /exp/ @else@ /exp/
     -- | Let l (Pat l) (Exp l) (Exp l)         -- ^ let-binding
-    -- | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
+    | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     -- | Paren l (Exp l)                       -- ^ parenthesised expression
     -- Versioned expressions
-    -- | VRes l Label (Exp l)
     | VRes l Label (Exp l)
     | VExt l (Exp l)
     -- LambdaCase
     -- | LCase l [Alt l]                       -- ^ @\case@ /alts/
+  deriving (Eq,Ord,Show,Functor)
+
+-- | An /alt/ alternative in a @case@ expression.
+data Alt l
+    = Alt l (Pat l) (Exp l)
   deriving (Eq,Ord,Show,Functor)
 
 instance HasName (Pat l) where
@@ -209,6 +216,19 @@ instance PrettyAST (Exp SrcSpanInfo) where
     <+> ppE srcLocInfo <> line
     <+> ppE pat <> line
     <+> ppE exp
+  ppE (Tuple srcLocInfo elms) = 
+        nest 2 $ parens $ ppE "Tuple" <> line
+    <+> ppE srcLocInfo <> line
+    <+> parens (concatWith (surround $ comma <> space) $ map ppE elms)
+  ppE (List srcLocInfo elms) =
+        nest 2 $ parens $ ppE "List" <> line
+    <+> ppE srcLocInfo <> line
+    <+> brackets (concatWith (surround $ comma <> space) $ map ppE elms)
+  ppE (Case srcLocInfo exp alts) =
+        nest 2 $ parens $ ppE "Case" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp <> line
+    <+> concatWith (surround $ line <+> comma) (map ppE alts)
   -- ppE (Let srcLocInfo pat exp1 exp2) = 
   --       nest 2 $ parens $ ppE "Let" <> line
   --   <+> ppE srcLocInfo <> line
@@ -226,9 +246,12 @@ instance PrettyAST (Exp SrcSpanInfo) where
     <+> ppE e
   ppP (Var _ qname) = ppP qname
   ppP (Lit _ literal) = ppP literal
+  ppP (Tuple _ elms) = parens $ concatWith (surround $ comma <> space) $ map ppP elms 
+  ppP (List _ elms) = brackets $ concatWith (surround $ comma <> space) $ map ppP elms 
   ppP (App _ e1 e2) = parens $ ppP e1 <+> ppP e2
-  ppP (If _ e1 e2 e3) = parens $ ppP "If" <+> ppP e1 <+> ppP "then"  <+> ppP e2 <+> ppP "else" <+> ppP e3
+  ppP (If _ e1 e2 e3) = parens $ ppP "if" <+> ppP e1 <+> ppP "then"  <+> ppP e2 <+> ppP "else" <+> ppP e3
   ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
+  ppP (Case _ e alts) = parens $ ppP "case" <+> ppP e <+> ppP "of" <+> braces (concatWith (surround $ semicolon <> space) (map ppP alts))
   -- ppP (Let _ p e1 e2) = parens $ ppP "Let" <+> ppP p <+> ppP "="  <+> ppP e1 <+> ppP "in" <+> ppP e2
   ppP (VRes _ vbs e) = parens $ ppP "version" <+> ppP vbs <+> ppP "of" <+> ppP e
   ppP (VExt _ e) = parens $ ppP "unversion" <+> ppP e
@@ -246,6 +269,30 @@ instance PrettyAST (Pat SrcSpanInfo) where
   ppE (PWildCard srcLocInfo) =
         nest 2 $ parens $ ppE "PWildCard" <> line
     <+> ppE srcLocInfo
+  ppE (PTuple srcLocInfo pats) =
+        nest 2 $ parens $ ppE "PTuple" <> line
+    <+> ppE srcLocInfo
+    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
+  ppE (PList srcLocInfo pats) =
+        nest 2 $ parens $ ppE "PList" <> line
+    <+> ppE srcLocInfo
+    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
+  ppE (PApp srcLocInfo qn pats) =
+        nest 2 $ parens $ ppE "PApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qn <> line
+    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
   ppP (PVar _ name) = ppP name
   ppP (PLit _ sign literal) = ppP sign <> ppP literal
   ppP (PWildCard _) = ppP "_"
+  ppP (PTuple _ pats) = parens $ concatWith (surround $ comma <> space) (map ppP pats)
+  ppP (PList _ pats) = brackets $ concatWith (surround $ comma <> space) (map ppP pats)
+  ppP (PApp _ qn pats) = parens $ ppP qn <+> concatWith (surround space) (map ppP pats)
+
+instance PrettyAST (Alt SrcSpanInfo) where
+  ppE (Alt srcLocInfo p e) =
+        nest 2 $ parens $ ppE "Alt" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE p <> line
+    <+> ppE e <> line
+  ppP (Alt _ p e) = ppP p <+> ppP "->" <+> ppP e

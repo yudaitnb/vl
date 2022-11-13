@@ -1,37 +1,38 @@
 module Translation.Desugar where
 
-import qualified Syntax.Desugared as Desugared
-import qualified Syntax.Absyn as Absyn
-import Syntax.Name
-import Syntax.Literal
-import Syntax.Label
-import Syntax.Version
-import qualified Data.Set
+import qualified Language.Desugared as DS
+import qualified Language.Absyn as AB
+import Syntax.Common
 import qualified Data.Map
 
-desugarAST :: Absyn.Module l -> Desugared.Module l
-desugarAST (Absyn.Module l mh pragmas imp decls) =
+desugarAST :: Show l => AB.Module l -> DS.Module l
+desugarAST (AB.Module l mh pragmas imp decls) =
   let
-    decls' = map desugar $ Absyn.decomposeDecl decls
+    decls' = map desugar $ AB.decomposeDecl decls
   in
-    Desugared.Module l mh pragmas imp decls'
+    DS.Module l mh pragmas imp decls'
 desugarAST _ = error ""
 
 class Desugaring ast where
   type Desugared ast
   desugar :: ast -> Desugared ast
 
-instance Desugaring (Absyn.Module l) where
-  type Desugared (Absyn.Module l) = (Desugared.Module l)
-  desugar (Absyn.Module l moduleHead pragmas importDecl decl) = Desugared.Module l moduleHead pragmas importDecl (fmap desugar decl)
+instance Show l => Desugaring (AB.Module l) where
+  type Desugared (AB.Module l) = (DS.Module l)
+  desugar (AB.Module l moduleHead pragmas importDecl decl) = DS.Module l moduleHead pragmas importDecl (fmap desugar decl)
   desugar _ = error "The desugaring translation is not defined for a given expression."
 
-instance Desugaring (Absyn.Pat l) where
-  type Desugared (Absyn.Pat l) = (Desugared.Pat l)
-  desugar (Absyn.PVar l name) =  Desugared.PVar l name
-  desugar (Absyn.PLit l sign literal) = Desugared.PLit l sign literal
-  -- desugar (Absyn.PWildCard l) = PWildCard l
-  desugar _ = error "[Pat@Desugar.hs] The desugaring translation is not defined for a given expression."
+instance Show l => Desugaring (AB.Pat l) where
+  type Desugared (AB.Pat l) = (DS.Pat l)
+  desugar p = case p of
+    AB.PWildCard l        -> DS.PWildCard l
+    AB.PVar l name        -> DS.PVar l name
+    AB.PLit l sign lit    -> DS.PLit l sign lit
+    AB.PTuple l _ ps      -> DS.PTuple l (map desugar ps)
+    AB.PList l ps         -> DS.PList l (map desugar ps)
+    AB.PApp l qn ps         -> DS.PApp l qn (map desugar ps)
+    AB.PInfixApp l p1 qn p2 -> DS.PApp l qn (map desugar [p1,p2]) 
+    _ -> error $ "\n[Pat@Desugar.hs] The desugaring translation is not defined for a given expression.\n" ++ show p
 
 -- Multiple top-level functions can be thought of as one big recursive let binding:
 -- | f0 x0 = e0
@@ -48,103 +49,122 @@ instance Desugaring (Absyn.Pat l) where
 -- | f = \x y z -> e
 -- ... which in turn desugars to:
 -- | f = \x -> \y -> \z -> e
-instance Desugaring (Absyn.Decl l) where
-  type Desugared (Absyn.Decl l) = Desugared.Decl l
-  desugar fb@(Absyn.FunBind l match) =
+instance Show l => Desugaring (AB.Decl l) where
+  type Desugared (AB.Decl l) = DS.Decl l
+  desugar fb@(AB.FunBind l match) =
     case match of
       []  -> error ""
       [m] ->
         --   desugar (name ps = rhs)
         -- = name = desugar (\ps -> rhs)
-        let Absyn.Match l1 name ps (Absyn.UnGuardedRhs l2 exp) _ = Absyn.rmWhere m
-            patName = Desugared.PVar (Absyn.ann name) name
-            lam' = desugar $ Absyn.Lambda l1 ps exp
-        in Desugared.PatBind l1 patName lam'
+        let AB.Match l1 name ps (AB.UnGuardedRhs l2 exp) _ = AB.rmWhere m
+            patName = DS.PVar (AB.ann name) name
+            lam' = desugar $ AB.Lambda l1 ps exp
+        in DS.PatBind l1 patName lam'
       m:ms -> error "Before desugaring FunDecl, decompose it."
-  desugar pb@(Absyn.PatBind {}) =
+  desugar pb@(AB.PatBind {}) =
     let
-      Absyn.PatBind l1 pat (Absyn.UnGuardedRhs l2 exp) Nothing  = Absyn.rmWhere pb
+      AB.PatBind l1 pat (AB.UnGuardedRhs l2 exp) Nothing  = AB.rmWhere pb
       pat' = desugar pat
       exp' = desugar exp
-    in Desugared.PatBind l1 pat' exp'
+    in DS.PatBind l1 pat' exp'
   desugar _ = error "The desugaring translation is not defined for a given expression."
 
-instance Desugaring (Absyn.Rhs l) where
-  type Desugared (Absyn.Rhs l) = Desugared.Exp l
-  desugar (Absyn.UnGuardedRhs l1 exp) = desugar exp
+instance Show l => Desugaring (AB.Rhs l) where
+  type Desugared (AB.Rhs l) = DS.Exp l
+  desugar (AB.UnGuardedRhs l1 exp) = desugar exp
   desugar _ = error ""
 
-instance Desugaring (Absyn.Exp l) where
-  type Desugared (Absyn.Exp l) = Desugared.Exp l
-  -- desugar '(' e ')' =  desugar e
-  desugar (Absyn.Paren l e) = desugar e
+instance Show l => Desugaring (AB.Alt l) where
+  type Desugared (AB.Alt l) = DS.Alt l
+  desugar alt =
+    let AB.Alt l p rhs Nothing = AB.rmWhere alt 
+        p' = desugar p
+        exp' = desugar rhs
+    in DS.Alt l p' exp'
 
-  -- desugar x -> x
-  desugar (Absyn.Var l qName) = Desugared.Var l qName
+instance Show l => Desugaring (AB.Exp l) where
+  type Desugared (AB.Exp l) = DS.Exp l
+  desugar exp = case exp of
+    -- desugar '(' e ')' =  desugar e
+    AB.Paren l e -> desugar e
 
-  -- desugar c -> c
-  desugar (Absyn.Lit l literal) = Desugared.Lit l literal
+    -- desugar x -> x
+    AB.Var l qName -> DS.Var l qName
 
-  -- desugar (f ○ x) -> desugar f ○ desugar x
-  desugar (Absyn.App l exp1 exp2) = Desugared.App l (desugar exp1) (desugar exp2)
+    -- desugar c -> c
+    AB.Lit l literal -> DS.Lit l literal
 
-  -- desugar ('-' e) = 0 '-' desugar e
-  desugar (Absyn.NegApp l exp) = -- Desugared.NegApp l (desugar exp)
-    let varOp = Desugared.Var l (UnQual l (Ident l "-"))
-        e1' = Desugared.Lit l (Desugared.Int l 0 "0")
-        e2' = desugar exp
-    in Desugared.App l (Desugared.App l varOp e1') e2'
+    -- desugar (f ○ x) -> desugar f ○ desugar x
+    AB.App l exp1 exp2 -> DS.App l (desugar exp1) (desugar exp2)
 
-  -- desugar ('If' e1 'then' e2 'else' e3) = 'If' desugar e1 'then' desugar e2 'else' desugar e3
-  desugar (Absyn.If l exp1 exp2 exp3) = Desugared.If l (desugar exp1) (desugar exp2) (desugar exp3)
+    -- desugar ('-' e) -> 0 '-' desugar e
+    AB.NegApp l exp -> -- DS.NegApp l (desugar exp)
+      let varOp = DS.Var l (UnQual l (Ident l "-"))
+          e1' = DS.Lit l (DS.Int l 0 "0")
+          e2' = desugar exp
+      in DS.App l (DS.App l varOp e1') e2'
 
-  -- ^ desugar (e1 '+' e2) = ('+' (desugar e1)) (desugar e2)
-  desugar (Absyn.InfixApp l1 e1 (Absyn.QVarOp l2 qName) e2) =
-    let varOp = Desugared.Var l2 qName
-        e1' = desugar e1
-        e2' = desugar e2
-    in Desugared.App l1 (Desugared.App l2 varOp e1') e2'
+    -- desugar ('If' e1 'then' e2 'else' e3) = 'If' desugar e1 'then' desugar e2 'else' desugar e3
+    AB.If l exp1 exp2 exp3 -> DS.If l (desugar exp1) (desugar exp2) (desugar exp3)
 
-  -- ^ desugar (\_ -> e)      = error
-  -- ^ desugar (\[p] -> e)    = \p -> e
-  -- ^ desugar (\(p:ps) -> e) = \p -> desugar (\ps -> e)
-  desugar (Absyn.Lambda l pat e) =
-    case pat of
-      []   -> error ""
-      [p]  ->
-        let e' = desugar e
-            p' = desugar p
-        in Desugared.Lambda l p' e'
-      p:ps ->
-        let lam' = desugar (Absyn.Lambda l ps e)
-            pat' = desugar p
-        in Desugared.Lambda l pat' lam'
+    -- ^ desugar (e1 '+' e2) = ('+' (desugar e1)) (desugar e2)
+    AB.InfixApp l1 e1 (AB.QVarOp l2 qName) e2 ->
+      let varOp = DS.Var l2 qName
+          e1' = desugar e1
+          e2' = desugar e2
+      in DS.App l1 (DS.App l2 varOp e1') e2'
 
-  -- ^ desugar (let [] in exp)          = desugar exp
-  -- ^ desugar $ let (x = y):binds in z = (\x -> desugar (let binds in z)) y
-  desugar (Absyn.Let l1 binds exp) =
-    case binds of
-      Absyn.BDecls l2     [] -> desugar exp
-      Absyn.BDecls l2 (b:bs) ->
-        let zexp' = desugar $ Absyn.Let l1 (Absyn.BDecls l2 bs) exp
-            Desugared.PatBind l1 xpat yexp = desugar b
-            lam  = Desugared.Lambda l1 xpat zexp'
-        in Desugared.App l1 lam yexp
-      _                      -> error ""
+    -- ^ desugar (\_ -> e)      = error
+    -- ^ desugar (\[p] -> e)    = \p -> e
+    -- ^ desugar (\(p:ps) -> e) = \p -> desugar (\ps -> e)
+    AB.Lambda l pat e ->
+      case pat of
+        []   -> error ""
+        [p]  ->
+          let e' = desugar e
+              p' = desugar p
+          in DS.Lambda l p' e'
+        p:ps ->
+          let lam' = desugar (AB.Lambda l ps e)
+              pat' = desugar p
+          in DS.Lambda l pat' lam'
 
-  -- ^ desugar (version A = x.y.z in exp)          = desugar exp
-  desugar (Absyn.VRes l1 vbs exp) = Desugared.VRes l1 (vbsToCs vbs) (desugar exp)
-  desugar (Absyn.VExt l1 exp) = Desugared.VExt l1 (desugar exp)
+    -- ^ desugar (let [] in exp)          = desugar exp
+    -- ^ desugar $ let (x = y):binds in z = (\x -> desugar (let binds in z)) y
+    AB.Let l1 binds exp ->
+      case binds of
+        AB.BDecls l2     [] -> desugar exp
+        AB.BDecls l2 (b:bs) ->
+          let zexp' = desugar $ AB.Let l1 (AB.BDecls l2 bs) exp
+              DS.PatBind l1 xpat yexp = desugar b
+              lam  = DS.Lambda l1 xpat zexp'
+          in DS.App l1 lam yexp
+        _                      -> error $ "\nGiven exp is no supported.\n  binds : " ++ show binds
 
-  desugar _ = error ""
+    -- ^ desugar (version A = x.y.z in exp)          = desugar exp
+    AB.VRes l1 vbs exp -> DS.VRes l1 (vbsToCs vbs) (desugar exp)
+    AB.VExt l1 exp -> DS.VExt l1 (desugar exp)
 
-vbsToCs :: Absyn.VBinds l -> Label
-vbsToCs (Absyn.VBinds _ vbs) = vbsToCs' vbs
+    -- ^ 
+    AB.Case l e as -> 
+      let e' = desugar e 
+          as' = map desugar as
+      in DS.Case l e' as'
+
+    -- ^ 
+    AB.Tuple l boxed elems -> DS.Tuple l $ map desugar elems
+    AB.List l elems -> DS.List l $ map desugar elems
+
+    _              -> error $ "\nGiven exp is no supported.\n  exp : " ++ show exp
+
+vbsToCs :: AB.VBinds l -> Label
+vbsToCs (AB.VBinds _ vbs) = vbsToCs' vbs
   where
-    vbsToCs' :: [Absyn.VBind l] -> Label
+    vbsToCs' :: [AB.VBind l] -> Label
     vbsToCs' vbs = case vbs of
       []     -> mempty
-      (Absyn.VBind _ mn v):rst ->
+      (AB.VBind _ mn v):rst ->
         let mn' = getName mn
             v'  = vnToV v
         in  Data.Map.fromList [(mn', [v'])] <> vbsToCs' rst

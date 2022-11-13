@@ -1,6 +1,6 @@
 {-# LANGUAGE DefaultSignatures #-}
 module Util (
-  pp, logPpLn,
+  pp, logPpLn, logPpLnDoc,
   module Prettyprinter,
   module Prettyprinter.Render.Text,
   removeFileIfExists, createDirectoryIfMissing,
@@ -9,6 +9,7 @@ module Util (
   vdash, semicolon, emptyset, pplist,
   Language.Haskell.Exts.ExactPrint.exactPrint,
   HasVar(..),
+  (<!>),
 ) where
 
 import System.Directory ( createDirectoryIfMissing, removeFile, doesFileExist )
@@ -19,15 +20,24 @@ import Prettyprinter hiding (prettyList)
 import Prettyprinter.Render.String ( renderString )
 import Control.Monad (when)
 import Data.List (nub)
+import Data.Map (Map)
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
 
 pp :: PrettyAST a => a -> IO ()
 pp ast = putDoc $ ppE ast <+> line
 
 logPpLn :: (PrettyAST a) => (a -> Doc ann) -> FilePath -> a -> IO ()
-logPpLn pp filename ast = do
+logPpLn pp logFilePath ast = do
   let doc = pp ast <> line
   putDoc doc
-  appendFile filename (renderString $ layoutPretty defaultLayoutOptions doc)
+  appendFile logFilePath (renderString $ layoutPretty defaultLayoutOptions doc)
+
+logPpLnDoc :: FilePath -> Doc ann -> IO ()
+logPpLnDoc logFilePath ast = do
+  let doc = ast <> line
+  putDoc doc
+  appendFile logFilePath (renderString $ layoutPretty defaultLayoutOptions doc)
 
 -- logStrLn :: Show a => FilePath -> a -> IO ()
 -- logStrLn filename str = do
@@ -54,6 +64,16 @@ vdash =
 
 emptyset :: Doc ann
 emptyset = pretty "{}"
+
+------------------------
+
+(<!>) :: (Show k, Show a, Ord k) => Map k a -> k -> a
+m <!> k = fromMaybe
+            (error $
+              "given key is not an element in the map." ++ 
+              "\n  key : " ++ show k ++ 
+              "\n  map : " ++ show m ++ "\n") $
+            M.lookup k m
 
 ------------------------
 

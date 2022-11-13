@@ -1,9 +1,9 @@
-module Syntax.Literal (
+module Syntax.Common.Literal (
   Literal(..),
 ) where
 
 import Language.Haskell.Exts.Syntax
-import Syntax.Name
+import Syntax.Common.Name
 
 import Util
 

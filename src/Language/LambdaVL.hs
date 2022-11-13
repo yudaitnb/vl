@@ -1,8 +1,10 @@
-module Syntax.LambdaVL (
+module Language.LambdaVL (
+  module Syntax.Common,
   Module(..),
   Decl(..),
   Exp(..),
   Pat(..),
+  Alt(..),
   Literal(..),
   HasVar(..),
   Absyn.Annotated(..),
@@ -10,15 +12,13 @@ module Syntax.LambdaVL (
   splitDeclToMap, splitDeclsToMap
 ) where
 
-import qualified Syntax.Absyn as Absyn
+import qualified Language.Absyn as Absyn
 import Data.List ((\\))
 import Data.Map (Map, fromList, empty, union)
 
-import Syntax.Literal
-import Syntax.Name
+import Syntax.Common
+
 import Util
-import Syntax.SrcLoc
-import Syntax.Label
 
 
 -- | A complete Lambda VL source module.
@@ -50,9 +50,18 @@ instance Eq l => Eq (Decl l) where
 -- | A pattern, to be matched against a value.
 data Pat l
     = PVar l (Name l)                       -- ^ variable
-    | PLit l (Absyn.Sign l) (Literal l)           -- ^ literal constant
+    | PLit l (Absyn.Sign l) (Literal l)     -- ^ literal constant
     | PWildCard l                           -- ^ wildcard pattern: @_@
     | PBox l (Pat l)                        -- ^ promoted pattern; @[@/x/@]@ -> ...
+    | PTuple l [Pat l]                      -- ^ tuple pattern
+    | PList l [Pat l]                       -- ^ list pattern
+    | PApp l (QName l) [Pat l]
+    -- | PList l [Pat l]                       -- ^ list pattern 
+  deriving (Eq,Ord,Show,Functor)
+
+-- | An /alt/ alternative in a @case@ expression.
+data Alt l
+    = Alt l (Pat l) (Exp l)
   deriving (Eq,Ord,Show,Functor)
 
 -- | Lambda VL expressions.
@@ -62,14 +71,13 @@ data Exp l
     | App l (Exp l) (Exp l)                 -- ^ ordinary application
     -- | NegApp l (Exp l)                      -- ^ negation expression @-/exp/@ (unary minus)
     | Lambda l (Pat l) (Exp l)              -- ^ lambda expression
+    | Tuple l [Exp l]                       -- ^ tuple
+    | List l [Exp l]                        -- ^ list
     -- | Let l (Pat l) (Exp l) (Exp l)         -- ^ contexutual let-binding
     | If l (Exp l) (Exp l) (Exp l)          -- ^ @if@ /exp/ @then@ /exp/ @else@ /exp/
     -- Versioned expressions
     | Pr l (Exp l)                          -- ^ An expression promoted version resources
-    -- | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
-    -- | Paren l (Exp l)                       -- ^ parenthesised expression
-    -- | LCase l [Alt l]                       -- ^ @\case@ /alts/
-    -- | VRes l Label (Exp l)
+    | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     | VRes l Label (Exp l)
     | VExt l (Exp l)
   deriving (Ord,Show,Functor)
@@ -109,6 +117,9 @@ instance HasVar (Exp l) where
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
       Lambda _ p e  -> filter (`notElem` boundVars p) (freeVars e)
+      Tuple _ elms  -> concatMap freeVars elms
+      List _ elms   -> concatMap freeVars elms
+      Case _ e alts -> freeVars e ++ concatMap freeVars alts
       Pr _ e        -> freeVars e
       VRes _ vbs e  -> freeVars e
       VExt _ e      -> freeVars e
@@ -121,6 +132,9 @@ instance HasVar (Exp l) where
       App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
       If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
       Lambda _ p e  -> freeVars' e \\ boundVars p
+      Tuple _ elms  -> concatMap freeVars' elms
+      List _ elms   -> concatMap freeVars' elms
+      Case _ e alts -> freeVars' e ++ concatMap freeVars' alts
       Pr _ e        -> freeVars' e
       VRes _ vbs e  -> freeVars' e
       VExt _ e      -> []
@@ -132,9 +146,18 @@ instance HasVar (Exp l) where
       App _ e1 e2   -> vars e1 ++ vars e2
       If _ e1 e2 e3 -> vars e1 ++ vars e2 ++ vars e3
       Lambda _ p e  -> vars e
+      Tuple _ elms  -> concatMap vars elms
+      List _ elms   -> concatMap vars elms
+      Case _ e alts -> vars e ++ concatMap vars alts
       Pr _ e        -> vars e
       VRes _ vbs e  -> vars e
       VExt _ e      -> vars e
+
+instance HasVar (Alt l) where
+  freeVars (Alt _ p e) = filter (`notElem` boundVars p) (freeVars e)
+  freeVars' (Alt _ p e) = freeVars' e \\ boundVars p
+  vars (Alt _ p e) = vars e
+
 
 -- boundVarsPats :: [Pat l] -> [String]
 -- boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
@@ -143,6 +166,9 @@ boundVars :: Pat l -> [String]
 boundVars p = case p of
   PVar _ name -> [getName name]
   PLit {}     -> []
+  PTuple _ ps -> concatMap boundVars ps
+  PList _ ps  -> concatMap boundVars ps
+  PApp _ _ ps -> concatMap boundVars ps
   PWildCard _ -> []
   PBox _ p    -> boundVars p
 
@@ -160,7 +186,10 @@ instance Absyn.Annotated Pat where
   ann (PVar l _) = l
   ann (PLit l _ _) = l
   ann (PWildCard l) = l
-  ann (PBox l p) = l
+  ann (PBox l _) = l
+  ann (PTuple l _) = l
+  ann (PList l _) = l
+  ann (PApp l _ _) = l
   amap f p1 = case p1 of
     PVar l n          -> PVar (f l) n
     PLit l sg lit     -> PLit (f l) sg lit
@@ -238,11 +267,24 @@ instance PrettyAST (Exp SrcSpanInfo) where
     <+> ppE exp1 <> line
     <+> ppE exp2 <> line
     <+> ppE exp3
+  ppE (Tuple srcLocInfo elms) = 
+        nest 2 $ parens $ ppE "Tuple" <> line
+    <+> ppE srcLocInfo <> line
+    <+> parens (concatWith (surround $ comma <> space) $ map ppE elms)
+  ppE (List srcLocInfo elms) =
+        nest 2 $ parens $ ppE "List" <> line
+    <+> ppE srcLocInfo <> line
+    <+> brackets (concatWith (surround $ comma <> space) $ map ppE elms)
   ppE (Lambda srcLocInfo pat exp) =
         nest 2 $ parens $ ppE "Lambda" <> line
     <+> ppE srcLocInfo <> line
     <+> ppE pat <> line
     <+> ppE exp
+  ppE (Case srcLocInfo exp alts) =
+        nest 2 $ parens $ ppE "Case" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE exp <> line
+    <+> concatWith (surround $ line <+> comma) (map ppE alts)
   ppE (Pr srcLocInfo exp) =
         nest 2 $ parens $ ppE "Pr" <> line
     <+> ppE srcLocInfo <> line
@@ -259,12 +301,22 @@ instance PrettyAST (Exp SrcSpanInfo) where
   ppP (Var _ qname) = ppP qname
   ppP (Lit _ literal) = ppP literal
   ppP (App _ e1 e2) = parens $ ppP e1 <+> ppP e2
-  -- ppP (NegApp _ exp) = ppP "-" <> parens (ppP exp)
-  ppP (If _ e1 e2 e3) = parens $ ppP "If" <+> ppP e1 <+> ppP "then"  <+> ppP e2 <+> ppP "else" <+> ppP e3
+  ppP (If _ e1 e2 e3) = parens $ ppP "If" <+> ppP e1 <+> ppP "then" <+> ppP e2 <+> ppP "else" <+> ppP e3
+  ppP (Tuple _ elms) = parens $ concatWith (surround $ comma <> space) $ map ppP elms 
+  ppP (List _ elms) = brackets $ concatWith (surround $ comma <> space) $ map ppP elms 
   ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
+  ppP (Case _ e alts) = parens $ ppP "case" <+> ppP e <+> ppP "of" <+> braces (concatWith (surround $ semicolon <> space) (map ppP alts))
   ppP (Pr _ e) = brackets $ ppP e
   ppP (VRes _ vbs e) = parens $ ppP "version" <+> ppP vbs <+> ppP "of" <+> ppP e
   ppP (VExt _ e) = parens $ ppP "unversion" <+> ppP e
+
+instance PrettyAST (Alt SrcSpanInfo) where
+  ppE (Alt srcLocInfo p e) =
+        nest 2 $ parens $ ppE "Alt" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE p <> line
+    <+> ppE e <> line
+  ppP (Alt _ p e) = ppP p <+> ppP "->" <+> ppP e
 
 instance PrettyAST (Pat SrcSpanInfo) where
   ppE (PVar srcLocInfo name) =
@@ -279,11 +331,27 @@ instance PrettyAST (Pat SrcSpanInfo) where
   ppE (PWildCard srcLocInfo) =
         nest 2 $ parens $ ppE "PWildCard" <> line
     <+> ppE srcLocInfo
+  ppE (PTuple srcLocInfo pats) =
+        nest 2 $ parens $ ppE "PTuple" <> line
+    <+> ppE srcLocInfo
+    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
   ppE (PBox srcLocInfo pat) =
         nest 2 $ parens $ ppE "PBox" <> line
     <+> ppE srcLocInfo <> line
     <+> ppE pat
+  ppE (PList srcLocInfo pats) =
+        nest 2 $ parens $ ppE "PList" <> line
+    <+> ppE srcLocInfo
+    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
+  ppE (PApp srcLocInfo qn pats) =
+        nest 2 $ parens $ ppE "PApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE qn <> line
+    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
   ppP (PVar _ name) = ppP name
   ppP (PLit _ sign literal) = ppP sign <> ppP literal
   ppP (PWildCard _) = ppP "_"
+  ppP (PTuple _ pats) = parens $ concatWith (surround $ comma <> space) (map ppP pats)
   ppP (PBox _ pat) = brackets $ ppP pat
+  ppP (PList _ pats) = brackets $ concatWith (surround $ comma <> space) (map ppP pats)
+  ppP (PApp _ qn pats) = parens $ ppP qn <+> concatWith (surround space) (map ppP pats)

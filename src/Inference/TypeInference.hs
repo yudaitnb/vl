@@ -3,16 +3,18 @@ module Inference.TypeInference  where
 import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import Data.List (foldl, map, elemIndex, sortBy, sortOn, intersect, nub, (\\))
-import Control.Monad.State ( forM_, evalState, runState, gets )
+import Control.Monad.State ( forM, forM_, foldM, evalState, runState, gets )
+import Control.Monad (unless)
 import Control.Arrow (second)
 
-import qualified Syntax.LambdaVL as VL
-import qualified Syntax.Name as N
+import qualified Language.LambdaVL as VL
+
+import Syntax.Common hiding (Name(..), QName(..))
+
 import Syntax.Type
 import Syntax.Kind
 import Syntax.Env
 import Syntax.Substitution
-import Syntax.SrcLoc
 
 -- import Inference.TypeUnification
 import Inference.Kinding
@@ -229,6 +231,78 @@ instance Typable (VL.Exp SrcSpanInfo) where
                 putTyInfLog sigma gamma exp result
                 return result
 
+      -- ^ ⇒_abs
+      VL.Lambda _ p t -> do
+        gamma <- gets tEnv
+        sigma <- gets uEnv
+        alpha <- genNewTyVar TypeKind
+        sigma1' <- gets uEnv
+        setREnv emptyREnv
+        (gamma', sigma2, theta) <- patternSynthesis p alpha
+        setUEnv sigma2
+        setTEnv $ gamma .++. gamma'
+        -- (tyb, delta, sigma3, theta', c1) <- infer t
+        (tyb, sigma3, theta', c1) <- infer t
+        theta'' <- theta `comp` theta'
+        let result =  ( -- typeSubstitution theta (TyFun alpha tyb)
+                        typeSubstitution theta'' (TyFun alpha tyb) -- [TODO] ?
+                      -- , delta `exclude` gamma'
+                      , insertEnv (getName alpha) TypeKind sigma3
+                      , theta''
+                      , c1)
+        putTyInfLog sigma gamma exp result
+        return result
+
+      -- ^ =>_()
+      VL.Tuple _ elms -> do
+        gamma <- gets tEnv
+        sigma1 <- gets uEnv
+        tyInfResLst <- forM elms $ \e -> infer e
+        let resTy = TyTuple $ map (\(t,_,_,_) -> t) tyInfResLst
+        sigma' <- gets uEnv
+        let sigmaLast = if null tyInfResLst
+                          then sigma'
+                          else case last tyInfResLst  of (_, sigmaLast, _, _) -> sigmaLast
+        thetaSum <- foldM comp emptySubst =<< mapM (\(_,_,thetai,_) -> return thetai) tyInfResLst
+        cSum <- foldM (\a b -> return $ a `landC` b) emptyConstraints =<< mapM (\(_,_,_,ci) -> return ci) tyInfResLst
+        let result =
+              ( resTy
+              -- , delta1 .++ delta2
+              , sigmaLast
+              , thetaSum
+              , cSum
+              )
+        putTyInfLog sigma1 gamma exp result
+        return result
+
+      -- ^ =>_[]
+      VL.List _ elms -> do
+        gamma <- gets tEnv
+        sigma1 <- gets uEnv
+        tyInfResLst <- forM elms $ \e -> infer e
+        alpha <- genNewTyVar LabelsKind
+        let tyLst = map (\(t,_,_,_) -> t) tyInfResLst
+            tyFirstCase@(TyBox _ tyFirstCase') = head tyLst
+        unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tyLst) $
+          error "All list elements must have a same type."
+        let cs = genConstraintPull alpha tyLst
+        let resTy = TyBox alpha (TyList tyFirstCase')
+        sigma' <- gets uEnv
+        let sigmaLast = if null tyInfResLst
+                          then sigma'
+                          else case last tyInfResLst  of (_, sigmaLast, _, _) -> sigmaLast
+        thetaSum <- foldM comp emptySubst =<< mapM (\(_,_,thetai,_) -> return thetai) tyInfResLst
+        cSum <- foldM (\a b -> return $ a `landC` b) emptyConstraints =<< mapM (\(_,_,_,ci) -> return ci) tyInfResLst
+        let result =
+              ( resTy
+              -- , delta1 .++ delta2
+              , sigmaLast
+              , thetaSum
+              , cSum
+              )
+        putTyInfLog sigma1 gamma exp result
+        return result
+
       -- ^ ⇒_app
       VL.App _ t1 t2 -> do
         gamma <- gets tEnv
@@ -257,6 +331,36 @@ instance Typable (VL.Exp SrcSpanInfo) where
         putTyInfLog sigma1 gamma exp result
         return result
 
+      -- ^ ⇒_case
+      VL.Case _ t alts -> do
+        gamma <- gets tEnv
+        sigma1 <- gets uEnv
+        (tya, _, theta0, c0) <- infer t
+        resAlts <- forM alts $ \(VL.Alt _ pi ti) -> do
+          setTEnv gamma
+          alpha <- genNewTyVar LabelsKind
+          let name = getName alpha
+          setREnv emptyREnv
+          (deltai, sigmai, thetai) <- patternSynthesis pi tya
+          setUEnv sigmai
+          setTEnv $ gamma .++. deltai
+          (tyb, sigmai', thetai', ci') <- infer ti
+          thetai'' <- thetai `comp` thetai'
+          return (tyb, sigmai', thetai'', ci')
+        let (tyb, _, _, _) = head resAlts
+            (_, sigmaLast, _, _) = last resAlts
+        unless (foldr (\(ty,_,_,_) acc -> ty == tyb && acc) True resAlts) $
+          error "All case altanatives must have the same type."
+        thetaSum <- foldM comp theta0 =<< mapM (\(_,_,thetai,_) -> return thetai) resAlts
+        cSum <- foldM (\a b -> return $ a `landC` b) c0 =<< mapM (\(_,_,_,ci) -> return ci) resAlts
+        let result =  ( typeSubstitution thetaSum tyb
+                      -- , delta `exclude` gamma'
+                      , sigmaLast
+                      , thetaSum
+                      , cSum)
+        putTyInfLog sigma1 gamma exp result
+        return result
+
       -- ^ ⇒_pr
       VL.Pr _ t -> do
         gamma <- gets tEnv
@@ -281,29 +385,6 @@ instance Typable (VL.Exp SrcSpanInfo) where
                       c1 `landC` c2
                       )
         putTyInfLog sigma1 gamma exp result
-        return result
-
-      -- ^ ⇒_abs
-      VL.Lambda _ p t -> do
-        gamma <- gets tEnv
-        sigma <- gets uEnv
-        alpha <- genNewTyVar LabelsKind
-        let name = getName alpha
-        sigma1' <- gets uEnv
-        setREnv emptyREnv
-        (gamma', sigma2, theta) <- patternSynthesis p alpha
-        setUEnv sigma2
-        setTEnv $ gamma .++. gamma'
-        -- (tyb, delta, sigma3, theta', c1) <- infer t
-        (tyb, sigma3, theta', c1) <- infer t
-        theta'' <- theta `comp` theta'
-        let result =  ( -- typeSubstitution theta (TyFun alpha tyb)
-                        typeSubstitution theta'' (TyFun alpha tyb) -- [TODO] ?
-                      -- , delta `exclude` gamma'
-                      , insertEnv name LabelsKind sigma3
-                      , theta''
-                      , c1)
-        putTyInfLog sigma gamma exp result
         return result
 
       -- ^ ⇒_res

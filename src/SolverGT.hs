@@ -15,8 +15,7 @@ import Control.Monad ( forM_, forM )
 import Data.SBV.Trans
 import qualified Data.SBV.List as SL
 
-import Syntax.Label
-import Syntax.Version
+import Syntax.Common hiding (Name(..))
 import Syntax.Type
 -- import SolverGT hiding (compileLabels)
 import Util
@@ -56,7 +55,6 @@ purpose :: String
 purpose = "numberOfTBDInVar"
 
 type ErrMsg = String
-type VarName = String
 type SolverResult = Either (ErrMsg, [String]) (Map VarName Label)
 
 data Env = Env

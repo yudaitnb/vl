@@ -2,10 +2,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Syntax.Substitution where
 
+import Prelude hiding (log)
 import Data.Maybe (fromMaybe)
 import Data.List (sortOn, intersect, elemIndex)
 
-import Syntax.LambdaVL
+import Language.LambdaVL
 import Syntax.Type
 import Syntax.Env
 import Inference.Kinding
@@ -15,6 +16,7 @@ import Graph
 import Util
 import Control.Arrow (second)
 import Control.Monad.State (gets, evalState)
+import Control.Monad (forM,foldM)
 
 newtype Subst = Subst { subst :: [(String, Type)] }
 
@@ -23,6 +25,17 @@ instance Semigroup Subst where
 
 instance Semigroup Subst => Monoid Subst where
   mempty = emptySubst  
+
+instance HasVar Subst where
+  freeVars s = case s of
+    Subst []  -> []
+    Subst ((s,ty):lst) ->  "s" : freeVars ty ++ freeVars (Subst lst)
+  freeVars' s = case s of
+    Subst []  -> []
+    Subst ((s,ty):lst) ->  "s" : freeVars' ty ++ freeVars' (Subst lst)
+  vars s = case s of
+    Subst []  -> []
+    Subst ((s,ty):lst) ->  "s" : vars ty ++ vars (Subst lst)
 
 emptySubst :: Subst
 emptySubst = Subst []
@@ -60,7 +73,7 @@ comp :: Subst -> Subst -> Env Subst
 comp s1 s2 = do
   uenv <- gets uEnv
   s2 <- rmSameTyVar s1 s2
-  let nodes = varsInEnv uenv
+  let nodes = varsInEnv uenv -- [TODO] 普通の関数にしたい。UEnvを参照する必要はないはず
       edges = distEdges $ map (second freeVars) (subst s2)
       g = Graph (nodes, edges)
       result = normalize $ Subst $ tsortBy g fst (subst s2)
@@ -108,7 +121,9 @@ typeSubstitution s_table ty =
     TyCon qName -> ty
     TyBottom    -> ty
     TyLabels _  -> ty
-    TyVar name     -> fromMaybe ty (findSubst (getName name) s_table)
+    TyVar name  -> fromMaybe ty (findSubst (getName name) s_table)
+    TyTuple ts  -> TyTuple $ map tysubst ts
+    TyList t    -> TyList $ tysubst t
     TyFun ty1 ty2  ->
       let ty1' = tysubst ty1
           ty2' = tysubst ty2
@@ -169,6 +184,23 @@ typeUnification ty1 ty2 = do
       result <- comp theta_1 theta_2
       putUnifyLog sigma ty1 ty2 result
       return result
+    
+    -- U_()
+    (TyTuple tys, TyTuple tys') -> do
+      thetas <- forM (zip tys tys') $ \(a, a') -> do
+        typeUnification a a' -- [TODO] 以下のように、前の型の生成した代入を次の型引数に適用する必要があるか？
+        -- theta_2 <- typeUnification (typeSubstitution theta_1 b) (typeSubstitution theta_1 b')
+      result <- foldM comp emptySubst thetas
+      putUnifyLog sigma ty1 ty2 result
+      return result
+
+    -- U_[]
+    (TyList a, TyList a') -> do
+      theta <- typeUnification a a'
+      let result = theta
+      putUnifyLog sigma ty1 ty2 result
+      return result
+
     -- U_box
     (TyBox r a, TyBox r' a') -> do
       theta_1 <- typeUnification a a'
@@ -197,10 +229,11 @@ typeUnification ty1 ty2 = do
           putUnifyLog sigma ty1 ty2 result
           return result
         else do
+          logs <- gets log
           error $ putDocString $
             line <> ppP "[ERROR] typeUnification: ty1 and ty2 cannot be unified" <> line <>
             ppP "ty1 :" <+> ppP ty1 <> line <> 
-            ppP "ty2 :" <+> ppP ty2
+            ppP "ty2 :" <+> ppP ty2 <> line <> ppP logs
 
 unify :: Type -> Type -> Subst
 unify t1 t2 = evalState (typeUnification t1 t2) (Env' initCounter emptyEnv emptyEnv emptyREnv emptyLogs initLC)

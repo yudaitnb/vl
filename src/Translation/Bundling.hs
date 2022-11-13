@@ -7,19 +7,18 @@ import qualified Data.List
 import Control.Monad.State
 import Control.Monad (forM_)
 
-import DependencyGraph
+import Parser
 import Inference.TypeInference hiding (constraints, uenv)
-import Syntax.Version (Version)
+
+import Syntax.Common (Version)
 import Syntax.Type
 import Syntax.Env hiding (counter)
-import System.Directory (withCurrentDirectory)
-import Syntax.Substitution (unify, typeSubstitution)
-import qualified Data.Set
-import Data.Functor.Classes (Eq1(..))
-import Util
-import Syntax.Kind (Kind (LabelsKind))
-import Syntax.Label 
+
+import Syntax.Kind ( Kind(LabelsKind) )
 import Language.Haskell.Exts (KnownExtension(ConstraintKinds))
+
+import Util
+
 
 data CollectEnv' = CollectEnv'
   { resources   :: Map String [Version]
@@ -31,9 +30,9 @@ data CollectEnv' = CollectEnv'
 type CollectEnv a = State CollectEnv' a
 
 addResource :: String -> Version -> CollectEnv ()
-addResource s v = state $ \env ->
-  let m' = v : (resources env ! s)
-  in ((), env {resources = insert s m' $ resources env})
+addResource s v = modify $ \env ->
+  let m' = v : (resources env <!> s)
+  in env {resources = insert s m' $ resources env}
 
 checkTypes :: Map Version Type -> Bool
 checkTypes tys = 
@@ -143,10 +142,10 @@ bundle mn initC m =
               exu' <- gets (insert s exu . uenv)
               modify ( \env -> env { uenv = exu' } )
             Just ty' -> do
-              oldTysOfS <- gets $ (! s) . types
+              oldTysOfS <- gets $ (<!> s) . types
               let newTysOfS = insert v ty oldTysOfS
               modify ( \env -> env { types = insert s newTysOfS (types env) } )
-              exu' <- gets $ (! s) . uenv
+              exu' <- gets $ (<!> s) . uenv
               modify ( \env -> env { uenv = insert s (exu `union` exu') (uenv env) } )
           -- そのトップレベルシンボルの実装が存在する全てのバージョンをresourcesに収集
           gets (Data.Map.lookup s . resources) >>= \case
@@ -161,9 +160,9 @@ bundle mn initC m =
               c' <- gets (insert s (singleton v c) . constraints)
               modify ( \env -> env { constraints = c' } )
             Just ty -> do
-              oldCsOfS <- gets $ (! s) .constraints
+              oldCsOfS <- gets $ (<!> s) .constraints
               let newCsOfS = insert v c oldCsOfS 
-              -- c' <- gets (landC c . (! s) .  constraints)
+              -- c' <- gets (landC c . (<!> s) .  constraints)
               modify ( \env -> env { constraints = insert s newCsOfS (constraints env) } )
 
 

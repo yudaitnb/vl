@@ -83,13 +83,13 @@ data TEortEnv' a = TEortEnv'
 type TEortEnv b a = State (TEortEnv' b) a
 
 drawBlack :: (Eq a) => Node a -> TEortEnv a ()
-drawBlack n = state $ \env@(TEortEnv' b o) -> ((), TEortEnv' (n:b) o)
+drawBlack n = modify $ \env@(TEortEnv' b o) -> TEortEnv' (n:b) o
 
 isBlack :: (Eq a) => Node a -> TEortEnv a Bool
 isBlack n = state $ \env@(TEortEnv' b _) -> (n `elem` b, env)
 
 addOrder :: Node a -> TEortEnv a ()
-addOrder n = state $ \env@(TEortEnv' b o) -> ((), TEortEnv' b (n:o))
+addOrder n = modify $ \env@(TEortEnv' b o) -> TEortEnv' b (n:o)
 
 getOrder :: TEortEnv a [Node a]
 getOrder = state $ \env@(TEortEnv' _ o) -> (o, env)
@@ -133,19 +133,19 @@ data CycleOfEnv' a = CycleOfEnv'
 type CycleOfEnv b a = State (CycleOfEnv' b) a
 
 see :: Node a -> CycleOfEnv a ()
-see n = state $ \env@(CycleOfEnv' s f l h) -> ((), CycleOfEnv' (n:s) f l h)
+see n = modify $ \env@(CycleOfEnv' s f l h) -> CycleOfEnv' (n:s) f l h
 
 isSeen :: (Eq a) => Node a -> CycleOfEnv a Bool
 isSeen n = state $ \env@(CycleOfEnv' s _ _ _) -> (n `elem` s, env)
 
 finish :: Node a -> CycleOfEnv a ()
-finish n = state $ \env@(CycleOfEnv' s f l h) -> ((), CycleOfEnv' s (n:f) l h)
+finish n = modify $ \env@(CycleOfEnv' s f l h) -> CycleOfEnv' s (n:f) l h
 
 isFinished :: (Eq a) => Node a -> CycleOfEnv a Bool
 isFinished n = state $ \env@(CycleOfEnv' _ f _ _) -> (n `elem` f, env)
 
 pushLog :: Node a -> CycleOfEnv a ()
-pushLog n = state $ \env@(CycleOfEnv' s f l h) -> ((), CycleOfEnv' s f (n:l) h)
+pushLog n = modify $ \env@(CycleOfEnv' s f l h) -> CycleOfEnv' s f (n:l) h
 
 popLog :: CycleOfEnv a (Node a)
 popLog = state $ \env@(CycleOfEnv' s f (n:l) h) -> (n, CycleOfEnv' s f l h)
@@ -154,10 +154,10 @@ getLog :: CycleOfEnv a (Path a)
 getLog = state $ \env -> (log env, env)
 
 setLog :: Path a -> CycleOfEnv a ()
-setLog p = state $ \env -> ((), env { log = p } )
+setLog p = modify $ \env -> env { log = p }
 
 flagTrue :: CycleOfEnv a ()
-flagTrue = state $ \env@(CycleOfEnv' s f l _) -> ((), CycleOfEnv' s f l True)
+flagTrue = modify $ \env@(CycleOfEnv' s f l _) -> CycleOfEnv' s f l True
 
 flag :: CycleOfEnv a Bool
 flag = state $ \env -> (hasCycle env, env)

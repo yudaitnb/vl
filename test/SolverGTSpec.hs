@@ -7,8 +7,7 @@ import qualified Data.Map
 import Data.Map (fromList)
 import qualified Data.Either
 
-import Syntax.Label
-import Syntax.Version
+import Syntax.Common
 import Syntax.Type
 import SolverGT
 

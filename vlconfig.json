@@ -1,0 +1,5 @@
+{
+  "root": "./examples/",
+  "log": "./log/",
+  "extension": ".hs"
+}

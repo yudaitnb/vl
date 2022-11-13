@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import Data.Map (fromList)
 import qualified Data.Either
 
-import Syntax.LambdaVL
+import Language.LambdaVL
 import Translation.RenameExVars
 import Parser
 import Translation.Desugar (desugarAST)

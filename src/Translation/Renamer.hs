@@ -4,10 +4,12 @@ import Data.Map ( Map, insert, empty, findWithDefault, map, lookup, mapKeys, key
 import Data.Maybe (fromMaybe)
 import Control.Monad.State
 
-import Syntax.Absyn
-import qualified Syntax.LambdaVL as VL
-import Syntax.Type as T
-import Syntax.Name as N
+import Language.Absyn
+import qualified Language.LambdaVL as VL
+
+import Syntax.Common
+
+import qualified Syntax.Type as T
 import Syntax.Kind as K
 import qualified Syntax.Env as E
 import Control.Arrow
@@ -57,9 +59,9 @@ genNewVarPats = mapM genNewVarPat
       c <- gets counter
       t <- gets table
       case p of
-        (PVar l1 (N.Ident l2 str)) -> do
+        (PVar l1 (Ident l2 str)) -> do
           let strvar' = prefixNewVar ++ show c
-              pat' = PVar l1 (N.Ident l2 strvar')
+              pat' = PVar l1 (Ident l2 strvar')
           addC
           setTable $ insert (getName p) strvar' t
           return pat'
@@ -80,9 +82,9 @@ instance Renamer (Exp l) where
   rename exp = do
     cur_table <- gets table
     case exp of
-      var@(Var l1 (N.UnQual l2 (N.Ident l3 str)))
+      var@(Var l1 (UnQual l2 (Ident l3 str)))
                     -> let resstr = findWithDefault str str cur_table in
-                       return $ Var l1 (N.UnQual l2 (N.Ident l3 resstr))
+                       return $ Var l1 (UnQual l2 (Ident l3 resstr))
       var@(Var _ _) -> return var
       lit@(Lit _ _) -> return lit
       App l e1 e2   -> do e1' <- rename e1

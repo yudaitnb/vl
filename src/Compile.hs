@@ -6,19 +6,20 @@ import Data.Maybe (fromMaybe)
 import Control.Monad
 import Control.Monad.State
 
-import qualified Syntax.Absyn as AB (getImports, Module (..))
-import qualified Syntax.LambdaVL as VL (Exp (..), Decl (..), getDecls, splitDeclsToMap)
+import qualified Language.Absyn as AB (getImports, Module (..))
+import qualified Language.LambdaVL as VL (Exp (..), Decl (..), getDecls, splitDeclsToMap)
+
+import Syntax.Common (SrcSpanInfo, Version(..))
+
 import Syntax.Env hiding (setCounter, counter)
-import Syntax.SrcLoc (SrcSpanInfo)
 import Syntax.Type (Type(..), Constraints(..), landC)
-import Syntax.Version (Version(..))
 
 import Translation.Desugar (desugarAST)
 import Translation.Girard (girardFwd)
 import Inference.TypeInference (getInterface, TypedExp (..))
 import Translation.Bundling
 
-import DependencyGraph
+import Parser ( VLMod(..), ParsedAST )
 import Util
 
 import Translation.Promote
@@ -28,13 +29,13 @@ import Translation.RenameExVars (renameExVarModule, duplicateEnvs, CounterTable)
 type BundledTEnv = Map String TEnv
 type BundledUEnv = Map String UEnv
 type BundledConstraints = Map String Constraints
-
+type DuplicatedExVars = Map String (String, VLMod, Type)
 
 data CompileEnv' = CompileEnv'
   { pending :: [VLMod]  -- コンパイル待ちのモジュール、先頭からコンパイルされる
   , counter :: Int      -- 型変数生成用の通し番号
   , counterTable :: CounterTable -- 複製された外部モジュール変数の登場回数の通し番号
-  , mapParsedAST :: Map VLMod (AB.Module SrcSpanInfo) -- パース済みのAST
+  , mapParsedAST :: ParsedAST -- パース済みのAST
   , mapVLDecls :: Map String (VL.Exp SrcSpanInfo) -- 全ての変換処理を終えたDecls -- [TODO] 複数のモジュールで同一変数をちゃんと処理できるようにする
   , globalEnv :: Map VLMod [TypedExp] -- 型検査後の型情報をそのまま格納するグローバル環境
   , globalConstraints :: Constraints -- 全ての制約が入っているグローバル制約環境
@@ -42,11 +43,27 @@ data CompileEnv' = CompileEnv'
   , bundledUEnv :: BundledUEnv -- バンドル後の型変数情報が格納されている環境
   , bundledConstraints :: BundledConstraints -- bundledTEnvに対応する制約が格納されている環境
   , bundledConsSchemes :: Map String (Map String Constraints) -- 各モジュールの各シンボルのバンドル後の制約（後で複製される）
-  , exVarResources :: Map String (String, VLMod, Type) -- 複製された外部変数と(元の名前, 複製されたモジュール, リソース変数)のマップ, duplicationフェーズで保存される
+  , exVarResources :: DuplicatedExVars -- 複製された外部変数と(元の名前, 複製されたモジュール, リソース変数)のマップ, duplicationフェーズで保存される
   , logFilePath :: FilePath  -- ログファイルの相対パス
   }
   deriving (Show)
 type CompileEnv a = StateT CompileEnv' IO a
+
+initCompileEnv :: CompileEnv'
+initCompileEnv = CompileEnv'
+  []    -- pending
+  0     -- counter
+  empty -- counterTable
+  empty -- mapParsedAST
+  empty -- mapVLDecls
+  empty -- globalEnv
+  CTop  -- globalConstraints
+  empty -- bundledTEnv
+  empty -- bundledUEnv
+  empty -- bundledConstraints
+  empty -- bundledConsSchemes
+  empty -- exVarResources
+  ""    -- logFilePath
 
 addCounter :: Int -> CompileEnv ()
 addCounter i = modify $ \env -> env { counter = i + counter env }
@@ -75,7 +92,7 @@ addVLDecls decls = modify $ \env ->
   in env { mapVLDecls = newDeclsOfVlMod }
 
 addGlobalEnv :: VLMod -> [TypedExp] -> CompileEnv ()
-addGlobalEnv vlmod tyexp = state $ \env -> ((), env { globalEnv = insert vlmod tyexp $ globalEnv env })
+addGlobalEnv vlmod tyexp = modify $ \env -> env { globalEnv = insert vlmod tyexp $ globalEnv env }
 
 addGlobalConstraints :: Constraints -> CompileEnv ()
 addGlobalConstraints cs = modify $ \env -> env { globalConstraints = cs `landC` globalConstraints env }
@@ -84,16 +101,16 @@ setGlobalConstraints :: Constraints -> CompileEnv ()
 setGlobalConstraints cs = modify $ \env -> env { globalConstraints = cs }
 
 addBundledTEnv :: String -> TEnv -> CompileEnv ()
-addBundledTEnv s tenv = state $ \env -> ((), env { bundledTEnv = insert s tenv $ bundledTEnv env })
+addBundledTEnv s tenv = modify $ \env -> env { bundledTEnv = insert s tenv $ bundledTEnv env }
 
 addBundledUEnv :: String -> UEnv -> CompileEnv ()
-addBundledUEnv s uenv = state $ \env -> ((), env { bundledUEnv = insert s uenv $ bundledUEnv env })
+addBundledUEnv s uenv = modify $ \env -> env { bundledUEnv = insert s uenv $ bundledUEnv env }
 
 addBundledConstraints :: String -> Constraints -> CompileEnv ()
-addBundledConstraints s c = state $ \env -> ((), env { bundledConstraints = insert s c $ bundledConstraints env })
+addBundledConstraints s c = modify $ \env -> env { bundledConstraints = insert s c $ bundledConstraints env }
 
 addBundledConsSchemes :: String -> Map String Constraints -> CompileEnv ()
-addBundledConsSchemes mn schs = state $ \env -> ((), env { bundledConsSchemes = insert mn schs $ bundledConsSchemes env })
+addBundledConsSchemes mn schs = modify $ \env -> env { bundledConsSchemes = insert mn schs $ bundledConsSchemes env }
 
 addExVarResources :: VLMod -> ExVarResources -> CompileEnv ()
 addExVarResources vlmod exr = modify $ \env -> 
@@ -116,10 +133,10 @@ genEnvFromImports modules = do
     genEnvFromImports' :: [String] -> CompileEnv [(TEnv, UEnv)]
     genEnvFromImports' [] = return []
     genEnvFromImports' (mn:lst) = do
-      tenv' <- gets ((! mn) . bundledTEnv)
-      uenv' <- gets ((! mn) . bundledUEnv)
-      -- cs <- gets ((! mn) . bundledConstraints)
-      -- cschm <- gets $ (! mn) . bundledConsSchemes
+      tenv' <- gets ((<!> mn) . bundledTEnv)
+      uenv' <- gets ((<!> mn) . bundledUEnv)
+      -- cs <- gets ((<!> mn) . bundledConstraints)
+      -- cschm <- gets $ (<!> mn) . bundledConsSchemes
       xs <- genEnvFromImports' lst
       return $ (tenv', uenv') : xs
 
@@ -147,8 +164,19 @@ logE s = do
 
 --------------
 
-compile :: VLMod -> CompileEnv ()
-compile target@(VLMod mn v) = do
+compile :: [VLMod] -> Map VLMod (AB.Module SrcSpanInfo) -> FilePath -> IO CompileEnv'
+compile sortedVLMods mapParsedAst logFilePath = do
+  let headVLMod  = head sortedVLMods
+      tailVLMods = tail sortedVLMods
+      initCompEnv = initCompileEnv {
+                      pending = tailVLMods
+                    , mapParsedAST = mapParsedAst
+                    , logFilePath = logFilePath
+                    }
+  execStateT (compileVLMod headVLMod) initCompEnv
+
+compileVLMod :: VLMod -> CompileEnv ()
+compileVLMod target@(VLMod mn v) = do
   logP "\n==================================="
   logPD $ ppP "=== Start compiling module" <+> ppP target
   logP "==================================="
@@ -192,7 +220,7 @@ compile target@(VLMod mn v) = do
   let flattenSchemeLst :: [Map String Constraints] -> Map String Constraints
       flattenSchemeLst [] = Data.Map.empty
       flattenSchemeLst (h:rst) = unionWith (error "duplicated key included!") h (flattenSchemeLst rst)
-  consSchemes <- flattenSchemeLst <$> forM importMods (\mn -> gets $ (! mn) . bundledConsSchemes)
+  consSchemes <- flattenSchemeLst <$> forM importMods (\mn -> gets $ (<!> mn) . bundledConsSchemes)
   -- lift $ print consSchemes
   -- [TODO] A.fとB.fを同時にimport出来なくなっているので名前解決をちゃんとやる必要がある
   logPD $ ppP "[DEBUG] Imported TEnv      :" <+> ppP importedTEnv    -- import宣言から得られた型環境
@@ -264,7 +292,7 @@ compile target@(VLMod mn v) = do
   -- ^ Proceed to the next compile target
   getNextModule >>= \case
     Nothing  -> return ()
-    Just res -> compile res
+    Just res -> compileVLMod res
 
 instance PrettyAST BundledTEnv where
   ppE m

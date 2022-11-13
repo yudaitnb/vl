@@ -26,26 +26,28 @@ source-repository head
 library
   exposed-modules:
       Compile
-      DependencyGraph
+      Config
       Graph
       Inference.Kinding
       Inference.PatternSynthesis
       Inference.TypeInference
+      Language.Absyn
+      Language.Desugared
+      Language.LambdaVL
       Parser
       Solver
       SolverGT
-      Syntax.Absyn
-      Syntax.Desugared
+      Syntax.Common
+      Syntax.Common.Keys
+      Syntax.Common.Label
+      Syntax.Common.Literal
+      Syntax.Common.Name
+      Syntax.Common.SrcLoc
+      Syntax.Common.Version
       Syntax.Env
       Syntax.Kind
-      Syntax.Label
-      Syntax.LambdaVL
-      Syntax.Literal
-      Syntax.Name
-      Syntax.SrcLoc
       Syntax.Substitution
       Syntax.Type
-      Syntax.Version
       Translation.Bundling
       Translation.Desugar
       Translation.Extraction
@@ -67,7 +69,9 @@ library
       TupleSections
       DeriveFunctor
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , containers
     , directory
     , filepath
@@ -76,6 +80,7 @@ library
     , haskell-src-exts
     , mtl
     , prettyprinter
+    , regex-posix
     , sbv
     , split
     , transformers
@@ -96,7 +101,9 @@ executable vl-exe
       DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , containers
     , directory
     , filepath
@@ -105,6 +112,7 @@ executable vl-exe
     , haskell-src-exts
     , mtl
     , prettyprinter
+    , regex-posix
     , sbv
     , split
     , transformers
@@ -130,7 +138,9 @@ test-suite vl-test
       DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
+    , bytestring
     , containers
     , directory
     , filepath
@@ -140,6 +150,7 @@ test-suite vl-test
     , hspec
     , mtl
     , prettyprinter
+    , regex-posix
     , sbv
     , split
     , transformers

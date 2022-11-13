@@ -1,7 +1,7 @@
 module Translation.Promote where
 
-import Syntax.LambdaVL
-import Syntax.Name
+import Language.LambdaVL
+import Syntax.Common
 
 promoteMain :: Module l -> Module l
 promoteMain (Module l mh pragmas imp decls) = Module l mh pragmas imp (map promoteDecl decls)
@@ -27,4 +27,5 @@ promoteTopVal (Module l mh pragmas imp decls) = Module l mh pragmas imp (map pro
     promoteExp :: Exp l -> Exp l
     promoteExp exp = case exp of
       App l1 (Lambda l2 p e1) e2  -> App l1 (Lambda l2 p (promoteExp e1)) e2
+      -- App l1 (Lambda l2 p e1) e2  -> App l1 (Lambda l2 p (promoteExp e1)) e2
       _ -> Pr (ann exp) exp
