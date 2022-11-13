@@ -31,12 +31,15 @@ type BundledUEnv = Map String UEnv
 type BundledConstraints = Map String Constraints
 type DuplicatedExVars = Map String (String, VLMod, Type)
 
+type VLDecls = Map String (VL.Exp SrcSpanInfo)
+type VLModDecls = Map VLMod (Map String (VL.Exp SrcSpanInfo))
+
 data CompileEnv' = CompileEnv'
   { pending :: [VLMod]  -- コンパイル待ちのモジュール、先頭からコンパイルされる
   , counter :: Int      -- 型変数生成用の通し番号
   , counterTable :: CounterTable -- 複製された外部モジュール変数の登場回数の通し番号
   , mapParsedAST :: ParsedAST -- パース済みのAST
-  , mapVLDecls :: Map String (VL.Exp SrcSpanInfo) -- 全ての変換処理を終えたDecls -- [TODO] 複数のモジュールで同一変数をちゃんと処理できるようにする
+  , mapVLDecls :: VLModDecls -- 全ての変換処理を終えたDecls -- [TODO] 複数のモジュールで同一変数をちゃんと処理できるようにする
   , globalEnv :: Map VLMod [TypedExp] -- 型検査後の型情報をそのまま格納するグローバル環境
   , globalConstraints :: Constraints -- 全ての制約が入っているグローバル制約環境
   , bundledTEnv :: BundledTEnv -- バンドル後の型情報が格納されている型環境
@@ -85,10 +88,10 @@ getParsedAST vlmod = do
   let message = show vlmod ++ " cannot be found in " ++ show (keys mapParsedAST)
   return $ fromMaybe (error message) $ Data.Map.lookup vlmod mapParsedAST
 
-addVLDecls :: [VL.Decl SrcSpanInfo] -> CompileEnv ()
-addVLDecls decls = modify $ \env -> 
+addVLDecls :: VLMod -> [VL.Decl SrcSpanInfo] -> CompileEnv ()
+addVLDecls vlmod decls = modify $ \env -> 
   let oldDeclsOfVlMod = mapVLDecls env
-      newDeclsOfVlMod = VL.splitDeclsToMap decls `union` oldDeclsOfVlMod
+      newDeclsOfVlMod = singleton vlmod (VL.splitDeclsToMap decls) `union` oldDeclsOfVlMod
   in env { mapVLDecls = newDeclsOfVlMod }
 
 addGlobalEnv :: VLMod -> [TypedExp] -> CompileEnv ()
@@ -213,7 +216,7 @@ compileVLMod target@(VLMod mn v) = do
   logPD $ (ppP "[DEBUG] ctdiff : " <>) $ concatWith (surround $ comma <> space) $ mapWithKey (\k v -> ppP k <> ppP "->" <> ppP v) ctdiff
   logPD $ (ppP "[DEBUG] ctstart: " <>) $ concatWith (surround $ comma <> space) $ mapWithKey (\k v -> ppP k <> ppP "->" <> ppP v) ctstart
   setCounterTable ct'
-  addVLDecls $ VL.getDecls astVLDuplicated
+  addVLDecls target $ VL.getDecls astVLDuplicated
 
   logP "\n=== Importing Exteranal ModulesType (Syntax.VL) ==="
   (importedTEnv, importedUEnv) <- genEnvFromImports importMods
@@ -329,3 +332,23 @@ instance PrettyAST BundledConstraints where
     | otherwise = concatWith (surround $ comma <> space) $
       Data.List.map (\(k,v) -> parens $ ppP k <> comma <> ppP v) $
       Data.Map.toList m
+
+instance PrettyAST VLModDecls where
+  ppE m
+    | Data.Map.null m = ppE "{}"
+    | otherwise = concatWith (surround line) $
+      mapWithKey (\vlmod vldecls -> ppE vlmod <+> colon <+> ppE vldecls) m
+  ppP m 
+    | Data.Map.null m = ppP "{}"
+    | otherwise = concatWith (surround line) $
+      mapWithKey (\vlmod vldecls -> ppP vlmod <+> colon <+> ppP vldecls) m
+
+instance PrettyAST VLDecls where
+  ppE m
+    | Data.Map.null m = ppE "{}"
+    | otherwise = concatWith (surround $ comma <> space) $
+      mapWithKey (\vn decls -> ppE vn <+> ppP "=" <+> ppE decls) m
+  ppP m 
+    | Data.Map.null m = ppP "{}"
+    | otherwise = concatWith (surround $ comma <> space) $
+      mapWithKey (\vn decls -> ppP vn <+> ppP "=" <+> ppP decls) m

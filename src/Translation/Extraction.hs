@@ -14,7 +14,7 @@ import Inference.TypeInference (TypedExp)
 
 import Util
 
-extract :: Map String (String, VLMod, Type, Label) -> Map String (Exp SrcSpanInfo) -> Exp SrcSpanInfo -> Exp SrcSpanInfo
+extract :: Map String (String, VLMod, Type, Label) -> Map VLMod (Map String (Exp SrcSpanInfo)) -> Exp SrcSpanInfo -> Exp SrcSpanInfo
 extract exVarLabels vldecls = extractExp
   where
     extractExp :: Exp SrcSpanInfo -> Exp SrcSpanInfo
@@ -23,9 +23,11 @@ extract exVarLabels vldecls = extractExp
         case M.lookup (getName qn) exVarLabels of
           Nothing  -> e
           Just (orig, vlmod, _, label) ->
-            let subst = fromMaybe
-                        (error $ putDocString $ line <> ppP orig <+> ppP "is not included in" <+> ppP (show vldecls)) $
-                        M.lookup orig vldecls
+            let (mn, vers) = head (M.toList label)
+                target = VLMod mn (head vers)
+                subst = fromMaybe
+                        (error $ putDocString $ line <> ppP orig <+> ppP "is not included in" <+> ppP (show $ vldecls <!> target)) $
+                        M.lookup orig (vldecls <!> target)
             in extractExp subst
       Lit l lit     -> e
       App l e1 e2   -> App l (extractExp e1) (extractExp e2)

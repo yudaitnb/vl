@@ -95,10 +95,10 @@ main = do
 
   logP "\n=== Extraction ==="
   let vldecls = mapVLDecls env
-      expMain = vldecls <!> "main"
+      expMain = vldecls <!> VLMod "Main" Root <!> "main"
       extracted = extract exVarLabels vldecls expMain
       hsCodeBundled = girardBck extracted
-  logPD $ concatWith (surround line) $ mapWithKey (\k v -> ppP k <+> ppP "=" <+> ppP v) vldecls
+  logP vldecls
   logP $ prettyPrint hsCodeBundled
 
   -- putStrLn "=== Standard output ==="
