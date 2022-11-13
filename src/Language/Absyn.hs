@@ -1,5 +1,6 @@
-module Syntax.Absyn (
+module Language.Absyn (
   module Language.Haskell.Exts.Syntax,
+  module Syntax.Common,
   HasName(..),
   HasWhere(..),
   -- PrettyAST(..),
@@ -9,9 +10,7 @@ module Syntax.Absyn (
 
 import Language.Haskell.Exts.Syntax hiding (Name, QName, ModuleName, Literal)
 
-import Syntax.Literal
-import Syntax.Name
-import Syntax.SrcLoc
+import Syntax.Common
 
 import Util
     ( exactPrint, line, (<+>), nest, parens, pplist, PrettyAST(..), emptyDoc )
@@ -50,9 +49,11 @@ instance HasName (Module l) where
 ----------------------
 
 class HasWhere a where
-  rmWhere :: a -> a
+  type RemovedWhere a
+  rmWhere :: a -> RemovedWhere a
 
 instance HasWhere (Match l) where
+  type RemovedWhere (Match l) = Match l
   rmWhere match@(Match l1 name pats (UnGuardedRhs l2 exp) maybeBinds) =
     let patName = PVar (ann name) name in
     case maybeBinds of
@@ -64,6 +65,7 @@ instance HasWhere (Match l) where
   rmWhere _ = error ""
 
 instance HasWhere (Decl l) where
+  type RemovedWhere (Decl l) = Decl l
   rmWhere pb@(PatBind l1 pat (UnGuardedRhs l2 exp) maybeBinds) =
     case maybeBinds of
       Nothing -> pb
@@ -73,6 +75,13 @@ instance HasWhere (Decl l) where
         in PatBind l1 pat rhs' maybeBinds
   rmWhere (FunBind l match) = FunBind l (fmap rmWhere match)
   rmWhere _ = error "The rmWhere function is not defined for a given expression."
+
+instance HasWhere (Alt l) where
+  type RemovedWhere (Alt l) = Alt l
+  rmWhere alt@(Alt l p (UnGuardedRhs l2 exp) maybeBinds) =
+    case maybeBinds of
+      Nothing -> alt
+      Just bs -> Alt l p (UnGuardedRhs l2 (Let l bs exp)) Nothing -- [TODO] Let "l"ではない
 
 decomposeDecl :: [Decl l] -> [Decl l]
 decomposeDecl = concatMap decompose

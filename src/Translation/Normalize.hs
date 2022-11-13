@@ -1,6 +1,6 @@
 module Translation.Normalize where
 
-import Syntax.Desugared
+import Language.Desugared
 import Data.Map
 
 import Control.Monad.State
@@ -35,6 +35,8 @@ instance Normalize (Exp l) where
     Lit l lit       -> return $ Lit l lit
     App l e1' e2    -> return $ App l e1' e2
     Lambda l ps e   -> return $ Lambda l ps e
+    Tuple l elms    -> return $ Tuple l elms
+    List l elms     -> return $ List l elms
     If l ec et ee   -> return $ If l ec et ee
     -- Let l p e1 e2   -> Let l p e1 e2
     VRes l vbs e    -> do

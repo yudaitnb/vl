@@ -15,8 +15,7 @@ import Data.Map ( Map, toList, union, unionWith, null )
 import Data.Set ( Set, union, isSubsetOf, empty, toList, null, cartesianProduct, map )
 import Data.List ( nub, null, map )
 
-import Syntax.Name (HasName(..))
-import Syntax.Label
+import Syntax.Common hiding (Name(..), QName (..), ModuleName(..))
 import Util
 import Graph
 
@@ -58,6 +57,8 @@ data Type
   | TyBox Coeffect Type -- ^ promoted types / □_r A
   | TyBottom            -- ^ coeffect / coeffect-0
   | TyLabels Label -- ^ coeffect / fromList [](= coeffect-1), {l_1, l_2, ...}
+  | TyTuple [Type]     -- ^ tuple type / (A, B, ...)
+  | TyList Type       -- ^ list type / [A]
   | CAdd Coeffect Coeffect -- ^ A constraint gnerated by (.+) when either of the coeffs is a type variable
   | CMul Coeffect Coeffect -- ^ A constraint gnerated by (.*) when either of the coeffs is a type variable
   -- | CSubset Coeffect Coeffect -- ^ A constraint note that c1 ≤ c2
@@ -106,6 +107,8 @@ tySym (TyVar _) (TyVar _) = True
 tySym (TyCon qn) (TyCon qn') = qn == qn'
 tySym (TyFun t1 t2) (TyFun t1' t2') = tySym t1 t1' && tySym t2 t2'
 tySym (TyBox c t) (TyBox c' t') = tySym c c' && tySym t t'
+tySym (TyTuple ts1) (TyTuple ts2) = foldr (\(t1, t2) acc -> tySym t1 t2 && acc) True (zip ts1 ts2)
+tySym (TyList t1) (TyList t2) = tySym t1 t2
 tySym TyBottom TyBottom = True
 tySym (TyLabels l) (TyLabels l') = l == l'
 tySym (CAdd c1 c2) (CAdd c1' c2') = tySym c1 c1' && tySym c2 c2'
@@ -138,6 +141,8 @@ instance HasVar Type where
         TyVar name  -> [getName name]
         TyFun t1 t2 -> freeTyVars' t1 ++ freeTyVars' t2
         TyBox c t   -> freeTyVars' c ++ freeTyVars' t
+        TyTuple ts  -> concatMap freeTyVars' ts
+        TyList t    -> freeTyVars' t
         -- Coeffects
         TyBottom    -> []
         TyLabels _  -> []
@@ -212,29 +217,33 @@ isClosed ty = Data.List.null $ freeVars ty
 -------------------------
 
 instance PrettyAST Type where
-  ppE (TyCon qName) = nest 2 $ ppE "(TyCon" <+> ppE qName <> ppE ")"
+  ppE (TyCon qName) = nest 2 . parens $ ppE "TyCon" <+> ppE qName
   ppE (TyFun t1 t2) =
-        nest 2 $ ppE "(TyFun" <> line
+        nest 2 . parens $ ppE "TyFun" <> line
     <+> ppE t1 <> line
-    <+> ppE t2 <> ppE ")"
-  ppE (TyVar name)  = nest 2 $ ppE "(TyVar" <+> ppE name <> ppE ")"
+    <+> ppE t2
+  ppE (TyVar name)  = nest 2 . parens $ ppE "TyVar" <+> ppE name
   ppE (TyBox c ty)  =
-        nest 2 $ ppE "(TyBox" <> line
+        nest 2 . parens $ ppE "TyBox" <> line
     <+> ppE c <> line
-    <+> ppE ty <> ppE ")"
-  ppE TyBottom      = nest 2 $ ppE "(TyBottom)"
-  ppE (TyLabels set_path) =
-    let pp_path = foldl (\acc p -> acc <+> ppE p) (ppE "") set_path in
-    nest 2 $ ppE "(TyLabels" <> line
-    <+> pp_path <> ppE ")"
+    <+> ppE ty
+  ppE TyBottom      = nest 2 . parens $ ppE "TyBottom"
+  ppE (TyTuple ts) =
+    let pp_ts = concatWith (surround $ comma <+> line) $ Data.List.map ppE ts in
+    nest 2 . parens $ ppE "TyTuple" <> line <+> (nest 2 . parens $ pp_ts)
+  ppE (TyList ty) =
+    nest 2 . parens $ ppE "TyList" <> line <+> ppE ty
+  ppE (TyLabels label) =
+    let pp_path = foldl (\acc p -> acc <+> ppE p) (ppE "") label in
+    nest 2 . parens $ ppE "TyLabels" <> line <+> pp_path
   ppE (CAdd c1 c2) =
-        nest 2 $ ppE "(CAdd" <> line
+        nest 2 . parens $ ppE "CAdd" <> line
     <+> ppE c1 <> line
-    <+> ppE c2 <> ppE ")"
+    <+> ppE c2
   ppE (CMul c1 c2) =
-        nest 2 $ ppE "(CMul" <> line
+        nest 2 . parens $ ppE "CMul" <> line
     <+> ppE c1 <> line
-    <+> ppE c2 <> ppE ")"
+    <+> ppE c2
   -- ppE (CSubset c1 c2) =
   --       nest 2 $ ppE "(CSubset" <> line
   --   <+> ppE c1 <> line
@@ -246,6 +255,8 @@ instance PrettyAST Type where
   ppP (TyBox c ty)  = ppP ty <> ppP "@" <> brackets (ppP c)
   -- ^ Coeffects
   ppP TyBottom      = ppP "⊥" -- coeef 0
+  ppP (TyTuple ts)  = parens $ ppP "Tuple" <+> concatWith (surround space) (Data.List.map ppP ts)
+  ppP (TyList ty)   = parens $ ppP "List" <+> ppP ty
   ppP (TyLabels labels) = if Data.Map.null labels
     then ppP "{}" -- coeff 1
     else brackets $ ppP labels
@@ -256,21 +267,21 @@ instance PrettyAST Type where
 
 instance PrettyAST QName where
   ppE (Qual modName qName) =
-        nest 2 $ parens $ ppE "Qual" <> line
+        nest 2 . parens $ ppE "Qual" <> line
     <+> ppE modName <> line
     <+> ppE qName
-  ppE (UnQual name) = nest 2 $ parens $ ppE "UnQual" <+> ppE name
+  ppE (UnQual name) = nest 2 . parens $ ppE "UnQual" <+> ppE name
   ppP (Qual modName qName) = ppP modName <> ppP "." <> ppP qName
   ppP (UnQual name) = ppP name
 
 instance PrettyAST Name where
-  ppE (Ident str) = nest 2 $ parens $ ppE "Ident" <+> ppE str
-  ppE (Symbol str) = nest 2 $ parens $ ppE "Symbol" <+> ppE str
+  ppE (Ident str) = nest 2 . parens $ ppE "Ident" <+> ppE str
+  ppE (Symbol str) = nest 2 . parens $ ppE "Symbol" <+> ppE str
   ppP (Ident str) = ppP str
   ppP (Symbol str) = ppP str
 
 instance PrettyAST ModuleName where
-  ppE (ModuleName str) = nest 2 $ parens $ ppE "ModuleName" <+> ppE str
+  ppE (ModuleName str) = nest 2 . parens $ ppE "ModuleName" <+> ppE str
   ppP (ModuleName str) = ppP str
 
 -- instance PrettyAST Constraints where

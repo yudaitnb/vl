@@ -15,7 +15,7 @@ module Syntax.Env (
   gradeTEnv,
   genNewTyVar,
   basicType,
-  genConstraint, genConstraintBy,
+  genConstraint, genConstraintBy, genConstraintPull,
   --Logs
   Logs, reverseLogs, emptyLogs,
   prefixNewTyVar,
@@ -30,7 +30,7 @@ import Syntax.Kind
 import Control.Monad.State
 import Util
 import qualified Data.List
-import DependencyGraph (VLMod(..))
+import Parser (VLMod(..))
 
 prefixNewTyVar :: String
 prefixNewTyVar = "a"
@@ -156,6 +156,10 @@ genConstraintBy c = Data.Map.foldl (\acc envty -> genConBy c envty `landC` acc) 
     genConBy c (NType _ _) = error "genConstraintBy: `genCon` cannot produce constraints from NType."
     genConBy c1 (GrType _ _ c2) = CSubset c2 c1
 
+genConstraintPull :: Coeffect -> [Type] -> Constraints
+genConstraintPull c []     = emptyConstraints 
+genConstraintPull c ((TyBox c' _):ts) = CSubset c c' `landC` genConstraintPull c ts
+
 data Env' = Env'
   { counter :: Int  -- 型変数の累積数
   , tEnv  :: TEnv   -- 型付け環境 / [x:A]
@@ -189,7 +193,7 @@ initializeTEnv :: Env ()
 initializeTEnv = setTEnv emptyEnv
 
 putTEnv :: String -> EnvType -> Env ()
-putTEnv s et = state $ \env -> ((), env { tEnv = insert s et (tEnv env) })
+putTEnv s et = modify $ \env -> env { tEnv = insert s et (tEnv env) }
 
 -- ^ UEnv
 setUEnv :: UEnv -> Env ()
@@ -217,13 +221,13 @@ mulREnv c1 (REnv c2) = REnv (c1 .* c2)
 -- getCEnv = state $ \env -> (cEnv env, env)
 
 -- setCEnv :: Constraints -> Env ()
--- setCEnv c = state $ \env -> ((), env { cEnv = c })
+-- setCEnv c = modify $ \env -> env { cEnv = c }
 
 -- initializeCEnv :: Env ()
--- initializeCEnv = state $ \env -> ((), env { cEnv = emptyConstraints })
+-- initializeCEnv = modify $ \env -> env { cEnv = emptyConstraints }
 
 -- putCEnv :: Constraints -> Env ()
--- putCEnv c = state $ \env -> ((), env { cEnv = c ++ cEnv env })
+-- putCEnv c = modify $ \env -> env { cEnv = c ++ cEnv env }
 
 -- ^ Logs
 setLogs :: Logs -> Env ()
@@ -258,8 +262,7 @@ initializeLC :: Env ()
 initializeLC = modify $ \env -> env { logc = initLC }
 
 addLC :: Env ()
--- addLC = state $ \env@(Env' c t u r con l lc) -> ((), Env' c t u r con l (lc + 1))
-addLC = state $ \env -> ((), env { logc = 1 + logc env })
+addLC = modify $ \env -> env { logc = 1 + logc env }
 
 subLC :: Env ()
 subLC = modify $ \env -> env { logc = logc env - 1 }

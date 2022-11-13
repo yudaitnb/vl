@@ -1,4 +1,4 @@
-module Syntax.Name (
+module Syntax.Common.Name (
   Language.Haskell.Exts.Syntax.QName(..),
   Language.Haskell.Exts.Syntax.Name(..),
   Language.Haskell.Exts.Syntax.ModuleName(..),
@@ -25,7 +25,7 @@ instance HasName (QName l) where
 
 ------------------------------------
 
-instance PrettyAST l => PrettyAST (QName l) where
+instance (Show l, PrettyAST l) => PrettyAST (QName l) where
   ppE (Qual srcLocInfo moduleName name) =
         nest 2 $ ppE "(Qual" <> line
     <+> ppE srcLocInfo <> line
@@ -35,10 +35,26 @@ instance PrettyAST l => PrettyAST (QName l) where
         nest 2 $ ppE "(UnQual" <> line
     <+> ppE srcLocInfo <> line
     <+> ppE name <> ppE ")"
-  ppE _ = error "prety printer is not define a given QName."
+  ppE qn = error $ "\nppE is not defined for an given expression.\n" ++ show qn
   ppP (Qual _ moduleName name) = ppP moduleName <> ppP "." <> ppP name
   ppP (UnQual _ name) = ppP name
-  ppP _ = error "showPrtty is not defined for an given expression."
+  ppP (Special _ spc) = ppP spc
+
+instance (Show l, PrettyAST l) => PrettyAST (SpecialCon l) where
+  ppE sc = case sc of
+    UnitCon l -> ppE "()"
+    ListCon l -> ppE "[]"
+    FunCon l  -> ppE "->"
+    TupleCon l _ _ -> ppE "(,)" 
+    Cons l    -> ppE ":"
+    _ -> error $ "\nppE is not defined for an given expression.\n" ++ show sc
+  ppP sc = case sc of
+    UnitCon l -> ppP "()"
+    ListCon l -> ppP "[]"
+    FunCon l  -> ppP "->"
+    TupleCon l _ _ -> ppP "(,)" 
+    Cons l    -> ppP ":"
+    _ -> error $ "\nppP is not defined for an given expression.\n" ++ show sc  
 
 instance PrettyAST l => PrettyAST (Name l) where
   ppE (Ident srcLocInfo string) =

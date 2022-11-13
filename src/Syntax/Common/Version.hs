@@ -1,10 +1,10 @@
 {-# LANGUAGE InstanceSigs #-}
-module Syntax.Version (
+module Syntax.Common.Version (
   Version(..), vnToV,
 ) where
 
 import Util
-import Syntax.Absyn
+import Language.Haskell.Exts.Syntax ( VersionNumber(..) )
 
 data Version =
     Root

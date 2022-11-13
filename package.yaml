@@ -34,7 +34,9 @@ dependencies:
 - sbv
 - transformers
 # - haskell-names
-
+- aeson
+- bytestring
+- regex-posix
 - ghc-paths
 - ghc
 

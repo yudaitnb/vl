@@ -1,4 +1,4 @@
-module Syntax.SrcLoc (
+module Syntax.Common.SrcLoc (
   Language.Haskell.Exts.SrcLoc.SrcLoc(..),
   Language.Haskell.Exts.SrcLoc.SrcSpanInfo(..),
   Language.Haskell.Exts.SrcLoc.SrcInfo(..),

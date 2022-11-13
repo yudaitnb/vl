@@ -2,17 +2,19 @@ module Inference.PatternSynthesis where
 
 import Control.Monad.State
 
+import Language.LambdaVL
+
 import Syntax.Env
 import Syntax.Type as Type
 import Syntax.Kind
-import Syntax.LambdaVL
+
 import Syntax.Substitution
 
 import Inference.Kinding
 -- import Inference.TypeUnification
 
 import Util
-import Syntax.SrcLoc
+import Syntax.Common
 
 type PatSynthRes = (TEnv, UEnv, Subst)
 
@@ -75,7 +77,7 @@ patternSynthesis p tya = do
           hasLabelsKind alpha -- [TODO] tribial
           setREnv $ REnv alpha
           (delta, sigma'', theta) <- patternSynthesis p' beta
-          theta' <- typeUnification tya (TyBox alpha beta)
+          theta' <- typeUnification (TyBox alpha beta) tya
           theta'' <- theta `comp` theta'
           let result = (delta, sigma'', theta'')
           putPatSynthLog sigma renv p result
@@ -89,12 +91,145 @@ patternSynthesis p tya = do
           setREnv $ mulREnv alpha renv
           (delta, sigma'', theta) <- patternSynthesis p' beta
           sigma'' <- gets uEnv
-          theta' <- typeUnification tya (TyBox alpha beta)
+          theta' <- typeUnification (TyBox alpha beta) tya
           theta'' <- theta `comp` theta'
           let result = (delta, sigma'', theta'')
           putPatSynthLog sigma renv p result
           return result
-    _ -> error "May the arguments be PLit or PWildCard?"
+
+    -- p()?
+    PTuple _ ps      -> do
+      sigma <- gets uEnv
+      renv  <- gets rEnv
+      case renv of
+        -- p()
+        EmptyREnv -> do
+          alphas <- forM (replicate (length ps) 0) $ \_ -> genNewTyVar TypeKind
+          theta' <- typeUnification (TyTuple alphas) tya
+          patSynthRess <- forM (zip ps alphas) $ \(pi, alphai) -> do
+            -- sigma' <- gets uEnv
+            hasTypeKind alphai -- [TODO] tribial, 前に出してもよい？
+            setREnv renv
+            patternSynthesis pi alphai
+          sigma' <- gets uEnv
+          let sigmaLast = if null patSynthRess
+                            then sigma'
+                            else case last patSynthRess of (_, sigmaLast, _) -> sigmaLast
+          let deltaSum = foldr (\(gammai, _, _) accGamma -> gammai .++. accGamma) emptyEnv patSynthRess
+          thetaSum <- foldM comp emptySubst $ map (\(_, _, thetai) -> thetai) patSynthRess
+          thetaRes <- theta' `comp` thetaSum
+          let result = (deltaSum, sigmaLast, thetaRes)
+          putPatSynthLog sigma renv p result
+          return result
+        -- [p()]
+        REnv r -> do
+          alphas <- forM (replicate (length ps) 0) $ \_ -> genNewTyVar TypeKind
+          theta' <- typeUnification (TyTuple alphas) tya
+          patSynthRess <- forM (zip ps alphas) $ \(pi, alphai) -> do
+            -- sigma' <- gets uEnv
+            hasTypeKind alphai -- [TODO] tribial, 前に出してもよい？
+            setREnv renv
+            patternSynthesis pi alphai
+          sigma' <- gets uEnv
+          let sigmaLast = if null patSynthRess
+                            then sigma'
+                            else case last patSynthRess of (_, sigmaLast, _) -> sigmaLast
+          let deltaSum = foldr (\(gammai, _, _) accGamma -> gammai .++. accGamma) emptyEnv patSynthRess
+          thetaSum <- foldM comp emptySubst $ map (\(_, _, thetai) -> thetai) patSynthRess
+          thetaRes <- theta' `comp` thetaSum
+          let result = (deltaSum, sigmaLast, thetaRes)
+          putPatSynthLog sigma renv p result
+          return result
+
+    -- p[]?
+    PList _ ps      -> do
+      sigma <- gets uEnv
+      renv  <- gets rEnv
+      case renv of
+        -- p[]
+        EmptyREnv -> do
+          alphas <- forM (replicate (length ps) 0) $ \_ -> genNewTyVar TypeKind
+          theta' <- typeUnification (TyTuple alphas) tya
+          patSynthRess <- forM (zip ps alphas) $ \(pi, alphai) -> do
+            -- sigma' <- gets uEnv
+            hasTypeKind alphai -- [TODO] tribial, 前に出してもよい？
+            setREnv renv
+            patternSynthesis pi alphai
+          sigma' <- gets uEnv
+          let sigmaLast = if null patSynthRess
+                            then sigma'
+                            else case last patSynthRess of (_, sigmaLast, _) -> sigmaLast
+          let deltaSum = foldr (\(gammai, _, _) accGamma -> gammai .++. accGamma) emptyEnv patSynthRess
+          thetaSum <- foldM comp emptySubst $ map (\(_, _, thetai) -> thetai) patSynthRess
+          thetaRes <- theta' `comp` thetaSum
+          let result = (deltaSum, sigmaLast, thetaRes)
+          putPatSynthLog sigma renv p result
+          return result
+        -- [p[]]
+        REnv r -> do
+          alphas <- forM (replicate (length ps) 0) $ \_ -> genNewTyVar TypeKind
+          theta' <- typeUnification (TyTuple alphas) tya
+          patSynthRess <- forM (zip ps alphas) $ \(pi, alphai) -> do
+            -- sigma' <- gets uEnv
+            hasTypeKind alphai -- [TODO] tribial, 前に出してもよい？
+            setREnv renv
+            patternSynthesis pi alphai
+          sigma' <- gets uEnv
+          let sigmaLast = if null patSynthRess
+                            then sigma'
+                            else case last patSynthRess of (_, sigmaLast, _) -> sigmaLast
+          let deltaSum = foldr (\(gammai, _, _) accGamma -> gammai .++. accGamma) emptyEnv patSynthRess
+          thetaSum <- foldM comp emptySubst $ map (\(_, _, thetai) -> thetai) patSynthRess
+          thetaRes <- theta' `comp` thetaSum
+          let result = (deltaSum, sigmaLast, thetaRes)
+          putPatSynthLog sigma renv p result
+          return result
+
+    -- pcon?
+    PApp _ qn ps      -> do
+      sigma <- gets uEnv
+      renv  <- gets rEnv
+      case renv of
+        -- pcon
+        EmptyREnv -> do
+          alphas <- forM (replicate (length ps) 0) $ \_ -> genNewTyVar TypeKind
+          theta' <- typeUnification (TyTuple alphas) tya
+          patSynthRess <- forM (zip ps alphas) $ \(pi, alphai) -> do
+            -- sigma' <- gets uEnv
+            hasTypeKind alphai -- [TODO] tribial, 前に出してもよい？
+            setREnv renv
+            patternSynthesis pi alphai
+          sigma' <- gets uEnv
+          let sigmaLast = if null patSynthRess
+                            then sigma'
+                            else case last patSynthRess of (_, sigmaLast, _) -> sigmaLast
+          let deltaSum = foldr (\(gammai, _, _) accGamma -> gammai .++. accGamma) emptyEnv patSynthRess
+          thetaSum <- foldM comp emptySubst $ map (\(_, _, thetai) -> thetai) patSynthRess
+          thetaRes <- theta' `comp` thetaSum
+          let result = (deltaSum, sigmaLast, thetaRes)
+          putPatSynthLog sigma renv p result
+          return result
+        -- [pcon]
+        REnv r -> do
+          alphas <- forM (replicate (length ps) 0) $ \_ -> genNewTyVar TypeKind
+          theta' <- typeUnification (TyTuple alphas) tya
+          patSynthRess <- forM (zip ps alphas) $ \(pi, alphai) -> do
+            -- sigma' <- gets uEnv
+            hasTypeKind alphai -- [TODO] tribial, 前に出してもよい？
+            setREnv renv
+            patternSynthesis pi alphai
+          sigma' <- gets uEnv
+          let sigmaLast = if null patSynthRess
+                            then sigma'
+                            else case last patSynthRess of (_, sigmaLast, _) -> sigmaLast
+          let deltaSum = foldr (\(gammai, _, _) accGamma -> gammai .++. accGamma) emptyEnv patSynthRess
+          thetaSum <- foldM comp emptySubst $ map (\(_, _, thetai) -> thetai) patSynthRess
+          thetaRes <- theta' `comp` thetaSum
+          let result = (deltaSum, sigmaLast, thetaRes)
+          putPatSynthLog sigma renv p result
+          return result
+
+    pat -> error $ "May the arguments be PLit or PWildCard?\n" ++ show pat
   
 ------------------------------
 

@@ -7,14 +7,14 @@ import Data.List (nub)
 import Data.Map (Map, (!))
 import qualified Data.Map as M
 
-import Syntax.LambdaVL
-import qualified Syntax.Name as N
-import Syntax.SrcLoc (SrcSpanInfo(..))
+import Language.LambdaVL hiding (Name(..))
+import Syntax.Common hiding (Name(..), QName(..))
+import qualified Syntax.Common.Name as N
+
 import Syntax.Env
 import Syntax.Type
 
 import Util
-import Syntax.Version (Version(..))
 
 -- exp中の外部モジュール由来の値を参照する変数(f)の複製に従い,
 -- tenv, uenv, cs中の各fに関連する型制約, 型制約, 制約を複製する
@@ -49,7 +49,7 @@ mkInitRenameEnv ct decls = RenameEnv'
 
 getCounterOf :: String -> RenameEnv Int
 getCounterOf s = do
-  gets $ (! s) . counterTable
+  gets $ (<!> s) . counterTable
 
 addCounterOf :: String -> RenameEnv ()
 addCounterOf s = do
@@ -92,10 +92,13 @@ setBoundVar ss = modify $ \env -> env { boundVars = ss }
 
 addBoundVarFromPat :: Pat SrcSpanInfo -> RenameEnv ()
 addBoundVarFromPat p = case p of
-  PVar _ name -> addBoundVar $ N.getName name
-  PBox _ p'   -> addBoundVarFromPat p'
-  PWildCard _ -> return ()
-  PLit {}     -> return ()
+  PVar _ name  -> addBoundVar $ N.getName name
+  PBox _ p'    -> addBoundVarFromPat p'
+  PTuple _ ps  -> forM_ ps $ \p -> do addBoundVarFromPat p
+  PList _ ps   -> forM_ ps $ \p -> do addBoundVarFromPat p
+  PApp _ qn ps -> forM_ ps $ \p -> do addBoundVarFromPat p
+  PWildCard _  -> return ()
+  PLit {}      -> return ()
 
 ----------------
 
@@ -105,27 +108,37 @@ renameExVarModule ct mod@(Module l mh pragmas imps decls) =
   in (Module l mh pragmas imps decls', counterTable renv)
 
 renameExVarDecl :: Decl SrcSpanInfo -> RenameEnv (Decl SrcSpanInfo)
-renameExVarDecl pb@(PatBind l p@(PVar _ name) e) = PatBind l p <$> renameExVar e
+renameExVarDecl pb@(PatBind l p@(PVar _ name) e) = PatBind l p <$> renameExVarExp e
 
-renameExVar :: Exp SrcSpanInfo -> RenameEnv (Exp SrcSpanInfo)
-renameExVar exp = case exp of
+renameExVarExp :: Exp SrcSpanInfo -> RenameEnv (Exp SrcSpanInfo)
+renameExVarExp exp = case exp of
   Lit _ _ -> return exp
   Var _ _ -> isFree exp >>= \b -> if b
               then genNewVarFrom exp -- 自由変数は外部モジュール由来のはず
               else return exp        -- パターンかλに束縛された変数
-  App l e1 e2   -> App l <$> renameExVar e1 <*> renameExVar e2
-  -- If even one pattern that binds the same name exists, terminate the renameExVar function,
+  App l e1 e2   -> App l <$> renameExVarExp e1 <*> renameExVarExp e2
+  -- If even one pattern that binds the same name exists, terminate the renameExVarExp function,
   Lambda l p e -> do
     oldBoundVars <- gets boundVars   -- 旧テーブルを保存
     addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
-    e' <- renameExVar e              -- 更新された環境でrename
+    e' <- renameExVarExp e           -- 更新された環境でrename
     setBoundVar oldBoundVars         -- 旧テーブルに戻す
     return $ Lambda l p e'           -- rename済み式と新しい束縛変数リストを用いてLambdaのrename済み式を構成
-  If l e1 e2 e3  -> If l <$> renameExVar e1 <*> renameExVar e2 <*> renameExVar e3
-  Pr l e         -> Pr l <$> renameExVar e
-  VRes l label e -> VRes l label <$> renameExVar e
-  VExt l e       -> VExt l <$> renameExVar e
+  Tuple l elms   -> Tuple l <$> mapM renameExVarExp elms
+  List l elms    -> List l <$> mapM renameExVarExp elms
+  If l e1 e2 e3  -> If l <$> renameExVarExp e1 <*> renameExVarExp e2 <*> renameExVarExp e3
+  Case l e alts  -> Case l <$> renameExVarExp e <*> mapM renameExVarAlt alts
+  Pr l e         -> Pr l <$> renameExVarExp e
+  VRes l label e -> VRes l label <$> renameExVarExp e
+  VExt l e       -> VExt l <$> renameExVarExp e
   
+renameExVarAlt :: Alt SrcSpanInfo -> RenameEnv (Alt SrcSpanInfo)
+renameExVarAlt (Alt l p e) = do
+  oldBoundVars <- gets boundVars   -- 旧テーブルを保存
+  addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
+  e' <- renameExVarExp e           -- 更新された環境でrename
+  setBoundVar oldBoundVars         -- 旧テーブルに戻す
+  return $ Alt l p e'              -- rename済み式と新しい束縛変数リストを用いてLambdaのrename済み式を構成  
 
 -------------------
 
@@ -140,18 +153,20 @@ duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctd
     duplicateEnvs' :: [(String,Int)] -> CounterTable -> Map String Constraints -> (TEnv, UEnv, Constraints, ExVarResources) -> (TEnv, UEnv, Constraints, ExVarResources)
     duplicateEnvs' []          ctstart csschm envs = envs 
     duplicateEnvs' ((s,i):rst) ctstart csschm (oldTEnv, oldUEnv, oldCs, oldResVarMap) = 
-      let fvOfS = freeVars $ oldTEnv ! s
-          cstart = ctstart ! s
-          csschmOfS = csschm ! s
-          newTEnv = duplicateVarsTEnv s i cstart oldTEnv
-          newUEnv = duplicateTyVarsUEnv fvOfS i cstart oldUEnv
-          newCs   = oldCs `landC` duplicateTyVarsCons csschmOfS i cstart
-          newResVarMap = oldResVarMap `M.union` duplicateResVarMap s i cstart oldTEnv
-      in duplicateEnvs' rst ctstart csschm (newTEnv, newUEnv, newCs, newResVarMap)
+      if i /= 0 then
+        let cstart = ctstart <!> s
+            csschmOfS = csschm <!> s
+            newTEnv = duplicateVarsTEnv s i cstart oldTEnv
+            newUEnv = duplicateTyVarsUEnv (freeVars $ oldTEnv <!> s) i cstart oldUEnv
+            newCs   = oldCs `landC` duplicateTyVarsCons csschmOfS i cstart
+            newResVarMap = oldResVarMap `M.union` duplicateResVarMap s i cstart oldTEnv
+        in duplicateEnvs' rst ctstart csschm (newTEnv, newUEnv, newCs, newResVarMap)
+      else
+        duplicateEnvs' rst ctstart csschm (oldTEnv, oldUEnv, oldCs, oldResVarMap)
     duplicateTyVarsUEnv :: [String] -> Int -> Int -> UEnv -> UEnv 
     duplicateTyVarsUEnv []       i cstart uenv = uenv
     duplicateTyVarsUEnv (tyn:ss) i cstart uenv = 
-      let kind = uenv ! tyn
+      let kind = uenv <!> tyn
           uenvDeleted = M.delete tyn uenv
           newUEnv = foldl (\acc newtyn -> M.insert newtyn kind acc)
             uenvDeleted
@@ -162,14 +177,14 @@ duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctd
       foldl1 landC $ map (`renameConsWithIdx` csschmOfS) $ take i $ iterate (+1) cstart
     duplicateVarsTEnv :: String -> Int -> Int -> TEnv -> TEnv
     duplicateVarsTEnv s i cstart tenv =
-      let envty = tenv ! s -- [!_a1 Int -> Int]_a0]
+      let envty = tenv <!> s -- [!_a1 Int -> Int]_a0]
           tenvDeleted = M.delete s tenv
       in foldl (\acc (i, newvn) -> M.insert newvn (renameEnvTyWithIdx i envty) acc)
           tenvDeleted $
           zip (iterate (+1) cstart) (newNamesOfExVar s i cstart) -- [(cstart, "__f_cstart"), (cstart+1, "__f_cstart+1")]
     duplicateResVarMap :: String -> Int -> Int -> TEnv -> ExVarResources
     duplicateResVarMap s i cstart tenv =
-      case tenv ! s of
+      case tenv <!> s of
         NType _ _    -> error ""
         GrType _ _ c -> M.fromList $ zip
                           (newNamesOfExVar s i cstart)

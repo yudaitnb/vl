@@ -1,13 +1,14 @@
-module Syntax.Label where
+module Syntax.Common.Label where
 
 import qualified Data.Map as M
 import Data.Map (Map)
 import qualified Data.List as L
-import Data.Set
 import Data.Monoid
 
-import Syntax.Version
+import Syntax.Common.Version
+import Syntax.Common.Keys
 import Util
+import Data.Bifunctor (second)
 
 -- Label: その値の取りうる各モジュールのバージョンの候補を集めたもの
 -- e.g.)
@@ -36,6 +37,9 @@ pickVersion = M.map
 
 pickLatestVersion :: Label -> FixedLabel
 pickLatestVersion = pickVersion maximum -- Version 1 0 0 <= Version 1 0 1
+
+mkFixedLabel :: [(String, [(String, Version)])] -> Map VarName FixedLabel
+mkFixedLabel m = M.fromList $ L.map (\(vn,l) -> (vn, M.fromList l)) m
 
 ------------------------
 

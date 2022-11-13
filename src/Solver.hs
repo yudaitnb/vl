@@ -2,25 +2,27 @@ module Solver where
 
 import Prelude
 
+import Control.Monad ( forM_, forM )
+import Control.Monad.Trans (lift)
+
 import Data.List (nub, sort, reverse)
 import qualified Data.Map as M
-import Data.Map (Map, fromList, toList, delete, keys, insert, insertWith, size)
+import Data.Map (Map, fromList, toList, delete, keys, insert, insertWith, size, mapWithKey)
 import Data.Tuple (swap)
 import Data.Maybe (fromMaybe)
 import Data.List.Split ( splitOn )
 
-import Control.Monad ( forM_, forM )
-
 import Data.SBV.Trans
 import qualified Data.SBV.List as SL
-
-import Syntax.Label
-import Syntax.Version
-import Syntax.Type
--- import SolverGT hiding (compileLabels)
-import Util
 import Data.SBV.Trans.Control (CheckSatResult(..), checkSat, getUnsatCore, query)
-import Control.Monad.Trans (lift)
+
+import Syntax.Common hiding (Name(..))
+
+import Syntax.Type
+import Compile (DuplicatedExVars(..))
+import Parser (VLMod(..))
+
+import Util
 
 -- やること
 -- 1. トップレベル宣言が不要になるように書き直す
@@ -55,8 +57,14 @@ purpose :: String
 purpose = "numberOfTBDInVar"
 
 type ErrMsg = String
-type VarName = String
-type SolverResult = Either (ErrMsg, [String]) (Map VarName Label)
+type SRError = (ErrMsg, [String])
+type SRSuccess = Map VarName Label
+type SolverResult = Either SRError SRSuccess
+
+
+combineSolRes :: DuplicatedExVars -> SRSuccess -> Map String (String, VLMod, Type, Label)
+combineSolRes evr solres = mapWithKey
+  (\vn (s, vlmod,ty) -> (s, vlmod, ty, solres <!> getName ty)) evr
 
 data Env = Env
   { constraints :: Constraints              -- input constraints
@@ -96,7 +104,6 @@ solve em cs = do
     Satisfiable _ _ -> do
       let r :: [(String, Int)] 
           r = toList $ M.map (fromInteger . fromCV) $ delete purpose $ getModelDictionary res
-      print r
       let idxvers = idxVers senv
           labels = resToLabels idxvers r
       return $ Right labels
@@ -197,65 +204,71 @@ subsetOf l1 l2 =
     l1 l2
 
 
-test :: Symbolic ()
-test = do
-  let env = mkEnv em1 cs
-      l1 = compileLabels env a100101
-      l2 = compileLabels env a100
-  constrain $ l1 `subsetOf` l2
-  query $ do
-    cs <- checkSat
-    case cs of
-        Unsat -> do
-          lift $ print "Unsat"
-          return ()
-        _     -> do
-          lift $ print "Sat"
-          return ()
+-- test :: Symbolic ()
+-- test = do
+--   let env = mkEnv em1 cs
+--       l1 = compileLabels env a100101
+--       l2 = compileLabels env a100
+--   constrain $ l1 `subsetOf` l2
+--   query $ do
+--     cs <- checkSat
+--     case cs of
+--         Unsat -> do
+--           lift $ print "Unsat"
+--           return ()
+--         _     -> do
+--           lift $ print "Sat"
+--           return ()
 
 ---------------------------
 
-mkVar :: String -> Type
-mkVar s = TyVar $ Ident s
+-- mkVar :: String -> Type
+-- mkVar s = TyVar $ Ident s
 
-mkLabels :: [(String, [Version])] -> Label
-mkLabels [] = mempty
-mkLabels ((mn,v):rst) =
-  let rst' = mkLabels rst
-  in Data.Map.insert mn v rst'
+-- mkLabels :: [(String, [Version])] -> Label
+-- mkLabels [] = mempty
+-- mkLabels ((mn,v):rst) =
+--   let rst' = mkLabels rst
+--   in Data.Map.insert mn v rst'
 
-mkGtLabels :: String -> Label -> Constraints
-mkGtLabels vn labels = CSubset (mkVar vn) (TyLabels labels)
+-- mkGtLabels :: String -> Label -> Constraints
+-- mkGtLabels vn labels = CSubset (mkVar vn) (TyLabels labels)
 
-mkGtVar :: String -> String -> Constraints
-mkGtVar vn1 vn2 = CSubset (mkVar vn1) (mkVar vn2)
+-- mkGtVar :: String -> String -> Constraints
+-- mkGtVar vn1 vn2 = CSubset (mkVar vn1) (mkVar vn2)
 
-em1 :: Map String [Version]
-em1 = fromList
-  [ ("A",
-    [ Version 1 0 0
-    , Version 1 0 1])
-  , ("B",
-    [ Version 1 0 0
-    , Version 1 0 1])
-  ]
+-- em1 :: Map String [Version]
+-- em1 = fromList
+--   [ ("A",
+--     [ Version 1 0 0
+--     , Version 1 0 1])
+--   , ("B",
+--     [ Version 1 0 0
+--     , Version 1 0 1])
+--   ]
 
-a100, a101, a100101, b100, b101, b100101 :: Label
-a100 = mkLabels [("A", [v100])]
-a101 = mkLabels [("A", [v101])]
-b100 = mkLabels [("B", [v100])]
-b101 = mkLabels [("B", [v101])]
-a100101 = mkLabels [("A", [v100, v101])]
-b100101 = mkLabels [("B", [v100, v101])]
+-- a100, a101, a100101, b100, b101, b100101 :: Label
+-- a100 = mkLabels [("A", [v100])]
+-- a101 = mkLabels [("A", [v101])]
+-- b100 = mkLabels [("B", [v100])]
+-- b101 = mkLabels [("B", [v101])]
+-- a100101 = mkLabels [("A", [v100, v101])]
+-- b100101 = mkLabels [("B", [v100, v101])]
 
-cand :: [Constraints] -> Constraints
-cand = foldr landC CTop
+-- cand :: [Constraints] -> Constraints
+-- cand = foldr landC CTop
 
-v100, v101 :: Version
-v100 = Version 1 0 0
-v101 = Version 1 0 1
+-- v100, v101 :: Version
+-- v100 = Version 1 0 0
+-- v101 = Version 1 0 1
 
-cs :: Constraints
-cs = cand
-  [ mkGtLabels "a0" a100
-  , mkGtLabels "a0" a101 ]
+-- cs :: Constraints
+-- cs = cand
+--   [ mkGtLabels "a0" a100
+--   , mkGtLabels "a0" a101
+--   ]
+
+
+instance PrettyAST (Map String (String, VLMod, Type, Label)) where
+  ppE m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppE vn <+> colon <+> ppE s <+> colon <+> ppE m <+> colon <+> ppE tv <+> colon <+> ppE l) m
+  ppP m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppP vn <+> colon <+> ppP s <+> colon <+> ppP m <+> colon <+> ppP tv <+> colon <+> ppP l) m
