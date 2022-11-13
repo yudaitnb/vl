@@ -44,6 +44,6 @@ import B
 
 main =
   let sumTpl = \x -> case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b2)
+  in sumTpl (y,b1)
 
 -- main = (\x -> x) 1

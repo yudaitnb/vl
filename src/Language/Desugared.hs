@@ -80,13 +80,20 @@ instance Absyn.Annotated Decl where
   amap f (PatBind l p exp) = PatBind (f l) p exp
 
 instance Absyn.Annotated Pat where
-  ann (PVar l _) = l
-  ann (PLit l _ _) = l
-  ann (PWildCard l) = l
+  ann p = case p of
+    PVar l _    -> l
+    PLit l _ _  -> l
+    PWildCard l -> l
+    PTuple l _  -> l
+    PList l _   -> l
+    PApp l _ _  -> l
   amap f p1 = case p1 of
-    PVar l n          -> PVar (f l) n
-    PLit l sg lit     -> PLit (f l) sg lit
-    PWildCard l       -> PWildCard (f l)
+    PVar l n      -> PVar (f l) n
+    PLit l sg lit -> PLit (f l) sg lit
+    PWildCard l   -> PWildCard (f l)
+    PTuple l ps   -> PTuple (f l) ps
+    PList l ps    -> PList (f l) ps
+    PApp l qn ps  -> PApp (f l) qn ps
 
 instance Absyn.Annotated Exp where
   ann e = case e of
@@ -95,6 +102,8 @@ instance Absyn.Annotated Exp where
     App l _ _              -> l
     Lambda l _ _           -> l
     If l _ _ _             -> l
+    Tuple l _              -> l
+    List l _               -> l
     -- Let l _ _ _            -> l
     VRes l _ _             -> l
     VExt l _               -> l
@@ -104,6 +113,8 @@ instance Absyn.Annotated Exp where
     Lit l lit       -> Lit (f l) lit
     App l e1' e2    -> App (f l) e1' e2
     Lambda l ps e   -> Lambda (f l) ps e
+    Tuple l exps    -> Tuple (f l) exps
+    List l exps     -> List (f l) exps
     If l ec et ee   -> If (f l) ec et ee
     -- Let l p e1 e2   -> Let (f l) p e1 e2
     VRes l vbs e    -> VRes (f l) vbs e
@@ -118,7 +129,8 @@ instance HasVar (Exp l) where
       var@(Var _ _) -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
-      -- NegApp _ e    -> freeVars e
+      Tuple _ lst   -> concatMap freeVars lst
+      List _ lst    -> concatMap freeVars lst
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
       Lambda _ p e  -> freeVars e \\ boundVars p
       VRes _ vbs e  -> freeVars e
@@ -130,7 +142,8 @@ instance HasVar (Exp l) where
       var@(Var _ _) -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
-      -- NegApp _ e    -> freeVars' e
+      Tuple _ lst   -> concatMap freeVars' lst
+      List _ lst    -> concatMap freeVars' lst
       If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
       Lambda _ p e  -> freeVars' e \\ boundVars p
       VRes _ vbs e  -> freeVars' e
@@ -141,6 +154,8 @@ instance HasVar (Exp l) where
       var@(Var _ _) -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> vars e1 ++ vars e2
+      Tuple _ lst   -> concatMap vars lst
+      List _ lst    -> concatMap vars lst
       If _ e1 e2 e3 -> vars e1 ++ vars e2 ++ vars e3
       Lambda _ p e  -> vars e
       VRes _ vbs e  -> vars e

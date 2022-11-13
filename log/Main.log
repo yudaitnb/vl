@@ -92,11 +92,11 @@ import B
 
 main =
   let sumTpl = \x -> case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b2)
+  in sumTpl (y,b1)
 
 
 
-Module (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 1 50 1, srcInfoPoints = [SrcSpan "./examples/Main.hs" 1 1 1 1,SrcSpan "./examples/Main.hs" 1 1 1 1,SrcSpan "./examples/Main.hs" 3 1 3 1,SrcSpan "./examples/Main.hs" 4 1 4 1,SrcSpan "./examples/Main.hs" 45 1 45 1,SrcSpan "./examples/Main.hs" 50 1 50 1,SrcSpan "./examples/Main.hs" 50 1 50 1]}) (Just (ModuleHead (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 1 1 18, srcInfoPoints = [SrcSpan "./examples/Main.hs" 1 1 1 7,SrcSpan "./examples/Main.hs" 1 13 1 18]}) (ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 8 1 12, srcInfoPoints = []}) "Main") Nothing Nothing)) [] [ImportDecl {importAnn = SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 3 1 3 9, srcInfoPoints = [SrcSpan "./examples/Main.hs" 3 1 3 7]}, importModule = ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 3 8 3 9, srcInfoPoints = []}) "A", importQualified = False, importSrc = False, importSafe = False, importPkg = Nothing, importAs = Nothing, importSpecs = Nothing},ImportDecl {importAnn = SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 4 1 4 9, srcInfoPoints = [SrcSpan "./examples/Main.hs" 4 1 4 7]}, importModule = ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 4 8 4 9, srcInfoPoints = []}) "B", importQualified = False, importSrc = False, importSafe = False, importPkg = Nothing, importAs = Nothing, importSpecs = Nothing}] [PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 1 47 19, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 1 45 5, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 1 45 5, srcInfoPoints = []}) "main")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 6 47 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 45 6 45 7]}) (Let (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 3 47 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 3 46 6,SrcSpan "./examples/Main.hs" 47 3 47 5]}) (BDecls (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 7 46 7,SrcSpan "./examples/Main.hs" 47 3 47 0]}) [PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 50, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 13, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 13, srcInfoPoints = []}) "sumTpl")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 14 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 14 46 15]}) (Lambda (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 16 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 16 46 17,SrcSpan "./examples/Main.hs" 46 19 46 21]}) [PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 17 46 18, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 17 46 18, srcInfoPoints = []}) "x")] (Case (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 22 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 22 46 26,SrcSpan "./examples/Main.hs" 46 29 46 31,SrcSpan "./examples/Main.hs" 46 32 46 32,SrcSpan "./examples/Main.hs" 47 3 47 0]}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 27 46 28, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 27 46 28, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 27 46 28, srcInfoPoints = []}) "x"))) [Alt (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 32 46 50, srcInfoPoints = []}) (PTuple (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 32 46 39, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 32 46 33,SrcSpan "./examples/Main.hs" 46 35 46 36,SrcSpan "./examples/Main.hs" 46 38 46 39]}) Boxed [PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 33 46 35, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 33 46 35, srcInfoPoints = []}) "x1"),PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 36 46 38, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 36 46 38, srcInfoPoints = []}) "x2")]) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 40 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 40 46 42]}) (InfixApp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 50, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 45, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 45, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 45, srcInfoPoints = []}) "x1"))) (QVarOp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 46 46 47, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 46 46 47, srcInfoPoints = []}) (Symbol (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 46 46 47, srcInfoPoints = []}) "+"))) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 48 46 50, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 48 46 50, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 48 46 50, srcInfoPoints = []}) "x2"))))) Nothing]))) Nothing]) (App (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 19, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 12, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 12, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 12, srcInfoPoints = []}) "sumTpl"))) (Tuple (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 13 47 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 47 13 47 14,SrcSpan "./examples/Main.hs" 47 15 47 16,SrcSpan "./examples/Main.hs" 47 18 47 19]}) Boxed [Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 14 47 15, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 14 47 15, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 14 47 15, srcInfoPoints = []}) "y")),Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 16 47 18, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 16 47 18, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 16 47 18, srcInfoPoints = []}) "b2"))])))) Nothing]
+Module (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 1 50 1, srcInfoPoints = [SrcSpan "./examples/Main.hs" 1 1 1 1,SrcSpan "./examples/Main.hs" 1 1 1 1,SrcSpan "./examples/Main.hs" 3 1 3 1,SrcSpan "./examples/Main.hs" 4 1 4 1,SrcSpan "./examples/Main.hs" 45 1 45 1,SrcSpan "./examples/Main.hs" 50 1 50 1,SrcSpan "./examples/Main.hs" 50 1 50 1]}) (Just (ModuleHead (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 1 1 18, srcInfoPoints = [SrcSpan "./examples/Main.hs" 1 1 1 7,SrcSpan "./examples/Main.hs" 1 13 1 18]}) (ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 8 1 12, srcInfoPoints = []}) "Main") Nothing Nothing)) [] [ImportDecl {importAnn = SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 3 1 3 9, srcInfoPoints = [SrcSpan "./examples/Main.hs" 3 1 3 7]}, importModule = ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 3 8 3 9, srcInfoPoints = []}) "A", importQualified = False, importSrc = False, importSafe = False, importPkg = Nothing, importAs = Nothing, importSpecs = Nothing},ImportDecl {importAnn = SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 4 1 4 9, srcInfoPoints = [SrcSpan "./examples/Main.hs" 4 1 4 7]}, importModule = ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 4 8 4 9, srcInfoPoints = []}) "B", importQualified = False, importSrc = False, importSafe = False, importPkg = Nothing, importAs = Nothing, importSpecs = Nothing}] [PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 1 47 19, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 1 45 5, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 1 45 5, srcInfoPoints = []}) "main")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 45 6 47 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 45 6 45 7]}) (Let (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 3 47 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 3 46 6,SrcSpan "./examples/Main.hs" 47 3 47 5]}) (BDecls (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 7 46 7,SrcSpan "./examples/Main.hs" 47 3 47 0]}) [PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 50, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 13, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 7 46 13, srcInfoPoints = []}) "sumTpl")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 14 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 14 46 15]}) (Lambda (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 16 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 16 46 17,SrcSpan "./examples/Main.hs" 46 19 46 21]}) [PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 17 46 18, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 17 46 18, srcInfoPoints = []}) "x")] (Case (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 22 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 22 46 26,SrcSpan "./examples/Main.hs" 46 29 46 31,SrcSpan "./examples/Main.hs" 46 32 46 32,SrcSpan "./examples/Main.hs" 47 3 47 0]}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 27 46 28, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 27 46 28, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 27 46 28, srcInfoPoints = []}) "x"))) [Alt (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 32 46 50, srcInfoPoints = []}) (PTuple (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 32 46 39, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 32 46 33,SrcSpan "./examples/Main.hs" 46 35 46 36,SrcSpan "./examples/Main.hs" 46 38 46 39]}) Boxed [PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 33 46 35, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 33 46 35, srcInfoPoints = []}) "x1"),PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 36 46 38, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 36 46 38, srcInfoPoints = []}) "x2")]) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 40 46 50, srcInfoPoints = [SrcSpan "./examples/Main.hs" 46 40 46 42]}) (InfixApp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 50, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 45, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 45, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 43 46 45, srcInfoPoints = []}) "x1"))) (QVarOp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 46 46 47, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 46 46 47, srcInfoPoints = []}) (Symbol (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 46 46 47, srcInfoPoints = []}) "+"))) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 48 46 50, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 48 46 50, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 46 48 46 50, srcInfoPoints = []}) "x2"))))) Nothing]))) Nothing]) (App (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 19, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 12, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 12, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 6 47 12, srcInfoPoints = []}) "sumTpl"))) (Tuple (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 13 47 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 47 13 47 14,SrcSpan "./examples/Main.hs" 47 15 47 16,SrcSpan "./examples/Main.hs" 47 18 47 19]}) Boxed [Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 14 47 15, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 14 47 15, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 14 47 15, srcInfoPoints = []}) "y")),Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 16 47 18, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 16 47 18, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 47 16 47 18, srcInfoPoints = []}) "b1"))])))) Nothing]
 === Compilation order ===
 B-1.0.1
 B-1.0.0
@@ -690,48 +690,48 @@ import B
 
 main =
   let sumTpl = \x -> case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b2)
+  in sumTpl (y,b1)
 
 
 
 
 === Desugared AST (Syntax.Desugared) ===
 module Main where where
-main = ((\sumTpl.(sumTpl (y, b2))) (\x.(case x of {(x1, x2) -> ((+ x1) x2)})))
+main = ((\sumTpl.(sumTpl (y, b1))) (\x.(case x of {(x1, x2) -> ((+ x1) x2)})))
 
 
 === Normalized AST (Syntax.Desugared) ===
 module Main where where
-main = ((\sumTpl.(sumTpl (y, b2))) (\x.(case x of {(x1, x2) -> ((+ x1) x2)})))
+main = ((\sumTpl.(sumTpl (y, b1))) (\x.(case x of {(x1, x2) -> ((+ x1) x2)})))
 
 
 === AST (Syntax.VL) ===
 module Main where where
-main = ((\[sumTpl].[(sumTpl [(y, b2)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
+main = ((\[sumTpl].[(sumTpl [(y, b1)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module Main where where
-main = ((\[sumTpl].[(sumTpl [(__y_2, __b2_0)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
+main = ((\[sumTpl].[(sumTpl [(__y_2, __b1_0)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
 
 [DEBUG] ct     : f->3, y->2
-[DEBUG] ct'    : b2->1, f->3, y->3
-[DEBUG] ctdiff : b2->1, f->0, y->1
-[DEBUG] ctstart: b2->0, f->3, y->2
+[DEBUG] ct'    : b1->1, f->3, y->3
+[DEBUG] ctdiff : b1->1, f->0, y->1
+[DEBUG] ctstart: b1->0, f->3, y->2
 
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : a:[Int]_(a73), b1:[Int]_(a56), b2:[Int]_(a57), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62), y:[Int]_(a64)
 [DEBUG] Imported UEnv      : a56:Label, a57:Label, a58:Label, a59:Label, a60:Label, a61:Label, a62:Label, a63:Label, a64:Label, a73:Label
 === Duplicate External Symbols (Syntax.VL) ===
-[DEBUG] Duplicated Imported TEnv        : __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b1:[Int]_(a56), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62)
-[DEBUG] Duplicated Imported UEnv        : a56:Label, a57_0:Label, a58:Label, a59:Label, a60:Label, a61:Label, a62:Label, a63:Label, a64_2:Label, a73:Label
-[DEBUG] Duplicated Imported Constraints : (a57_0 ≤ a2) and (a57_0 ≤ [{B:[1.0.1]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}])))
+[DEBUG] Duplicated Imported TEnv        : __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b2:[Int]_(a57), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62)
+[DEBUG] Duplicated Imported UEnv        : a56_0:Label, a57:Label, a58:Label, a59:Label, a60:Label, a61:Label, a62:Label, a63:Label, a64_2:Label, a73:Label
+[DEBUG] Duplicated Imported Constraints : (a56_0 ≤ a30) and (a56_0 ≤ [{B:[1.0.0]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}])))
 
 [DEBUG] add duplicated constraints                 : 
-(a57_0 ≤ a2) and (a57_0 ≤ [{B:[1.0.1]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}])))
+(a56_0 ≤ a30) and (a56_0 ≤ [{B:[1.0.0]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}])))
 [DEBUG] add duplicated external variable resources : 
-__b2_0 -> b2
-a57_0,
+__b1_0 -> b1
+a56_0,
 __y_2 -> y
 a64_2
 
@@ -746,17 +746,17 @@ main : Int@[a79]
 |||(TyUnify)  |- a76@[a75] ~ a74 ▷ (a74 ↦ a76@[a75])
 ||(PatSynt) - |- [sumTpl] ▷ (sumTpl:[a76]_(a75); (a74 ↦ a76@[a75]))
 |||||(Kinding) |- a75 : Label
-||||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), sumTpl:[a76]_(a75) |- sumTpl => (a76; (); ⊤)
+||||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), sumTpl:[a76]_(a75) |- sumTpl => (a76; (); ⊤)
 |||||||(Kinding) |- a64_2 : Label
-||||||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2) |- __y_2 => (Int; (); ⊤)
-|||||||(Kinding) |- a57_0 : Label
-||||||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2) |- __b2_0 => (Int; (); ⊤)
-|||||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2) |- (__y_2, __b2_0) => ((Tuple Int Int); (); ⊤)
-||||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), sumTpl:[a76]_(a75) |- [(__y_2, __b2_0)] => ((Tuple Int Int)@[a77]; (); (a77 ≤ a64_2) and (a77 ≤ a57_0))
+||||||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2) |- __y_2 => (Int; (); ⊤)
+|||||||(Kinding) |- a56_0 : Label
+||||||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2) |- __b1_0 => (Int; (); ⊤)
+|||||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2) |- (__y_2, __b1_0) => ((Tuple Int Int); (); ⊤)
+||||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), sumTpl:[a76]_(a75) |- [(__y_2, __b1_0)] => ((Tuple Int Int)@[a77]; (); (a77 ≤ a64_2) and (a77 ≤ a56_0))
 ||||(TyUnify)  |- a76 ~ ((Tuple Int Int)@[a77] -> a78) ▷ (a76 ↦ ((Tuple Int Int)@[a77] -> a78))
-|||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), sumTpl:[a76]_(a75) |- (sumTpl [(__y_2, __b2_0)]) => (a78; (a76 ↦ ((Tuple Int Int)@[a77] -> a78)); (a77 ≤ a64_2) and (a77 ≤ a57_0))
-||(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b1:[Int]_(a56), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62), sumTpl:[a76]_(a75) |- [(sumTpl [(__y_2, __b2_0)])] => (a78@[a79]; (a76 ↦ ((Tuple Int Int)@[a77] -> a78)); (a77 ≤ a64_2) and (a77 ≤ a57_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a57_0))
-|(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b1:[Int]_(a56), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62) |- (\[sumTpl].[(sumTpl [(__y_2, __b2_0)])]) => ((((Tuple Int Int)@[a77] -> a78)@[a75] -> a78@[a79]); (a76 ↦ ((Tuple Int Int)@[a77] -> a78), a74 ↦ ((Tuple Int Int)@[a77] -> a78)@[a75]); (a77 ≤ a64_2) and (a77 ≤ a57_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a57_0))
+|||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), sumTpl:[a76]_(a75) |- (sumTpl [(__y_2, __b1_0)]) => (a78; (a76 ↦ ((Tuple Int Int)@[a77] -> a78)); (a77 ≤ a64_2) and (a77 ≤ a56_0))
+||(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b2:[Int]_(a57), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62), sumTpl:[a76]_(a75) |- [(sumTpl [(__y_2, __b1_0)])] => (a78@[a79]; (a76 ↦ ((Tuple Int Int)@[a77] -> a78)); (a77 ≤ a64_2) and (a77 ≤ a56_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a56_0))
+|(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b2:[Int]_(a57), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62) |- (\[sumTpl].[(sumTpl [(__y_2, __b1_0)])]) => ((((Tuple Int Int)@[a77] -> a78)@[a75] -> a78@[a79]); (a76 ↦ ((Tuple Int Int)@[a77] -> a78), a74 ↦ ((Tuple Int Int)@[a77] -> a78)@[a75]); (a77 ≤ a64_2) and (a77 ≤ a56_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a56_0))
 ||||(Kinding) |- a81 : Label
 |||||(Kinding) |- a82 : Type
 |||||(Kinding) |- a81 : Label
@@ -803,7 +803,7 @@ main : Int@[a79]
 ||||(TypeInf) x:[a82]_(a81), x1:[a87]_(a85), x2:[a88]_(a85) |- ((+ [x1]) [x2]) => (Int; (a92 ↦ (Int@[a90] -> Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a94 ↦ Int); (a91 ≤ a85) and (a93 ≤ a85))
 |||(TypeInf) x:[a82]_(a81) |- (case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}) => (Int; (a92 ↦ (Int@[a90] -> Int), a82 ↦ (Tuple Int Int), a85 ↦ a83, a86 ↦ (Tuple Int Int), a86 ↦ (Tuple Int Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a94 ↦ Int); (a83 ≤ a81) and (a91 ≤ a85) and (a93 ≤ a85))
 ||(TypeInf) {} |- (\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])})) => (((Tuple Int Int)@[a81] -> Int); (a92 ↦ (Int@[a90] -> Int), a82 ↦ (Tuple Int Int), a80 ↦ (Tuple Int Int)@[a81], a85 ↦ a83, a86 ↦ (Tuple Int Int), a86 ↦ (Tuple Int Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a94 ↦ Int); (a83 ≤ a81) and (a91 ≤ a85) and (a93 ≤ a85))
-|(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b1:[Int]_(a56), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62) |- [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))] => (((Tuple Int Int)@[a81] -> Int)@[a95]; (a92 ↦ (Int@[a90] -> Int), a82 ↦ (Tuple Int Int), a80 ↦ (Tuple Int Int)@[a81], a85 ↦ a83, a86 ↦ (Tuple Int Int), a86 ↦ (Tuple Int Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a94 ↦ Int); (a83 ≤ a81) and (a91 ≤ a85) and (a93 ≤ a85))
+|(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b2:[Int]_(a57), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62) |- [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))] => (((Tuple Int Int)@[a81] -> Int)@[a95]; (a92 ↦ (Int@[a90] -> Int), a82 ↦ (Tuple Int Int), a80 ↦ (Tuple Int Int)@[a81], a85 ↦ a83, a86 ↦ (Tuple Int Int), a86 ↦ (Tuple Int Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a94 ↦ Int); (a83 ≤ a81) and (a91 ≤ a85) and (a93 ≤ a85))
 ||||||(TyUnify)  |- Int ~ Int ▷ ()
 ||||||(TyUnify)  |- Int ~ Int ▷ ()
 |||||(TyUnify)  |- (Tuple Int Int) ~ (Tuple Int Int) ▷ ()
@@ -815,16 +815,16 @@ main : Int@[a79]
 ||(TyUnify)  |- ((Tuple Int Int)@[a81] -> Int)@[a95] ~ ((Tuple Int Int)@[a77] -> a78)@[a75] ▷ (a78 ↦ Int, a77 ↦ a81, a95 ↦ a75)
 ||(TyUnify)  |- Int@[a79] ~ a96 ▷ (a96 ↦ Int@[a79])
 |(TyUnify)  |- (((Tuple Int Int)@[a77] -> a78)@[a75] -> a78@[a79]) ~ (((Tuple Int Int)@[a81] -> Int)@[a95] -> a96) ▷ (a78 ↦ Int, a77 ↦ a81, a95 ↦ a75, a96 ↦ Int@[a79])
-(TypeInf) __b2_0:[Int]_(a57_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b1:[Int]_(a56), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62) |- ((\[sumTpl].[(sumTpl [(__y_2, __b2_0)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))]) => (Int@[a79]; (a92 ↦ (Int@[a90] -> Int), a94 ↦ Int, a78 ↦ Int, a74 ↦ ((Tuple Int Int)@[a81] -> Int)@[a75], a76 ↦ ((Tuple Int Int)@[a81] -> Int), a77 ↦ a81, a80 ↦ (Tuple Int Int)@[a81], a82 ↦ (Tuple Int Int), a85 ↦ a83, a86 ↦ (Tuple Int Int), a86 ↦ (Tuple Int Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a95 ↦ a75, a96 ↦ Int@[a79]); (a77 ≤ a64_2) and (a77 ≤ a57_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a57_0) and (a83 ≤ a81) and (a91 ≤ a85) and (a93 ≤ a85))
+(TypeInf) __b1_0:[Int]_(a56_0), __y_2:[Int]_(a64_2), a:[Int]_(a73), b2:[Int]_(a57), f:[(Int@[a59] -> Int)]_(a58), g:[(Int@[a61] -> Int)]_(a60), h:[(Int@[a63] -> Int)]_(a62) |- ((\[sumTpl].[(sumTpl [(__y_2, __b1_0)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))]) => (Int@[a79]; (a92 ↦ (Int@[a90] -> Int), a94 ↦ Int, a78 ↦ Int, a74 ↦ ((Tuple Int Int)@[a81] -> Int)@[a75], a76 ↦ ((Tuple Int Int)@[a81] -> Int), a77 ↦ a81, a80 ↦ (Tuple Int Int)@[a81], a82 ↦ (Tuple Int Int), a85 ↦ a83, a86 ↦ (Tuple Int Int), a86 ↦ (Tuple Int Int), a87 ↦ Int, a88 ↦ Int, a91 ↦ a89, a93 ↦ a90, a95 ↦ a75, a96 ↦ Int@[a79]); (a77 ≤ a64_2) and (a77 ≤ a56_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a56_0) and (a83 ≤ a81) and (a91 ≤ a85) and (a93 ≤ a85))
 
 === Inferred Types (Syntax.VL) ===
 main : Int@[a79]
 
 [DEBUG] Add global env : main : Int@[a79]
-[DEBUG] Add global constraints : (a81 ≤ a64_2) and (a81 ≤ a57_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a57_0) and (a83 ≤ a81) and (a89 ≤ a83) and (a90 ≤ a83)
+[DEBUG] Add global constraints : (a81 ≤ a64_2) and (a81 ≤ a56_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a56_0) and (a83 ≤ a81) and (a89 ≤ a83) and (a90 ≤ a83)
 [DEBUG] Counter: 97
 [DEBUG] globalConstraints:
-(a81 ≤ a64_2) and (a81 ≤ a57_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a57_0) and (a83 ≤ a81) and (a89 ≤ a83) and (a90 ≤ a83) and (a57_0 ≤ a2) and (a57_0 ≤ [{B:[1.0.1]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}]))) and (((a73 ≤ a72) and (a73 ≤ [{A:[1.0.0]}])) or ((a73 ≤ a69) and (a73 ≤ [{A:[1.0.1]}]))) and (a59_2 ≤ a64_1) and (a72 ≤ a64_1) and (a72 ≤ a58_2) and (((a58_2 ≤ a42) and (a59_2 ≤ a34) and (a58_2 ≤ [{B:[1.0.0]}])) or ((a58_2 ≤ a14) and (a59_2 ≤ a6) and (a58_2 ≤ [{B:[1.0.1]}]))) and (((a64_1 ≤ a28) and (a64_1 ≤ [{B:[1.0.0]}])) or ((a64_1 ≤ a0) and (a64_1 ≤ [{B:[1.0.1]}]))) and (a59_1 ≤ a64_0) and (a59_0 ≤ a64_0) and (a59_0 ≤ a58_1) and (a69 ≤ a64_0) and (a69 ≤ a58_1) and (a69 ≤ a58_0) and (((a58_0 ≤ a42) and (a59_0 ≤ a34) and (a58_0 ≤ [{B:[1.0.0]}])) or ((a58_0 ≤ a14) and (a59_0 ≤ a6) and (a58_0 ≤ [{B:[1.0.1]}]))) and (((a58_1 ≤ a42) and (a59_1 ≤ a34) and (a58_1 ≤ [{B:[1.0.0]}])) or ((a58_1 ≤ a14) and (a59_1 ≤ a6) and (a58_1 ≤ [{B:[1.0.1]}]))) and (((a64_0 ≤ a28) and (a64_0 ≤ [{B:[1.0.0]}])) or ((a64_0 ≤ a0) and (a64_0 ≤ [{B:[1.0.1]}]))) and (((a64 ≤ a28) and (a64 ≤ [{B:[1.0.0]}])) or ((a64 ≤ a0) and (a64 ≤ [{B:[1.0.1]}]))) and (a62 ≤ a27) and (a63 ≤ a19) and (a62 ≤ [{B:[1.0.1]}]) and (a60 ≤ a55) and (a61 ≤ a47) and (a60 ≤ [{B:[1.0.0]}]) and (((a58 ≤ a42) and (a59 ≤ a34) and (a58 ≤ [{B:[1.0.0]}])) or ((a58 ≤ a14) and (a59 ≤ a6) and (a58 ≤ [{B:[1.0.1]}]))) and (a57 ≤ a2) and (a57 ≤ [{B:[1.0.1]}]) and (a56 ≤ a30) and (a56 ≤ [{B:[1.0.0]}]) and (a36 ≤ a34) and (a49 ≤ a47) and (a8 ≤ a6) and (a21 ≤ a19)
+(a81 ≤ a64_2) and (a81 ≤ a56_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a56_0) and (a83 ≤ a81) and (a89 ≤ a83) and (a90 ≤ a83) and (a56_0 ≤ a30) and (a56_0 ≤ [{B:[1.0.0]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}]))) and (((a73 ≤ a72) and (a73 ≤ [{A:[1.0.0]}])) or ((a73 ≤ a69) and (a73 ≤ [{A:[1.0.1]}]))) and (a59_2 ≤ a64_1) and (a72 ≤ a64_1) and (a72 ≤ a58_2) and (((a58_2 ≤ a42) and (a59_2 ≤ a34) and (a58_2 ≤ [{B:[1.0.0]}])) or ((a58_2 ≤ a14) and (a59_2 ≤ a6) and (a58_2 ≤ [{B:[1.0.1]}]))) and (((a64_1 ≤ a28) and (a64_1 ≤ [{B:[1.0.0]}])) or ((a64_1 ≤ a0) and (a64_1 ≤ [{B:[1.0.1]}]))) and (a59_1 ≤ a64_0) and (a59_0 ≤ a64_0) and (a59_0 ≤ a58_1) and (a69 ≤ a64_0) and (a69 ≤ a58_1) and (a69 ≤ a58_0) and (((a58_0 ≤ a42) and (a59_0 ≤ a34) and (a58_0 ≤ [{B:[1.0.0]}])) or ((a58_0 ≤ a14) and (a59_0 ≤ a6) and (a58_0 ≤ [{B:[1.0.1]}]))) and (((a58_1 ≤ a42) and (a59_1 ≤ a34) and (a58_1 ≤ [{B:[1.0.0]}])) or ((a58_1 ≤ a14) and (a59_1 ≤ a6) and (a58_1 ≤ [{B:[1.0.1]}]))) and (((a64_0 ≤ a28) and (a64_0 ≤ [{B:[1.0.0]}])) or ((a64_0 ≤ a0) and (a64_0 ≤ [{B:[1.0.1]}]))) and (((a64 ≤ a28) and (a64 ≤ [{B:[1.0.0]}])) or ((a64 ≤ a0) and (a64 ≤ [{B:[1.0.1]}]))) and (a62 ≤ a27) and (a63 ≤ a19) and (a62 ≤ [{B:[1.0.1]}]) and (a60 ≤ a55) and (a61 ≤ a47) and (a60 ≤ [{B:[1.0.0]}]) and (((a58 ≤ a42) and (a59 ≤ a34) and (a58 ≤ [{B:[1.0.0]}])) or ((a58 ≤ a14) and (a59 ≤ a6) and (a58 ≤ [{B:[1.0.1]}]))) and (a57 ≤ a2) and (a57 ≤ [{B:[1.0.1]}]) and (a56 ≤ a30) and (a56 ≤ [{B:[1.0.0]}]) and (a36 ≤ a34) and (a49 ≤ a47) and (a8 ≤ a6) and (a21 ≤ a19)
 
 [DEBUG] bundledConsSchemes:
 A
@@ -835,7 +835,7 @@ A
 None
 
 === External Variables ===
-__b2_0 Main-Root a57_0
+__b1_0 Main-Root a56_0
 __f_0 A-1.0.1 a58_0
 __f_1 A-1.0.1 a58_1
 __f_2 A-1.0.0 a58_2
@@ -844,7 +844,7 @@ __y_1 A-1.0.0 a64_1
 __y_2 Main-Root a64_2
 
 === Constraints ===
-(a81 ≤ a64_2) and (a81 ≤ a57_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a57_0) and (a83 ≤ a81) and (a89 ≤ a83) and (a90 ≤ a83) and (a57_0 ≤ a2) and (a57_0 ≤ [{B:[1.0.1]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}]))) and (((a73 ≤ a72) and (a73 ≤ [{A:[1.0.0]}])) or ((a73 ≤ a69) and (a73 ≤ [{A:[1.0.1]}]))) and (a59_2 ≤ a64_1) and (a72 ≤ a64_1) and (a72 ≤ a58_2) and (((a58_2 ≤ a42) and (a59_2 ≤ a34) and (a58_2 ≤ [{B:[1.0.0]}])) or ((a58_2 ≤ a14) and (a59_2 ≤ a6) and (a58_2 ≤ [{B:[1.0.1]}]))) and (((a64_1 ≤ a28) and (a64_1 ≤ [{B:[1.0.0]}])) or ((a64_1 ≤ a0) and (a64_1 ≤ [{B:[1.0.1]}]))) and (a59_1 ≤ a64_0) and (a59_0 ≤ a64_0) and (a59_0 ≤ a58_1) and (a69 ≤ a64_0) and (a69 ≤ a58_1) and (a69 ≤ a58_0) and (((a58_0 ≤ a42) and (a59_0 ≤ a34) and (a58_0 ≤ [{B:[1.0.0]}])) or ((a58_0 ≤ a14) and (a59_0 ≤ a6) and (a58_0 ≤ [{B:[1.0.1]}]))) and (((a58_1 ≤ a42) and (a59_1 ≤ a34) and (a58_1 ≤ [{B:[1.0.0]}])) or ((a58_1 ≤ a14) and (a59_1 ≤ a6) and (a58_1 ≤ [{B:[1.0.1]}]))) and (((a64_0 ≤ a28) and (a64_0 ≤ [{B:[1.0.0]}])) or ((a64_0 ≤ a0) and (a64_0 ≤ [{B:[1.0.1]}]))) and (((a64 ≤ a28) and (a64 ≤ [{B:[1.0.0]}])) or ((a64 ≤ a0) and (a64 ≤ [{B:[1.0.1]}]))) and (a62 ≤ a27) and (a63 ≤ a19) and (a62 ≤ [{B:[1.0.1]}]) and (a60 ≤ a55) and (a61 ≤ a47) and (a60 ≤ [{B:[1.0.0]}]) and (((a58 ≤ a42) and (a59 ≤ a34) and (a58 ≤ [{B:[1.0.0]}])) or ((a58 ≤ a14) and (a59 ≤ a6) and (a58 ≤ [{B:[1.0.1]}]))) and (a57 ≤ a2) and (a57 ≤ [{B:[1.0.1]}]) and (a56 ≤ a30) and (a56 ≤ [{B:[1.0.0]}]) and (a36 ≤ a34) and (a49 ≤ a47) and (a8 ≤ a6) and (a21 ≤ a19)
+(a81 ≤ a64_2) and (a81 ≤ a56_0) and (a79 ≤ a75) and (a79 ≤ a64_2) and (a79 ≤ a56_0) and (a83 ≤ a81) and (a89 ≤ a83) and (a90 ≤ a83) and (a56_0 ≤ a30) and (a56_0 ≤ [{B:[1.0.0]}]) and (((a64_2 ≤ a28) and (a64_2 ≤ [{B:[1.0.0]}])) or ((a64_2 ≤ a0) and (a64_2 ≤ [{B:[1.0.1]}]))) and (((a73 ≤ a72) and (a73 ≤ [{A:[1.0.0]}])) or ((a73 ≤ a69) and (a73 ≤ [{A:[1.0.1]}]))) and (a59_2 ≤ a64_1) and (a72 ≤ a64_1) and (a72 ≤ a58_2) and (((a58_2 ≤ a42) and (a59_2 ≤ a34) and (a58_2 ≤ [{B:[1.0.0]}])) or ((a58_2 ≤ a14) and (a59_2 ≤ a6) and (a58_2 ≤ [{B:[1.0.1]}]))) and (((a64_1 ≤ a28) and (a64_1 ≤ [{B:[1.0.0]}])) or ((a64_1 ≤ a0) and (a64_1 ≤ [{B:[1.0.1]}]))) and (a59_1 ≤ a64_0) and (a59_0 ≤ a64_0) and (a59_0 ≤ a58_1) and (a69 ≤ a64_0) and (a69 ≤ a58_1) and (a69 ≤ a58_0) and (((a58_0 ≤ a42) and (a59_0 ≤ a34) and (a58_0 ≤ [{B:[1.0.0]}])) or ((a58_0 ≤ a14) and (a59_0 ≤ a6) and (a58_0 ≤ [{B:[1.0.1]}]))) and (((a58_1 ≤ a42) and (a59_1 ≤ a34) and (a58_1 ≤ [{B:[1.0.0]}])) or ((a58_1 ≤ a14) and (a59_1 ≤ a6) and (a58_1 ≤ [{B:[1.0.1]}]))) and (((a64_0 ≤ a28) and (a64_0 ≤ [{B:[1.0.0]}])) or ((a64_0 ≤ a0) and (a64_0 ≤ [{B:[1.0.1]}]))) and (((a64 ≤ a28) and (a64 ≤ [{B:[1.0.0]}])) or ((a64 ≤ a0) and (a64 ≤ [{B:[1.0.1]}]))) and (a62 ≤ a27) and (a63 ≤ a19) and (a62 ≤ [{B:[1.0.1]}]) and (a60 ≤ a55) and (a61 ≤ a47) and (a60 ≤ [{B:[1.0.0]}]) and (((a58 ≤ a42) and (a59 ≤ a34) and (a58 ≤ [{B:[1.0.0]}])) or ((a58 ≤ a14) and (a59 ≤ a6) and (a58 ≤ [{B:[1.0.1]}]))) and (a57 ≤ a2) and (a57 ≤ [{B:[1.0.1]}]) and (a56 ≤ a30) and (a56 ≤ [{B:[1.0.0]}]) and (a36 ≤ a34) and (a49 ≤ a47) and (a8 ≤ a6) and (a21 ≤ a19)
 
 === Solver result ===
 a0 : {}
@@ -862,8 +862,8 @@ a47 : {}
 a49 : {}
 a55 : {}
 a56 : {B:[1.0.0]}
+a56_0 : {B:[1.0.0]}
 a57 : {B:[1.0.1]}
-a57_0 : {B:[1.0.1]}
 a58 : {B:[1.0.1]}
 a58_0 : {B:[1.0.1]}
 a58_1 : {B:[1.0.1]}
@@ -880,26 +880,26 @@ a63 : {}
 a64 : {B:[1.0.1]}
 a64_0 : {B:[1.0.1]}
 a64_1 : {B:[1.0.1]}
-a64_2 : {B:[1.0.1]}
+a64_2 : {B:[1.0.0]}
 a69 : {B:[1.0.1]}
 a72 : {B:[1.0.1]}
 a73 : {A:[1.0.1], B:[1.0.1]}
 a75 : {}
-a79 : {B:[1.0.1]}
+a79 : {B:[1.0.0]}
 a8 : {}
-a81 : {B:[1.0.1]}
-a83 : {B:[1.0.1]}
-a89 : {B:[1.0.1]}
-a90 : {B:[1.0.1]}
+a81 : {B:[1.0.0]}
+a83 : {B:[1.0.0]}
+a89 : {B:[1.0.0]}
+a90 : {B:[1.0.0]}
 
 === Labels of External Variables ===
-__b2_0 : b2 : Main-Root : a57_0 : {B:[1.0.1]}
+__b1_0 : b1 : Main-Root : a56_0 : {B:[1.0.0]}
 __f_0 : f : A-1.0.1 : a58_0 : {B:[1.0.1]}
 __f_1 : f : A-1.0.1 : a58_1 : {B:[1.0.1]}
 __f_2 : f : A-1.0.0 : a58_2 : {B:[1.0.1]}
 __y_0 : y : A-1.0.1 : a64_0 : {B:[1.0.1]}
 __y_1 : y : A-1.0.0 : a64_1 : {B:[1.0.1]}
-__y_2 : y : Main-Root : a64_2 : {B:[1.0.1]}
+__y_2 : y : Main-Root : a64_2 : {B:[1.0.0]}
 
 === Prettyprint ===
 
@@ -936,18 +936,15 @@ main
           = \ x ->
               case x of
                   (x1, x2) -> x1 + x2
-      in sumTpl (y, b2)
+      in sumTpl (y, b1)
 
 === Extraction ===
-a = [(__f_2 [__y_1])]
-b1 = [1]
-b2 = [2]
-f = [(\[x].((+ [x]) [1]))]
-g = [(\[x].((+ [x]) [1]))]
-h = [(\[x].((* [x]) [1]))]
-main = ((\[sumTpl].[(sumTpl [(__y_2, __b2_0)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
-y = [1]
-(\ sumTpl -> sumTpl (1, 2))
+A-1.0.0 : a = [(__f_2 [__y_1])]
+A-1.0.1 : a = [(__f_0 [(__f_1 [__y_0])])]
+B-1.0.0 : b1 = [1], f = [(\[x].((+ [x]) [1]))], g = [(\[x].((+ [x]) [1]))], y = [1]
+B-1.0.1 : b2 = [2], f = [(\[x].((+ [x]) [2]))], h = [(\[x].((* [x]) [1]))], y = [2]
+Main-Root : main = ((\[sumTpl].[(sumTpl [(__y_2, __b1_0)])]) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
+(\ sumTpl -> sumTpl (1, 1))
   (\ x ->
      case x of
          (x1, x2) -> (+) x1 x2)
