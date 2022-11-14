@@ -2,6 +2,7 @@ module Syntax.Common.Name (
   Language.Haskell.Exts.Syntax.QName(..),
   Language.Haskell.Exts.Syntax.Name(..),
   Language.Haskell.Exts.Syntax.ModuleName(..),
+  Language.Haskell.Exts.Syntax.SpecialCon(..),
   HasName(..)
 ) where
 

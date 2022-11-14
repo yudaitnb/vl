@@ -39,8 +39,9 @@ data Pat l
     | PLit l (Absyn.Sign l) (Literal l)     -- ^ literal constant
     | PWildCard l                           -- ^ wildcard pattern: @_@
     | PTuple l [Pat l]                      -- ^ tuple pattern
-    | PList l [Pat l]                       -- ^ list pattern 
+    | PList l [Pat l]                       -- ^ list pattern
     | PApp l (QName l) [Pat l]              -- ^ Pattern application
+    | PInfixApp l (Pat l) (QName l) (Pat l) -- ^ Pattern application
   deriving (Eq,Ord,Show,Functor)
 
 -- | Desugared expressions.
@@ -81,19 +82,21 @@ instance Absyn.Annotated Decl where
 
 instance Absyn.Annotated Pat where
   ann p = case p of
-    PVar l _    -> l
-    PLit l _ _  -> l
-    PWildCard l -> l
-    PTuple l _  -> l
-    PList l _   -> l
-    PApp l _ _  -> l
+    PVar l _           -> l
+    PLit l _ _         -> l
+    PWildCard l        -> l
+    PTuple l _         -> l
+    PList l _          -> l
+    PApp l _ _         -> l
+    PInfixApp l _ _ _  -> l
   amap f p1 = case p1 of
-    PVar l n      -> PVar (f l) n
-    PLit l sg lit -> PLit (f l) sg lit
-    PWildCard l   -> PWildCard (f l)
-    PTuple l ps   -> PTuple (f l) ps
-    PList l ps    -> PList (f l) ps
-    PApp l qn ps  -> PApp (f l) qn ps
+    PVar l n            -> PVar (f l) n
+    PLit l sg lit       -> PLit (f l) sg lit
+    PWildCard l         -> PWildCard (f l)
+    PTuple l ps         -> PTuple (f l) ps
+    PList l ps          -> PList (f l) ps
+    PApp l qn ps        -> PApp (f l) qn ps
+    PInfixApp l p qn ps -> PInfixApp (f l) p qn ps
 
 instance Absyn.Annotated Exp where
   ann e = case e of
@@ -297,12 +300,19 @@ instance PrettyAST (Pat SrcSpanInfo) where
     <+> ppE srcLocInfo <> line
     <+> ppE qn <> line
     <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
+  ppE (PInfixApp srcLocInfo p1 qn p2) =
+        nest 2 $ parens $ ppE "PInfixApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE p1 <> line
+    <+> ppE qn <> line
+    <+> ppE p2
   ppP (PVar _ name) = ppP name
   ppP (PLit _ sign literal) = ppP sign <> ppP literal
   ppP (PWildCard _) = ppP "_"
   ppP (PTuple _ pats) = parens $ concatWith (surround $ comma <> space) (map ppP pats)
   ppP (PList _ pats) = brackets $ concatWith (surround $ comma <> space) (map ppP pats)
   ppP (PApp _ qn pats) = parens $ ppP qn <+> concatWith (surround space) (map ppP pats)
+  ppP (PInfixApp _ p1 qn p2) = parens $ ppP p1 <+> ppP qn <+> ppP p2
 
 instance PrettyAST (Alt SrcSpanInfo) where
   ppE (Alt srcLocInfo p e) =

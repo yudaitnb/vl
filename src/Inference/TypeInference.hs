@@ -3,7 +3,9 @@ module Inference.TypeInference  where
 import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import Data.List (foldl, map, elemIndex, sortBy, sortOn, intersect, nub, (\\))
-import Control.Monad.State ( forM, forM_, foldM, evalState, runState, gets )
+import Control.Monad.State ( forM, forM_, foldM, gets)
+import Control.Monad.Trans (liftIO)
+import Control.Monad.Trans.State (evalStateT, runStateT)
 import Control.Monad (unless)
 import Control.Arrow (second)
 
@@ -32,13 +34,13 @@ type TyInfRes =
     , Constraints
     )
 
-typeOf :: Typable ast => Env' -> ast -> TyInfRes
-typeOf env ast = evalState (infer ast) env
+typeOf :: Typable ast => Env' -> ast -> IO TyInfRes
+typeOf env ast = evalStateT (infer ast) env
 
-typeOfWithLogs :: Typable ast => Env' -> ast -> (TyInfRes, Logs)
-typeOfWithLogs env ast =
-  let (res, Env' _ _ _ _ l _) = runState (infer ast) env
-  in (res, l)
+typeOfWithLogs :: Typable ast => Env' -> ast -> IO (TyInfRes, Logs)
+typeOfWithLogs env ast = do
+  (res, Env' _ _ _ _ l _) <- runStateT (infer ast) env
+  return (res, l)
 
 putTyInfLog :: UEnv -> TEnv -> VL.Exp SrcSpanInfo -> TyInfRes -> Env ()
 putTyInfLog oldu oldt exp tyInfRes = do
@@ -170,12 +172,11 @@ instance Typable (VL.Exp SrcSpanInfo) where
           case lookupEnv x gamma of
             Nothing -> do
               logs <- gets log
-              let message = "⇒_Lin/Gr expects a variable "
-                            ++ show x
-                            ++ " to be in tenv, but it was not found.\n"
-                            ++ "tenv : " ++ putDocString (ppP gamma)
-                            ++ putDocString (ppP logs)
-              error message
+              let message = ppP "⇒_Lin/Gr expects a variable" <+>
+                            ppP (show x) <+>
+                            ppP "to be in tenv, but it was not found." <> line <>
+                            ppP "tenv : " <> ppP gamma <> line <> ppP logs
+              error $ putDocString message
             -- ^ ⇒_Lin
             Just ty@(NType tag tya) -> case tag of
               Local -> do
@@ -280,13 +281,11 @@ instance Typable (VL.Exp SrcSpanInfo) where
         gamma <- gets tEnv
         sigma1 <- gets uEnv
         tyInfResLst <- forM elms $ \e -> infer e
-        alpha <- genNewTyVar LabelsKind
-        let tyLst = map (\(t,_,_,_) -> t) tyInfResLst
-            tyFirstCase@(TyBox _ tyFirstCase') = head tyLst
-        unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tyLst) $
+        let tys = map (\(t,_,_,_) -> t) tyInfResLst
+            tyFirstCase = head tys
+        unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tys) $
           error "All list elements must have a same type."
-        let cs = genConstraintPull alpha tyLst
-        let resTy = TyBox alpha (TyList tyFirstCase')
+        let resTy = TyList tyFirstCase
         sigma' <- gets uEnv
         let sigmaLast = if null tyInfResLst
                           then sigma'
@@ -333,6 +332,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
 
       -- ^ ⇒_case
       VL.Case _ t alts -> do
+        -- print . putDocString . ppP <$> gets tEnv
         gamma <- gets tEnv
         sigma1 <- gets uEnv
         (tya, _, theta0, c0) <- infer t
@@ -344,14 +344,18 @@ instance Typable (VL.Exp SrcSpanInfo) where
           (deltai, sigmai, thetai) <- patternSynthesis pi tya
           setUEnv sigmai
           setTEnv $ gamma .++. deltai
+          -- te <- gets tEnv
+          -- liftIO $ print . putDocString . ppP $ te
           (tyb, sigmai', thetai', ci') <- infer ti
           thetai'' <- thetai `comp` thetai'
           return (tyb, sigmai', thetai'', ci')
         let (tyb, _, _, _) = head resAlts
             (_, sigmaLast, _, _) = last resAlts
-        unless (foldr (\(ty,_,_,_) acc -> ty == tyb && acc) True resAlts) $
-          error "All case altanatives must have the same type."
-        thetaSum <- foldM comp theta0 =<< mapM (\(_,_,thetai,_) -> return thetai) resAlts
+            tys = map (\(ty,_,_,_) -> ty) resAlts
+        thetaAlts <- foldM (\acc ty -> (acc `comp`) =<< typeUnification ty (head tys)) emptySubst (tail tys)
+        -- unless (foldr (\ty acc -> ty == tyb && acc) True tys) $
+        --   error $ "\nAll case altanatives must have the same type.\n" ++ putDocString (concatWith (surround line) $ map ppP tys)
+        thetaSum <- (thetaAlts `comp`) =<< foldM comp theta0 =<< mapM (\(_,_,thetai,_) -> return thetai) resAlts
         cSum <- foldM (\a b -> return $ a `landC` b) c0 =<< mapM (\(_,_,_,ci) -> return ci) resAlts
         let result =  ( typeSubstitution thetaSum tyb
                       -- , delta `exclude` gamma'
@@ -435,16 +439,16 @@ data TypedExp = TypedExp
   deriving (Show)
 
 -- [TODO] 難読。再帰も不明瞭。書き直す
-getInterface :: TEnv -> UEnv -> Int -> VL.Module SrcSpanInfo -> ([(TypedExp, Logs)], Int)
-getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) =
+getInterface :: TEnv -> UEnv -> Int -> VL.Module SrcSpanInfo -> IO ([(TypedExp, Logs)], Int)
+getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) = do
   let initEnv = Env' initC importedTEnv importedUEnv emptyREnv emptyLogs initLC
-      (typedExpLogs, env) = runState (getInterface' $ reverse $ tsortDecls decls) initEnv
-      typedExpLogs' = rearrange typedExpLogs
-      c = counter env
-  in (typedExpLogs', c)
+  (typedExpLogs, env) <- runStateT
+                            (getInterface' $ reverse $ tsortDecls decls)
+                            initEnv
+  return (rearrange typedExpLogs, counter env)
   where
     getInterface' :: [VL.Decl SrcSpanInfo] -> Env [(TypedExp, Logs)]
-    getInterface'  [] = return []
+    getInterface'  []                             = return []
     getInterface'  ((VL.PatBind _ pat exp):decls) = do
       decls' <- getInterface' decls
 
@@ -454,8 +458,12 @@ getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) =
       setUEnv importedUEnv
       forM_ (map fst decls') addDeclToTEnv -- 環境にこれまで生成した束縛・制約を追加
 
+      -- 全てのトップレベルシンボルは再帰関数扱い
+      alpha <- genNewTyVar TypeKind
+      beta  <- genNewTyVar LabelsKind
+      putTEnv (getName pat) (GrType Local alpha beta)
+
       -- 対象の宣言の型検査
-      -- (ty, _, uenv, sub, con) <- infer exp
       (ty, uenv, sub, con) <- infer exp
       let con' = constraintsSubstitution sub con
           -- con' = nub $ map (typeSubstitution sub) con
@@ -471,7 +479,6 @@ getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) =
     addDeclToTEnv (TypedExp s ty _ _) = do
       tyvar <- genNewTyVar LabelsKind
       putTEnv s (GrType Local ty tyvar)
-      -- putCEnv exc
 
     -- 元の宣言の順番に並び替える
     rearrange :: [(TypedExp, Logs)] -> [(TypedExp, Logs)]

@@ -15,7 +15,8 @@ import Graph
 
 import Util
 import Control.Arrow (second)
-import Control.Monad.State (gets, evalState)
+import Control.Monad.State (gets)
+import Control.Monad.Trans.State (evalStateT)
 import Control.Monad (forM,foldM)
 
 newtype Subst = Subst { subst :: [(String, Type)] }
@@ -235,8 +236,8 @@ typeUnification ty1 ty2 = do
             ppP "ty1 :" <+> ppP ty1 <> line <> 
             ppP "ty2 :" <+> ppP ty2 <> line <> ppP logs
 
-unify :: Type -> Type -> Subst
-unify t1 t2 = evalState (typeUnification t1 t2) (Env' initCounter emptyEnv emptyEnv emptyREnv emptyLogs initLC)
+unify :: Type -> Type -> IO Subst
+unify t1 t2 = evalStateT (typeUnification t1 t2) (Env' initCounter emptyEnv emptyEnv emptyREnv emptyLogs initLC)
 
 --------------------------
 
