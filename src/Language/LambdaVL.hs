@@ -55,8 +55,8 @@ data Pat l
     | PBox l (Pat l)                        -- ^ promoted pattern; @[@/x/@]@ -> ...
     | PTuple l [Pat l]                      -- ^ tuple pattern
     | PList l [Pat l]                       -- ^ list pattern
-    | PApp l (QName l) [Pat l]
-    -- | PList l [Pat l]                       -- ^ list pattern 
+    | PApp l (QName l) [Pat l]              -- ^ Infix pattern application
+    | PInfixApp l (Pat l) (QName l) (Pat l) -- ^ Pattern application
   deriving (Eq,Ord,Show,Functor)
 
 -- | An /alt/ alternative in a @case@ expression.
@@ -164,13 +164,14 @@ instance HasVar (Alt l) where
 
 boundVars :: Pat l -> [String]
 boundVars p = case p of
-  PVar _ name -> [getName name]
-  PLit {}     -> []
-  PTuple _ ps -> concatMap boundVars ps
-  PList _ ps  -> concatMap boundVars ps
-  PApp _ _ ps -> concatMap boundVars ps
-  PWildCard _ -> []
-  PBox _ p    -> boundVars p
+  PVar _ name          -> [getName name]
+  PLit {}              -> []
+  PTuple _ ps         -> concatMap boundVars ps
+  PList _ ps           -> concatMap boundVars ps
+  PApp _ _ ps          -> concatMap boundVars ps
+  PInfixApp _ p1 qn p2 -> boundVars p1 ++ boundVars p2
+  PWildCard _          -> []
+  PBox _ p             -> boundVars p
 
 -----------
 
@@ -348,6 +349,12 @@ instance PrettyAST (Pat SrcSpanInfo) where
     <+> ppE srcLocInfo <> line
     <+> ppE qn <> line
     <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
+  ppE (PInfixApp srcLocInfo p1 qn p2) =
+        nest 2 $ parens $ ppE "PInfixApp" <> line
+    <+> ppE srcLocInfo <> line
+    <+> ppE p1 <> line
+    <+> ppE qn <> line
+    <+> ppE p2
   ppP (PVar _ name) = ppP name
   ppP (PLit _ sign literal) = ppP sign <> ppP literal
   ppP (PWildCard _) = ppP "_"
@@ -355,3 +362,4 @@ instance PrettyAST (Pat SrcSpanInfo) where
   ppP (PBox _ pat) = brackets $ ppP pat
   ppP (PList _ pats) = brackets $ concatWith (surround $ comma <> space) (map ppP pats)
   ppP (PApp _ qn pats) = parens $ ppP qn <+> concatWith (surround space) (map ppP pats)
+  ppP (PInfixApp _ p1 qn p2) = parens $ ppP p1 <+> ppP qn <+> ppP p2

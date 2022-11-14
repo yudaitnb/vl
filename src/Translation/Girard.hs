@@ -46,6 +46,7 @@ instance GirardFwd (DS.Pat l) where
     DS.PTuple l pats -> VL.PTuple l (map girardFwd pats)
     DS.PList l pats -> VL.PList l (map girardFwd pats)
     DS.PApp l qn ps -> VL.PApp l qn (map girardFwd ps)
+    DS.PInfixApp l p1 qn p2 -> VL.PInfixApp l (girardFwd p1) qn (girardFwd p2)
     -- _ -> error "[Pat@Girard.hs] The girard's (forward) translation is not defined for a given expression."
 
 instance GirardFwd (DS.Alt l) where
@@ -89,6 +90,9 @@ instance GirardBck (VL.Pat l) where
   girardBck (VL.PWildCard l) = AB.PWildCard l
   girardBck (VL.PBox l p) = girardBck p
   girardBck (VL.PTuple l ps) = AB.PTuple l AB.Boxed (map girardBck ps)
+  girardBck (VL.PList l ps) = AB.PList l (map girardBck ps)
+  girardBck (VL.PApp l qn ps) = AB.PList l (map girardBck ps)
+  girardBck (VL.PInfixApp l p1 qn p2) = AB.PInfixApp l (girardBck p1) qn (girardBck p2)
 
 instance GirardBck (VL.Decl l) where
   type TyGirardBck (VL.Decl l) = (AB.Decl l)

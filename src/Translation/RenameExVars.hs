@@ -92,13 +92,14 @@ setBoundVar ss = modify $ \env -> env { boundVars = ss }
 
 addBoundVarFromPat :: Pat SrcSpanInfo -> RenameEnv ()
 addBoundVarFromPat p = case p of
-  PVar _ name  -> addBoundVar $ N.getName name
-  PBox _ p'    -> addBoundVarFromPat p'
-  PTuple _ ps  -> forM_ ps $ \p -> do addBoundVarFromPat p
-  PList _ ps   -> forM_ ps $ \p -> do addBoundVarFromPat p
-  PApp _ qn ps -> forM_ ps $ \p -> do addBoundVarFromPat p
-  PWildCard _  -> return ()
-  PLit {}      -> return ()
+  PVar _ name          -> addBoundVar $ N.getName name
+  PBox _ p'            -> addBoundVarFromPat p'
+  PTuple _ ps          -> forM_ ps $ \p -> do addBoundVarFromPat p
+  PList _ ps           -> forM_ ps $ \p -> do addBoundVarFromPat p
+  PInfixApp _ p1 qn p2 -> forM_ [p1,p2] $ \p -> do addBoundVarFromPat p
+  PApp _ qn ps         -> forM_ ps $ \p -> do addBoundVarFromPat p
+  PWildCard _          -> return ()
+  PLit {}              -> return ()
 
 ----------------
 

@@ -25,13 +25,13 @@ instance Show l => Desugaring (AB.Module l) where
 instance Show l => Desugaring (AB.Pat l) where
   type Desugared (AB.Pat l) = (DS.Pat l)
   desugar p = case p of
-    AB.PWildCard l        -> DS.PWildCard l
-    AB.PVar l name        -> DS.PVar l name
-    AB.PLit l sign lit    -> DS.PLit l sign lit
-    AB.PTuple l _ ps      -> DS.PTuple l (map desugar ps)
-    AB.PList l ps         -> DS.PList l (map desugar ps)
+    AB.PWildCard l          -> DS.PWildCard l
+    AB.PVar l name          -> DS.PVar l name
+    AB.PLit l sign lit      -> DS.PLit l sign lit
+    AB.PTuple l _ ps        -> DS.PTuple l (map desugar ps)
+    AB.PList l ps           -> DS.PList l (map desugar ps)
     AB.PApp l qn ps         -> DS.PApp l qn (map desugar ps)
-    AB.PInfixApp l p1 qn p2 -> DS.PApp l qn (map desugar [p1,p2]) 
+    AB.PInfixApp l p1 qn p2 -> DS.PInfixApp l (desugar p1) qn (desugar p2)
     _ -> error $ "\n[Pat@Desugar.hs] The desugaring translation is not defined for a given expression.\n" ++ show p
 
 -- Multiple top-level functions can be thought of as one big recursive let binding:

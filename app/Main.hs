@@ -93,12 +93,14 @@ main = do
     logPD $ ppP "\n--" <+> ppP a <+> ppP "v" <> ppP v
     logP $ prettyPrint ast
 
-  logP "\n=== Extraction ==="
+  logP "\n=== VLDecls ==="
   let vldecls = mapVLDecls env
-      expMain = vldecls <!> VLMod "Main" Root <!> "main"
+  logP vldecls
+
+  logP "\n=== Extraction ==="
+  let expMain = vldecls <!> VLMod "Main" Root <!> "main"
       extracted = extract exVarLabels vldecls expMain
       hsCodeBundled = girardBck extracted
-  logP vldecls
   logP $ prettyPrint hsCodeBundled
 
   -- putStrLn "=== Standard output ==="

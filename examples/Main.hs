@@ -39,11 +39,22 @@ import B
 -- main = [1, 2]
 -- main = let ff = \x -> 1 in ff 1
 -- main =
---   let fst = \x -> case x of (x1,x2) -> x1
---   in fst (y,b1)
+--   let fst x = case x of (x1,x2) -> x1
+--   in fst (y,b2)
+
+-- main =
+--   let sumTpl x = case x of (x1,x2) -> x1 + x2
+--   in sumTpl (y,b1)
 
 main =
-  let sumTpl = \x -> case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b1)
+  let lst = [y,b2]
+      n = length lst
+  in head lst
 
--- main = (\x -> x) 1
+head xs = case xs of
+  []     -> 0
+  hh:rst -> hh
+
+length xs = case xs of
+  []     -> 0
+  hh:rst -> 1 + length rst

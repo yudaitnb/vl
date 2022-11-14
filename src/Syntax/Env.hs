@@ -170,7 +170,7 @@ data Env' = Env'
   , logc  :: Int    -- ログのカウンタ(構文木の深さ)
   }
   deriving (Show)
-type Env a = State Env' a
+type Env a = StateT Env' IO a
 
 newtype Logs = Logs { logs :: [String] }
   deriving (Eq, Show)

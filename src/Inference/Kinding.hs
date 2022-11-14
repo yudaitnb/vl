@@ -100,6 +100,30 @@ kind ty = do
         else error $ "r and ty in `TyBox r ty` must have Labelskinds and TypeKind respectively, but they don't.\n"
           ++ "   kind of r: " ++ show k1 ++ "\n"
           ++ "  kind of ty: " ++ show k2
+    -- κ_()
+    TyTuple tys  -> do
+      sigma <- gets uEnv
+      ks <- mapM kind tys
+      if all (== TypeKind) ks
+        then do
+          let result = TypeKind
+          putKindingLog sigma ty result
+          return result
+        else do
+          error $ putDocString $ ppP "tys in `TyTuple tys` must have TypeKind, but they don't." <> line <>
+            concatWith (surround line) (map ppP ks)
+    -- κ_[]
+    TyList ty  -> do
+      sigma <- gets uEnv
+      k <- kind ty
+      if  k == TypeKind
+        then do
+          let result = TypeKind
+          putKindingLog sigma ty result
+          return result
+        else do
+          error $ putDocString $ ppP "tys in `TyList ty` must have TypeKind, but they don't." <> line <> ppP k
+
     -- κ_0
     TyBottom    -> do
       sigma <- gets uEnv

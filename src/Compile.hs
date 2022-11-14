@@ -243,7 +243,7 @@ compileVLMod target@(VLMod mn v) = do
   logPD $ ppP "[DEBUG] Initial Counter     :" <+> ppP initCounter <> line    -- 型変数生成用の通し番号
 
   logP "=== Type Inference (Syntax.VL) ==="
-  let (typedExpsWithLogs, c) = getInterface tenvDuplicated uenvDuplicated initCounter astVLDuplicated -- 型推論
+  (typedExpsWithLogs, c) <- liftIO $ getInterface tenvDuplicated uenvDuplicated initCounter astVLDuplicated -- 型推論
   setCounter c
   forM_ typedExpsWithLogs logP -- 型推論木付き
   logP ""
