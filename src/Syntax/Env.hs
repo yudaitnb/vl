@@ -30,7 +30,7 @@ import Data.Map
 
 import Syntax.Type as T
 import Syntax.Kind
-import Syntax.Common (HasVar(..), VarName(..), ModName(..), SrcSpanInfo(..))
+import Syntax.Common (HasVar(..), VarKey(..), VarName(..), ModName(..), SrcSpanInfo(..), mkQual, mkUnQual)
 import Syntax.Common as N (QName(..))
 
 import Parser (VLMod(..))
@@ -51,17 +51,16 @@ getType :: EnvType -> Type
 getType (NType _ t) = t
 getType (GrType _ t _) = t
 
--- type TEnv = Map (N.QName SrcSpanInfo) EnvType
-type TEnv = Map VarName EnvType
+type TEnv = Map VarKey EnvType
+-- type TEnv = Map VarName EnvType
 type UEnv = Map VarName Kind
 data REnv = EmptyREnv | REnv Coeffect deriving (Show)
-type ExVarResources = Map VarName (VarName, Type) -- 元の名前, 付与されたリソース変数
+type ExVarResources = Map VarKey (VarKey, Type) -- 元の名前, 付与されたリソース変数
 
 class Environment env where
   type Key env
   type Value env
   emptyEnv :: env
-  makeEnv :: [(Key env, Value env)] -> env
   lookupEnv :: Key env -> env -> Maybe (Value env)
   insertEnv :: Key env -> Value env -> env -> env
   filterEnvBy :: [Key env] -> env -> env
@@ -70,10 +69,9 @@ class Environment env where
   varsInEnv :: env -> [Key env]
 
 instance Environment TEnv where
-  type Key TEnv = VarName
+  type Key TEnv = VarKey
   type Value TEnv = EnvType
   emptyEnv = empty
-  makeEnv = fromList
   insertEnv = insert
   lookupEnv = lookup
   filterEnvBy keys = filterWithKey (\k _ -> k `elem` keys)
@@ -88,7 +86,6 @@ instance Environment UEnv where
   type Key UEnv = VarName
   type Value UEnv = Kind
   emptyEnv = empty
-  makeEnv = fromList
   insertEnv = insert
   lookupEnv = lookup
   filterEnvBy keys = filterWithKey (\k _ -> k `elem` keys)
@@ -103,7 +100,6 @@ instance HasVar EnvType where
   freeVars et = case et of
     NType  tag ty   -> freeVars ty
     GrType tag ty c -> freeVars ty ++ freeVars c
-  freeVars' = freeVars
   vars  = freeVars
 
 -- (+) : tenv1をtenv2に足す
@@ -208,8 +204,8 @@ setTEnv tenv = modify $ \env -> env { tEnv = tenv }
 initializeTEnv :: Env ()
 initializeTEnv = setTEnv emptyEnv
 
-putTEnv :: VarName -> EnvType -> Env ()
-putTEnv vn et = modify $ \env -> env { tEnv = insert vn et (tEnv env) }
+putTEnv :: VarKey -> EnvType -> Env ()
+putTEnv vk et = modify $ \env -> env { tEnv = insert vk et (tEnv env) }
 
 -- ^ UEnv
 setUEnv :: UEnv -> Env ()
@@ -377,4 +373,3 @@ instance PrettyAST ExVarResources where
 instance PrettyAST Logs where
   ppE (Logs l) = concatWith (surround line) $ Prelude.map ppE l
   ppP (Logs l) = concatWith (surround line) $ Prelude.map ppP l
-

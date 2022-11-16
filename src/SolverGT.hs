@@ -71,7 +71,7 @@ mkEnv :: Map String [Version] -> Constraints -> Env
 mkEnv em cs =
   let mdnames = keys em
       versOfExtMods = toList em -- [TODO] sortする？
-      fvCons  = nub $ freeVars cs
+      fvCons  = map getVN . nub . vars $ cs
       lenMods = length versOfExtMods
       idxMods = zip mdnames [0..]
       idxVers = map (\(mn, vs) -> (mn, zip vs [0..])) versOfExtMods

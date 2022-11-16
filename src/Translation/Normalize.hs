@@ -11,15 +11,15 @@ class Normalize ast where
 
 data NormalizeEnv' = NormalizeEnv'
   { counter :: Int             -- 束縛変数の累積数
-  , usedName :: [VarName]       -- 使用済み変数名
+  , usedName :: [VarKey]      -- 使用済み変数名
   }
 type NormalizeEnv a = State NormalizeEnv' a
 
-genNewVar :: NormalizeEnv VarName
+genNewVar :: NormalizeEnv VarKey
 genNewVar = do
   c <- gets counter
   used <- gets usedName
-  let nvtmp = prefixVar ++ show c
+  let nvtmp = UQVar $ prefixVar ++ show c
   nv <- if nvtmp `elem` used
     then genNewVar
     else return nvtmp
@@ -40,9 +40,10 @@ instance Normalize (Exp l) where
     If l ec et ee   -> return $ If l ec et ee
     -- Let l p e1 e2   -> Let l p e1 e2
     VRes l vbs e    -> do
-      str <- genNewVar
-      let pat = PVar l (Ident l str)
-          var = Var l (UnQual l (Ident l str))
+      vk <- genNewVar
+      let vn = getVN vk
+          pat = PVar l (Ident l vn)
+          var = Var l (UnQual l (Ident l vn))
           res = App l (Lambda l pat $ VRes l vbs var) e
       return res
     VExt l e        -> return $ VExt l e

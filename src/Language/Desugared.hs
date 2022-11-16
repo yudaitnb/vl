@@ -128,8 +128,9 @@ instance HasVar (Exp l) where
   freeVars exp =
     case exp of
       Var _ qn      -> case qn of
-        UnQual _ n -> [getName n]
-        _          -> [] -- Qual, SpecialCon
+        UnQual _ n  -> [UQVar (getName n)]
+        Qual _ mn n -> [QVar (getName mn) (getName n)]
+        Special _ s -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       Tuple _ lst   -> concatMap freeVars lst
@@ -138,23 +139,24 @@ instance HasVar (Exp l) where
       Lambda _ p e  -> freeVars e \\ boundVars p
       VRes _ vbs e  -> freeVars e
       VExt _ e      -> freeVars e
-  freeVars' exp =
-    case exp of
-      Var _ qn      -> case qn of
-        UnQual _ n -> [getName n]
-        _          -> [] -- Qual, SpecialCon
-      lit@(Lit _ _) -> []
-      App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
-      Tuple _ lst   -> concatMap freeVars' lst
-      List _ lst    -> concatMap freeVars' lst
-      If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
-      Lambda _ p e  -> freeVars' e \\ boundVars p
-      VRes _ vbs e  -> freeVars' e
-      VExt _ e      -> []
+  -- freeVars' exp =
+  --   case exp of
+  --     Var _ qn      -> case qn of
+  --       UnQual _ n -> [getName n]
+  --       _          -> [] -- Qual, SpecialCon
+  --     lit@(Lit _ _) -> []
+  --     App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
+  --     Tuple _ lst   -> concatMap freeVars' lst
+  --     List _ lst    -> concatMap freeVars' lst
+  --     If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
+  --     Lambda _ p e  -> freeVars' e \\ boundVars p
+  --     VRes _ vbs e  -> freeVars' e
+  --     VExt _ e      -> []
   vars exp = case exp of
       Var _ qn      -> case qn of
-        UnQual _ n -> [getName n]
-        _          -> [] -- Qual, SpecialCon
+        UnQual _ n  -> [UQVar $ getName n]
+        Qual _ mn n -> [QVar (getName mn) (getName n)]
+        Special _ s -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> vars e1 ++ vars e2
       Tuple _ lst   -> concatMap vars lst
@@ -166,20 +168,20 @@ instance HasVar (Exp l) where
 
 instance HasVar (Decl l) where
   freeVars (PatBind _ pat e) = freeVars e
-  freeVars' (PatBind _ pat e) = freeVars' e
+  -- freeVars' (PatBind _ pat e) = freeVars' e
   vars (PatBind _ pat e) = vars e
 
 instance HasVar (Module l) where
   freeVars (Module _ _ _ _ ds) = nub $ concatMap freeVars ds
-  freeVars' (Module _ _ _ _ ds) = nub $ concatMap freeVars' ds
+  -- freeVars' (Module _ _ _ _ ds) = nub $ concatMap freeVars' ds
   vars (Module _ _ _ _ ds) = nub $ concatMap vars ds
 
-boundVarsPats :: [Pat l] -> [VarName]
+boundVarsPats :: [Pat l] -> [VarKey]
 boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
 
-boundVars :: Pat l -> [VarName]
+boundVars :: Pat l -> [VarKey]
 boundVars p = case p of
-  PVar _ name          -> [getName name]
+  PVar _ name          -> [UQVar $ getName name]
   PLit {}              -> []
   PWildCard _          -> []
   PTuple _ ps          -> concatMap boundVars ps

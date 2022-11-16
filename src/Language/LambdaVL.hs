@@ -6,10 +6,10 @@ module Language.LambdaVL (
   Pat(..),
   Alt(..),
   Literal(..),
-  HasVar(..),
   Absyn.Annotated(..),
   getDecls, getBind,
-  splitDeclToMap, splitDeclsToMap
+  splitDeclToMap, splitDeclsToMap,
+  freeVars'
 ) where
 
 import qualified Language.Absyn as Absyn
@@ -97,9 +97,10 @@ instance HasName (Decl l) where
   getName (PatBind _ p _) = getName p
 
 instance HasName (Exp l) where
-  getName (Var _ qName) = getName qName
-  getName (Lit _ literal) = getName literal
-  getName _ = error "Expressions without Var/Literal do not have a name field."
+  getName exp = case exp of
+    Var _ qn  -> getName qn
+    Lit _ lit -> getName lit
+    _         -> error "Expressions without Var/Literal do not have a name field."
 
 instance HasName (Pat l) where
   getName (PVar _ name) = getName name
@@ -111,8 +112,9 @@ instance HasVar (Exp l) where
   freeVars exp =
     case exp of
       Var _ qn      -> case qn of
-        UnQual _ n -> [getName n]
-        _          -> [] -- Qual, SpecialCon
+        UnQual _ n  -> [UQVar (getName n)]
+        Qual _ mn n -> [QVar (getName mn) (getName n)]
+        Special _ s -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
@@ -123,25 +125,11 @@ instance HasVar (Exp l) where
       Pr _ e        -> freeVars e
       VRes _ vbs e  -> freeVars e
       VExt _ e      -> freeVars e
-  freeVars' exp =
-    case exp of
-      Var _ qn      -> case qn of
-        UnQual _ n -> [getName n]
-        _          -> [] -- Qual, SpecialCon
-      lit@(Lit _ _) -> []
-      App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
-      If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
-      Lambda _ p e  -> freeVars' e \\ boundVars p
-      Tuple _ elms  -> concatMap freeVars' elms
-      List _ elms   -> concatMap freeVars' elms
-      Case _ e alts -> freeVars' e ++ concatMap freeVars' alts
-      Pr _ e        -> freeVars' e
-      VRes _ vbs e  -> freeVars' e
-      VExt _ e      -> []
   vars exp = case exp of
       Var _ qn      -> case qn of
-        UnQual _ n -> [getName n]
-        _          -> [] -- Qual, SpecialCon
+        UnQual _ n  -> [UQVar (getName n)]
+        Qual _ mn n -> [QVar (getName mn) (getName n)]
+        Special _ s -> []
       lit@(Lit _ _) -> []
       App _ e1 e2   -> vars e1 ++ vars e2
       If _ e1 e2 e3 -> vars e1 ++ vars e2 ++ vars e3
@@ -155,16 +143,36 @@ instance HasVar (Exp l) where
 
 instance HasVar (Alt l) where
   freeVars (Alt _ p e) = filter (`notElem` boundVars p) (freeVars e)
-  freeVars' (Alt _ p e) = freeVars' e \\ boundVars p
   vars (Alt _ p e) = vars e
 
+-- considering VExt
+freeVars' :: Exp l -> [VarKey]
+freeVars' exp =
+  case exp of
+    Var _ qn      -> case qn of
+      UnQual _ n  -> [UQVar $ getName n]
+      Qual _ mn n -> [QVar (getName mn) (getName n)]
+      Special _ s -> []
+    lit@(Lit _ _) -> []
+    App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
+    If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
+    Lambda _ p e  -> freeVars' e \\ boundVars p
+    Tuple _ elms  -> concatMap freeVars' elms
+    List _ elms   -> concatMap freeVars' elms
+    Case _ e alts -> freeVars' e ++ concatMap freeVarsAlt' alts
+    Pr _ e        -> freeVars' e
+    VRes _ vbs e  -> freeVars' e
+    VExt _ e      -> []
+
+freeVarsAlt' :: Alt l -> [VarKey]
+freeVarsAlt' (Alt _ p e) = freeVars' e \\ boundVars p
 
 -- boundVarsPats :: [Pat l] -> [VarName]
 -- boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
 
-boundVars :: Pat l -> [VarName]
+boundVars :: Pat l -> [VarKey]
 boundVars p = case p of
-  PVar _ name          -> [getName name]
+  PVar _ name          -> [UQVar (getName name)]
   PLit {}              -> []
   PWildCard _          -> []
   PTuple _ ps          -> concatMap boundVars ps

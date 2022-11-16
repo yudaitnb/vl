@@ -9,6 +9,7 @@ module Syntax.Common (
   VLMod(..),
   ParsedAST,
   reservedOps,
+  mkVKFromQN, mkQNFromVK
 ) where
 
 import Data.Map
@@ -36,6 +37,16 @@ reservedOps = [ "+", "-", "*", "/"
               , "&&", "||"
               , "<" ,"<=", ">", ">=", "==", "/="]
 
+mkVKFromQN :: QName l -> VarKey
+mkVKFromQN qn = case qn of
+  Qual _ mn n -> QVar (getName mn) (getName n)
+  UnQual _ n  -> UQVar (getName n)
+
+mkQNFromVK :: VarKey -> QName SrcSpanInfo
+mkQNFromVK qk = case qk of
+  QVar mn n -> mkQual mn n
+  UQVar n  -> mkUnQual n
+
 ----------------------
 
 instance PrettyAST VLMod where
@@ -51,3 +62,11 @@ instance PrettyAST ParsedAST where
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround line) $
       mapWithKey (\vlmod mod -> ppP "===" <+> ppP vlmod <> line <> ppP (exactPrint mod [])) m
+
+instance PrettyAST VarKey where
+  ppE qk = case qk of
+    QVar mn vn -> ppE mn <> dot <> ppE vn
+    UQVar vn  -> ppE vn
+  ppP qk = case qk of
+    QVar mn vn -> ppP mn <> dot <> ppP vn
+    UQVar vn  -> ppP vn
