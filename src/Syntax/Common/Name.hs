@@ -3,11 +3,20 @@ module Syntax.Common.Name (
   Language.Haskell.Exts.Syntax.Name(..),
   Language.Haskell.Exts.Syntax.ModuleName(..),
   Language.Haskell.Exts.Syntax.SpecialCon(..),
-  HasName(..)
+  HasName(..),
+  mkQual, mkUnQual,
 ) where
 
 import Language.Haskell.Exts.Syntax
+import Syntax.Common.SrcLoc
+import Syntax.Common.Keys
 import Util
+
+mkQual :: String -> String -> QName SrcSpanInfo
+mkQual mn n = Qual noSrcSpan (ModuleName noSrcSpan mn) (Ident noSrcSpan n)
+
+mkUnQual :: String -> QName SrcSpanInfo
+mkUnQual n = UnQual noSrcSpan (Ident noSrcSpan n)
 
 class HasName a where
   getName :: a -> String
@@ -23,6 +32,11 @@ instance HasName (QName l) where
   getName (Qual _ _ name) = getName name
   getName (UnQual _ name) = getName name
   getName _ = error "The getName function is not defined for a given expresion."
+
+instance HasName VarKey where
+  getName qk = case qk of
+    QVar mn vn -> vn
+    UQVar vn  -> vn
 
 ------------------------------------
 

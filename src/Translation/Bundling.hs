@@ -13,17 +13,18 @@ import Language.Haskell.Exts (KnownExtension(ConstraintKinds))
 import Parser
 import Inference.TypeInference hiding (constraints, uenv)
 
-import Syntax.Common (Version, ModName(..), VarName(..))
-import Syntax.Type
+import Syntax.Common
+import Syntax.Type as T
 import Syntax.Env hiding (counter)
 import Syntax.Kind ( Kind(LabelsKind) )
 
 import Util
+import Data.Maybe (fromMaybe)
 
 
 data CollectEnv' = CollectEnv'
   { resources   :: Map ModName [Version]
-  , types       :: Map ModName (Map Version Type)
+  , types       :: Map VarKey (Map Version Type)
   , constraints :: Map ModName (Map Version Constraints)
   , uenv        :: Map ModName UEnv
   }
@@ -55,7 +56,7 @@ genNewLabelsVar :: BundleEnv Type
 genNewLabelsVar = do
   c <- gets counter
   let name = prefixNewTyVar ++ show c
-      tyvar = TyVar (Ident name)
+      tyvar = TyVar (T.Ident name)
   modify $ \env -> env
     { counter = 1 + counter env
     , bUEnv = insert name LabelsKind (bUEnv env) }
@@ -98,7 +99,7 @@ bundle mn initC m =
     CollectEnv' vers tys cons mapu = execState collectAcrossVersion (CollectEnv' empty empty empty empty)
     BundleEnv' newCounter newTEnv newUEnv newCons newScheme =
       execState
-        (forM_ (toList tys) $ \(vn, tysForV) -> bundleOfVnMn vn mn tysForV)
+        (forM_ (toList tys) $ uncurry bundleOfVnMn)
         (BundleEnv' initC mempty mempty CTop mempty)
   in  ( newTEnv
       , newUEnv
@@ -107,9 +108,11 @@ bundle mn initC m =
       , newCounter)
   where
     -- あるシンボルのバージョン毎の型を受け取り、bundle後のTEnv, 増えたラベルのUEnv, 増えたラベルと前のラベルの間のリソースを計算する
-    bundleOfVnMn :: VarName -> ModName -> Map Version Type -> BundleEnv ()
-    bundleOfVnMn vn mn tymap = do
-      let tymaplst = toList tymap
+    bundleOfVnMn :: VarKey -> Map Version Type -> BundleEnv ()
+    bundleOfVnMn vk tymap = do
+      let mn = fromMaybe (error "") $ getMN vk
+          vn = getVN vk
+          tymaplst = toList tymap
           tyhead = snd . head $ tymaplst
       sampleTy <- genSampleType tyhead
       let TyBox samc samty = sampleTy
@@ -120,26 +123,27 @@ bundle mn initC m =
           <*> return (CSubset samc (TyLabels (singleton mn [v])))
       modify $ \env -> env
         { bConstraints = csOfV `landC` bConstraints env
-        , bTEnv = insert vn newEnvTy (bTEnv env)
+        , bTEnv = insert (QVar mn vn) newEnvTy (bTEnv env)
         , bConsScheme = insert vn csOfV (bConsScheme env) } -- bUEnvはラベル生成時に更新済み
   
     collectAcrossVersion :: CollectEnv ()
     collectAcrossVersion =
       let m' = toList m in do
       forM_ m' $ \(VLMod mn v, lstTyExp) -> do
-        forM_ lstTyExp $ \(TypedExp s ty c exu) -> do
+        forM_ lstTyExp $ \(TypedExp vk ty c exu) -> do
+          let s = getVN vk
           -- 型：そのトップレベルシンボルの全てのバージョンの型を収集する
           -- uEnv：全てのバージョンについて収集する
-          gets (Data.Map.lookup s . types) >>= \case
+          gets (Data.Map.lookup vk . types) >>= \case
             Nothing -> do
-              modify ( \env -> env { types = insert s (singleton v ty) (types env) } )
+              modify ( \env -> env { types = insert vk (singleton v ty) (types env) } )
               exu' <- gets (insert s exu . uenv)
               modify ( \env -> env { uenv = exu' } )
             Just ty' -> do
-              oldTysOfS <- gets $ (<!> s) . types
+              oldTysOfS <- gets $ (<!> vk) . types
               let newTysOfS = insert v ty oldTysOfS
-              modify ( \env -> env { types = insert s newTysOfS (types env) } )
-              exu' <- gets $ (<!> s) . uenv
+              modify ( \env -> env { types = insert vk newTysOfS (types env) } )
+              exu' <- gets $ (<!> getVN vk) . uenv
               modify ( \env -> env { uenv = insert s (exu `union` exu') (uenv env) } )
           -- そのトップレベルシンボルの実装が存在する全てのバージョンをresourcesに収集
           gets (Data.Map.lookup s . resources) >>= \case
@@ -154,7 +158,7 @@ bundle mn initC m =
               c' <- gets (insert s (singleton v c) . constraints)
               modify ( \env -> env { constraints = c' } )
             Just ty -> do
-              oldCsOfS <- gets $ (<!> s) .constraints
+              oldCsOfS <- gets $ (<!> s) . constraints
               let newCsOfS = insert v c oldCsOfS 
               -- c' <- gets (landC c . (<!> s) .  constraints)
               modify ( \env -> env { constraints = insert s newCsOfS (constraints env) } )

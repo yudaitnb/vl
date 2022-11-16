@@ -5,11 +5,11 @@ import System.Directory ( createDirectoryIfMissing )
 import System.FilePath ( splitFileName, splitExtension )
 import System.Environment ( getArgs )
 
-import Control.Monad ( forM_, when )
+import Control.Monad ( forM_, when, unless )
 import Control.Monad.State ( execStateT, execState )
 
 import Data.Map ( Map, (!), empty, elems, mapWithKey, fromList, toList )
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Either (fromRight)
 
 import Parser ( cvtExtMods, parseDependencyGraph, VLMod(..) )
@@ -73,33 +73,38 @@ main = do
   logPD $ ppP cons <> line
 
   logP "=== Solver result ==="
-  solResMap <- fromMaybe empty <$> (Solver.solve (cvtExtMods sortedVLMods) cons >>= \case
+  solResMap <- Solver.solve (cvtExtMods sortedVLMods) cons >>= \case
     Left (h, r) -> do
       logP h
       logPD $ concatWith (surround $ comma <> space) $ map ppP r
+      logP "Whole process finished."
       return Nothing
     Right res -> do
       logPD $ concatWith (surround line) $ mapWithKey (\vn l -> ppP vn <+> colon <+> ppP l) res
-      return $ Just res)
+      return $ Just res
 
-  logP "\n=== Labels of External Variables ==="
-  let exVarLabels = combineSolRes exVarsRes solResMap
-  logPD $ ppP exVarLabels
+  if isJust solResMap
+    then do
+      logP "\n=== Labels of External Variables ==="
+      let exVarLabels = combineSolRes exVarsRes $ fromMaybe empty solResMap
+      logPD $ ppP exVarLabels
 
-  logP "\n=== Prettyprint ==="
-  forM_ (toList $ mapParsedAST env) $ \(VLMod a v, ast) -> do
-    logPD $ ppP "\n--" <+> ppP a <+> ppP "v" <> ppP v
-    logP $ prettyPrint ast
+      -- logP "\n=== Prettyprint ==="
+      -- forM_ (toList $ mapParsedAST env) $ \(VLMod a v, ast) -> do
+      --   logPD $ ppP "\n--" <+> ppP a <+> ppP "v" <> ppP v
+      --   logP $ prettyPrint ast
 
-  logP "\n=== VLDecls ==="
-  let vldecls = mapVLDecls env
-  logP vldecls
+      logP "\n=== VLDecls ==="
+      let vldecls = mapVLDecls env
+      logP vldecls
 
-  logP "\n=== Extraction ==="
-  let expMain = vldecls <!> VLMod "Main" Root <!> "main"
-      extracted = extract exVarLabels vldecls expMain
-      hsCodeBundled = girardBck extracted
-  logP $ prettyPrint hsCodeBundled
+      logP "\n=== Extraction ==="
+      let expMain = vldecls <!> VLMod "Main" Root <!> "main"
+          extracted = extract exVarLabels vldecls expMain
+          hsCodeBundled = girardBck extracted
+      logP $ prettyPrint hsCodeBundled
+    else
+      logP "Whole process finished."
 
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func

@@ -141,7 +141,7 @@ instance HasVar Type where
         case ty of
         -- Types
         TyCon _     -> []
-        TyVar name  -> [getName name]
+        TyVar name  -> [UQVar $ getName name]
         TyFun t1 t2 -> freeTyVars' t1 ++ freeTyVars' t2
         TyBox c t   -> freeTyVars' c ++ freeTyVars' t
         TyTuple ts  -> concatMap freeTyVars' ts
@@ -153,7 +153,6 @@ instance HasVar Type where
         CMul c1 c2  -> freeTyVars' c1 ++ freeTyVars' c2
         -- Constraints
         -- CSubset c1 c2 -> freeTyVars' c1 ++ freeTyVars' c2
-  freeVars' = freeVars
   vars  = freeVars
 
 instance HasVar Constraints where
@@ -162,7 +161,6 @@ instance HasVar Constraints where
     CSubset c1 c2 -> nub $ freeVars c1 ++ freeVars c2
     CAnd c1 c2    -> nub $ freeVars c1 ++ freeVars c2
     COr c1 c2     -> nub $ freeVars c1 ++ freeVars c2
-  freeVars' = freeVars
   vars  = freeVars
 
 isClosed :: Type -> Bool

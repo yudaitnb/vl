@@ -62,9 +62,9 @@ type SRSuccess = Map VarName Label
 type SolverResult = Either SRError SRSuccess
 
 
-combineSolRes :: DuplicatedExVars -> SRSuccess -> Map String (String, VLMod, Type, Label)
+combineSolRes :: DuplicatedExVars -> SRSuccess -> Map VarKey (VarKey, VLMod, Type, Label)
 combineSolRes evr solres = mapWithKey
-  (\vn (s, vlmod,ty) -> (s, vlmod, ty, solres <!> getName ty)) evr
+  (\vn (s, vlmod, ty) -> (s, vlmod, ty, solres <!> getName ty)) evr
 
 data Env = Env
   { constraints :: Constraints              -- input constraints
@@ -80,7 +80,7 @@ mkEnv :: Map String [Version] -> Constraints -> Env
 mkEnv em cs =
   let mdnames = keys em
       versOfExtMods = toList $ M.map ((TBD :) . reverse . sort) em -- [TODO] 新しいもの順にしたうえで先頭にTBDを追加
-      fvCons  = nub $ freeVars cs
+      fvCons  = map getVN $ nub $ freeVars cs
       lenMods = length versOfExtMods
       idxMods = zip mdnames [0..]
       idxVers = map (\(mn, vs) -> (mn, zip vs [0..])) versOfExtMods
@@ -269,6 +269,6 @@ subsetOf l1 l2 =
 --   ]
 
 
-instance PrettyAST (Map String (String, VLMod, Type, Label)) where
+instance PrettyAST (Map VarKey (VarKey, VLMod, Type, Label)) where
   ppE m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppE vn <+> colon <+> ppE s <+> colon <+> ppE m <+> colon <+> ppE tv <+> colon <+> ppE l) m
   ppP m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppP vn <+> colon <+> ppP s <+> colon <+> ppP m <+> colon <+> ppP tv <+> colon <+> ppP l) m

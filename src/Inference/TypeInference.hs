@@ -12,9 +12,9 @@ import Control.Arrow (second)
 
 import qualified Language.LambdaVL as VL
 
-import Syntax.Common hiding (Name(..), QName(..))
+import Syntax.Common as N
 
-import Syntax.Type
+import Syntax.Type as T
 import Syntax.Kind
 import Syntax.Env
 import Syntax.Substitution
@@ -117,12 +117,11 @@ instance Typable (VL.Exp SrcSpanInfo) where
         | otherwise -> do
           gamma <- gets tEnv
           sigma <- gets uEnv
-          let x = getName qName
-          case lookupEnv x gamma of
+          case lookupEnv (mkVKFromQN qName) gamma of
             Nothing -> do
               logs <- gets log
               let message = ppP "⇒_Lin/Gr expects a variable" <+>
-                            ppP (show x) <+>
+                            ppP qName <+>
                             ppP "to be in tenv, but it was not found." <> line <>
                             ppP "tenv : " <> ppP gamma <> line <> ppP logs
               error $ putDocString message
@@ -380,7 +379,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
       _ -> error "The function `infer` is not defined for a given expression."
 
 data TypedExp = TypedExp
-  { name         :: String      -- シンボル名
+  { name         :: VarKey -- シンボル名
   , inferredType :: Type        -- 推論された型
   , constraints  :: Constraints -- 推論された型が満たすべき制約
   , uenv         :: UEnv        -- この型付けで生成された型変数
@@ -389,17 +388,18 @@ data TypedExp = TypedExp
 
 -- [TODO] 難読。再帰も不明瞭。書き直す
 getInterface :: TEnv -> UEnv -> Int -> VL.Module SrcSpanInfo -> IO ([(TypedExp, Logs)], Int)
-getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) = do
-  let initEnv = Env' initC importedTEnv importedUEnv emptyREnv emptyLogs initLC
+getInterface importedTEnv importedUEnv initC (VL.Module _ mmh _ _ decls) = do
+  let mn = getName $ fromMaybe (error "getInterface : undifined error") mmh
+      initEnv = Env' initC importedTEnv importedUEnv emptyREnv emptyLogs initLC
   (typedExpLogs, env) <- runStateT
-                            (getInterface' $ reverse $ tsortDecls decls)
+                            (getInterface' mn $ reverse $ tsortDecls decls)
                             initEnv
   return (rearrange typedExpLogs, counter env)
   where
-    getInterface' :: [VL.Decl SrcSpanInfo] -> Env [(TypedExp, Logs)]
-    getInterface'  []                             = return []
-    getInterface'  ((VL.PatBind _ pat exp):decls) = do
-      decls' <- getInterface' decls
+    getInterface' :: ModName -> [VL.Decl SrcSpanInfo] -> Env [(TypedExp, Logs)]
+    getInterface'  mn []                             = return []
+    getInterface'  mn ((VL.PatBind _ pat exp):decls) = do
+      decls' <- getInterface' mn decls
 
       -- 次の宣言の型検査の前処理
       initializeEnv
@@ -409,25 +409,26 @@ getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) = do
       -- 環境にこれまで生成した束縛・制約を追加
       -- TypedExp中の型はpromote済みなので、モジュール内の型検査の際にはTyBoxの中の型を取り出す
       let prevTyExps = map fst decls'
-      forM_ prevTyExps $ \(TypedExp s ty@(TyBox c tyin) _ _) -> do
+      forM_ prevTyExps $ \(TypedExp vk ty@(TyBox c tyin) _ _) -> do
         alpha <- genNewTyVar LabelsKind
-        putTEnv s (GrType Local tyin alpha)
+        putTEnv vk (GrType Local tyin alpha)
 
       -- 全てのトップレベルシンボルは再帰関数扱い
       alpha <- genNewTyVar TypeKind
       beta  <- genNewTyVar LabelsKind
-      putTEnv (getName pat) (GrType Local alpha beta)
+      let qkTarget = QVar mn (getName pat)
+      putTEnv qkTarget (GrType Local alpha beta)
 
       -- 対象の宣言の型検査 with promotion
       (ty, uenv, sub, con) <- infer $ VL.Pr (VL.ann exp) exp
       let con' = constraintsSubstitution sub con
       l <- gets (reverseLogs . log)
       return $
-        (TypedExp (getName pat) ty con' uenv, l) : decls'
+        (TypedExp qkTarget ty con' uenv, l) : decls'
 
     -- 元の宣言の順番に並び替える
     rearrange :: [(TypedExp, Logs)] -> [(TypedExp, Logs)]
-    rearrange = sortOn (\(typedExp, l) -> name typedExp `elemIndex` map getName decls)
+    rearrange = sortOn (\(typedExp, l) -> getName (name typedExp) `elemIndex` map getName decls)
 
 
 -- ^ declsを変数依存関係の下流から上流にtsortする
@@ -437,7 +438,7 @@ tsortDecls :: PrettyAST l => [VL.Decl l] -> [VL.Decl l]
 tsortDecls decls = tsortBy g getName decls
   where
     nodes = map (\(VL.PatBind _ p _) -> getName p) decls
-    edges = distEdges $ map (\(VL.PatBind _ pat exp) -> (getName pat, VL.freeVars exp)) decls
+    edges = distEdges $ map (\(VL.PatBind _ pat exp) -> (getName pat, map getVN (VL.freeVars exp))) decls
     g = Graph (nodes, edges)
 
 aggregateConstraints :: [TypedExp] -> Constraints

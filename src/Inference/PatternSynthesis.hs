@@ -47,18 +47,18 @@ patternSynthesis p tya = do
       case renv of
         -- PVar_lin
         EmptyREnv -> do
-          let x = getName name
+          let vk = UQVar $ getName name
               tya' = NType Local tya
-              tenv' = insertEnv x tya' emptyEnv
+              tenv' = insertEnv vk tya' emptyEnv
           hasTypeKind tya
           let result = (tenv', sigma, emptySubst)
           putPatSynthLog sigma renv p result
           return result
         -- pVar_gr 
         REnv r -> do
-          let x = getName name
+          let vk = UQVar $ getName name
               tya' = GrType Local tya r
-              tenv' = insertEnv x tya' emptyEnv
+              tenv' = insertEnv vk tya' emptyEnv
           hasTypeKind tya
           hasLabelsKind r
           let result = (tenv', sigma, emptySubst)

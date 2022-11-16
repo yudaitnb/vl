@@ -29,7 +29,7 @@ import Util
 
 type BundledTEnv = Map ModName TEnv
 type BundledUEnv = Map ModName UEnv
-type DuplicatedExVars = Map VarName (VarName, VLMod, Type)
+type DuplicatedExVars = Map VarKey (VarKey, VLMod, Type)
 
 type VLDecls = Map VarName (VL.Exp SrcSpanInfo)
 type VLModDecls = Map VLMod VLDecls
@@ -102,7 +102,7 @@ setGlobalConstraints :: Constraints -> CompileEnv ()
 setGlobalConstraints cs = modify $ \env -> env { globalConstraints = cs }
 
 addBundledTEnv :: ModName -> TEnv -> CompileEnv ()
-addBundledTEnv s tenv = modify $ \env -> env { bundledTEnv = insert s tenv $ bundledTEnv env }
+addBundledTEnv mn tenv = modify $ \env -> env { bundledTEnv = insert mn tenv $ bundledTEnv env }
 
 addBundledUEnv :: ModName -> UEnv -> CompileEnv ()
 addBundledUEnv s uenv = modify $ \env -> env { bundledUEnv = insert s uenv $ bundledUEnv env }
@@ -120,7 +120,8 @@ getImportedSymbols :: [ModName] -> CompileEnv (Map ModName [VarName])
 getImportedSymbols mods = do
   lst <- forM mods $ \mn -> do
     vnsOfMn <- gets (keys . (<!> mn) . bundledTEnv)
-    return (mn, vnsOfMn)
+    let vnsOfMn' = Data.List.map getName vnsOfMn
+    return (mn, vnsOfMn')
   return $ fromList lst
 
 genEnvFromImports :: [ModName] -> CompileEnv (TEnv, UEnv)
@@ -196,7 +197,7 @@ compileVLMod target@(VLMod mn v) = do
   logP ast_resolved
 
   logP "\n=== Desugared AST (Syntax.Desugared) ==="
-  let ast_desugared = desugarAST ast
+  let ast_desugared = desugarAST ast_resolved
   logP ast_desugared
 
   logP "\n=== Normalized AST (Syntax.Desugared) ==="

@@ -4,11 +4,9 @@ import Data.List ( nub )
 import Syntax.Common.Keys
 
 class HasVar a where
-  freeVars :: a -> [VarName]  
-  freeVars' :: a -> [VarName] -- considering VExt
-  vars :: a -> [VarName]
+  freeVars :: a -> [VarKey]
+  vars :: a -> [VarKey]
 
 instance HasVar a => HasVar [a] where
   freeVars  xs = nub $ concatMap freeVars xs
-  freeVars' xs = nub $ concatMap freeVars' xs
   vars xs = nub $ concatMap vars xs

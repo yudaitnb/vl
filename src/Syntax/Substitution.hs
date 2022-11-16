@@ -28,15 +28,10 @@ instance Semigroup Subst => Monoid Subst where
   mempty = emptySubst  
 
 instance HasVar Subst where
-  freeVars s = case s of
-    Subst []  -> []
-    Subst ((s,ty):lst) ->  "s" : freeVars ty ++ freeVars (Subst lst)
-  freeVars' s = case s of
-    Subst []  -> []
-    Subst ((s,ty):lst) ->  "s" : freeVars' ty ++ freeVars' (Subst lst)
+  freeVars = vars
   vars s = case s of
     Subst []  -> []
-    Subst ((s,ty):lst) ->  "s" : vars ty ++ vars (Subst lst)
+    Subst ((s,ty):lst) -> UQVar s : vars ty ++ vars (Subst lst)
 
 emptySubst :: Subst
 emptySubst = Subst []
@@ -75,7 +70,7 @@ comp s1 s2 = do
   uenv <- gets uEnv
   s2 <- rmSameTyVar s1 s2
   let nodes = varsInEnv uenv -- [TODO] 普通の関数にしたい。UEnvを参照する必要はないはず
-      edges = distEdges $ map (second freeVars) (subst s2)
+      edges = distEdges $ map (second (map getVN . vars)) (subst s2)
       g = Graph (nodes, edges)
       result = normalize $ Subst $ tsortBy g fst (subst s2)
   -- putSubstCompLog uenv s1 s2 result
