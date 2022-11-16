@@ -51,12 +51,12 @@ library
       Syntax.Type
       Translation.Bundling
       Translation.Desugar
+      Translation.DuplicateExVars
       Translation.Extraction
       Translation.Girard
       Translation.NameResolution
       Translation.Normalize
       Translation.Promote
-      Translation.RenameExVars
       Translation.Renamer
       Util
   other-modules:

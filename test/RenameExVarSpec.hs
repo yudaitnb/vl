@@ -1,4 +1,4 @@
-module RenameExVarSpec (spec) where
+module DuplicateExVarSpec (spec) where
 
 import Test.Hspec
 import Prelude
@@ -8,7 +8,7 @@ import Data.Map (fromList)
 import qualified Data.Either
 
 import Language.LambdaVL
-import Translation.RenameExVars
+import Translation.DuplicateExVars
 import Parser
 import Translation.Desugar (desugarAST)
 import Translation.Girard (girardFwd)
@@ -16,7 +16,7 @@ import Translation.Normalize (normalize)
 
 spec :: Spec
 spec = do
-  describe "RenameExVarSpec" $ do
+  describe "DuplicateExVarSpec" $ do
     let code1 = "main = f 1 + f 2"
     it code1 $ getFVRenamed code1 `shouldBe` ["__f_0", "__f_1"]
     let code2 = "main = f a + f a"
@@ -24,5 +24,5 @@ spec = do
     let code3 = "main a = f a + f a"
     it code3 $ getFVRenamed code3 `shouldBe` ["__f_0", "__f_1"]
   where
-    getFVRenamed = freeVars . getBind . head . getDecls . fst . (renameExVarModule M.empty) . getVLMod 
+    getFVRenamed = freeVars . getBind . head . getDecls . fst . (duplicateExVarModule M.empty) . getVLMod 
     getVLMod  =  girardFwd . normalize . desugarAST . parseString
