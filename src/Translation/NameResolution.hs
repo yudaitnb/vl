@@ -10,6 +10,8 @@ import Language.Absyn
 
 import Syntax.Common (VarName(..), ModName(..), reservedOps)
 
+import Util hiding (annotate)
+
 nameResolve :: Map ModName [VarName] -> Module SrcSpanInfo -> Module SrcSpanInfo
 nameResolve importedSymbols mod =
   let env :: Environment
@@ -60,9 +62,17 @@ resolveMatch m = case m of
 
 resolveExp :: Exp (Scoped SrcSpanInfo) -> Exp SrcSpanInfo
 resolveExp exp = case exp of
+  -- UnQualの変数のみをQualに解決する。SpecialConはScopeErrorでも無視
   Var sl1 (UnQual (Scoped (GlobalSymbol sym _) l) name) -> 
     let mn = ModuleName l (getName $ symbolModule sym)
     in Var (dsc sl1) (Qual l mn (fmap dsc name))
+  -- Qualはスコープ内そのシンボルが存在するかチェックする
+  Var sl1 (Qual sc mn name) -> case sc of
+    Scoped (GlobalSymbol sym _) l ->
+      let mn' = ModuleName l (getName $ symbolModule sym)
+      in Var (dsc sl1) (Qual l mn' (fmap dsc name))
+    Scoped (ScopeError err) l -> scopeError err
+    _                         -> error "UndefinedError occurs in Name resolution"
   Var sl1 qn            -> Var (dsc sl1) (fmap dsc qn)
   Lit sl l              -> Lit (dsc sl) (fmap dsc l)
   InfixApp sl e1 qop e2 -> InfixApp (dsc sl) (resolveExp e1) (fmap dsc qop) (resolveExp e2)
@@ -77,3 +87,12 @@ resolveExp exp = case exp of
   VExt sl e             -> VExt (dsc sl) (resolveExp e)
   Paren sl e            -> Paren (dsc sl) (resolveExp e)
   _ -> error $ "\nUnsupported exp in resolveExp\n" ++ show exp
+
+scopeError :: (Show l, PrettyAST l) => Error l -> a
+scopeError err = case err of
+  ENotInScope qn -> error $ putDocString $ ppP "name is not in scope" <> line <> ppP qn
+  EAmbiguous qn syms -> error "name is ambiguous"
+  ENotExported mbn n mn -> error "Attempt to explicitly import a name which is not exported (or, possibly, does not even exist). For example:"
+  EModNotFound mn -> error $ putDocString $ line <> ppP "Module not found" <> line <> ppP mn
+  EInternal str   -> error str
+  _               -> error "scopeError: Undefined error occurs in nameresolution"

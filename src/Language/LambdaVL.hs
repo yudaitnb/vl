@@ -110,9 +110,9 @@ instance HasName (Pat l) where
 instance HasVar (Exp l) where
   freeVars exp =
     case exp of
-      var@(Var l1 (UnQual l2 (Ident l3 str)))
-                    -> [str]
-      var@(Var _ _) -> []
+      Var _ qn      -> case qn of
+        UnQual _ n -> [getName n]
+        _          -> [] -- Qual, SpecialCon
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
@@ -125,9 +125,9 @@ instance HasVar (Exp l) where
       VExt _ e      -> freeVars e
   freeVars' exp =
     case exp of
-      var@(Var l1 (UnQual l2 (Ident l3 str)))
-                    -> [str]
-      var@(Var _ _) -> []
+      Var _ qn      -> case qn of
+        UnQual _ n -> [getName n]
+        _          -> [] -- Qual, SpecialCon
       lit@(Lit _ _) -> []
       App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
       If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
@@ -139,9 +139,9 @@ instance HasVar (Exp l) where
       VRes _ vbs e  -> freeVars' e
       VExt _ e      -> []
   vars exp = case exp of
-      var@(Var l1 (UnQual l2 (Ident l3 str)))
-                    -> [str]
-      var@(Var _ _) -> []
+      Var _ qn      -> case qn of
+        UnQual _ n -> [getName n]
+        _          -> [] -- Qual, SpecialCon
       lit@(Lit _ _) -> []
       App _ e1 e2   -> vars e1 ++ vars e2
       If _ e1 e2 e3 -> vars e1 ++ vars e2 ++ vars e3

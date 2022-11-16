@@ -67,6 +67,7 @@ newNameOfExTyVar s c = s ++ "_" ++ show c
 newNamesOfExTyVar :: String -> Int -> Int -> [VarName]
 newNamesOfExTyVar s c cstart = take c $ map (newNameOfExTyVar s) $ iterate (+1) cstart
 
+-- 変数を一つ受け取り、変数名のみが異なる新しい変数を生成する
 genNewVarFrom :: Exp SrcSpanInfo -> RenameEnv (Exp SrcSpanInfo)
 genNewVarFrom (Var l1 (N.UnQual l2 (N.Ident l3 s))) = do
   c <- getCounterOf s

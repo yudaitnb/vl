@@ -28,14 +28,14 @@ instance HasName (QName l) where
 
 instance (Show l, PrettyAST l) => PrettyAST (QName l) where
   ppE (Qual srcLocInfo moduleName name) =
-        nest 2 $ ppE "(Qual" <> line
+        nest 2 $ parens $ ppE "Qual" <> line
     <+> ppE srcLocInfo <> line
     <+> ppE moduleName <> line
-    <+> ppE name <> ppE ")"
+    <+> ppE name
   ppE (UnQual srcLocInfo name) =
-        nest 2 $ ppE "(UnQual" <> line
+        nest 2 $ parens $ ppE "UnQual" <> line
     <+> ppE srcLocInfo <> line
-    <+> ppE name <> ppE ")"
+    <+> ppE name
   ppE qn = error $ "\nppE is not defined for an given expression.\n" ++ show qn
   ppP (Qual _ mn name) = ppP mn <> ppP "." <> ppP name
   ppP (UnQual _ name) = ppP name
@@ -59,19 +59,19 @@ instance (Show l, PrettyAST l) => PrettyAST (SpecialCon l) where
 
 instance PrettyAST l => PrettyAST (Name l) where
   ppE (Ident srcLocInfo string) =
-        nest 2 $ ppE "(Ident" <> line
+        nest 2 $ parens $ ppE "Ident" <> line
     <+> ppE srcLocInfo <> line
-    <+> ppE "\"" <> ppE string <> ppE "\"" <> ppE ")"
+    <+> ppE "\"" <> ppE string <> ppE "\""
   ppE (Symbol srcLocInfo string) =
-        nest 2 $ ppE "(Symbol" <> line
+        nest 2 $ parens $ ppE "Symbol" <> line
     <+> ppE srcLocInfo <> line
-    <+> ppE "\"" <> ppE string <> ppE "\"" <> ppE ")"
+    <+> ppE "\"" <> ppE string <> ppE "\""
   ppP (Ident _ str) = ppP str
   ppP (Symbol _ str) = ppP str
 
 instance PrettyAST l => PrettyAST (ModuleName l) where
   ppE (ModuleName srcLocInfo str) =
-        nest 2 $ ppE "(ModuleName" <> line
+        nest 2 $ parens $ ppE "ModuleName" <> line
     <+> ppE srcLocInfo <> line
-    <+> ppE str <> ppE ")"
+    <+> ppE str
   ppP (ModuleName _ str) = ppP str
