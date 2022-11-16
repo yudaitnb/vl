@@ -1,14 +1,14 @@
 module Main where
 
 import Prelude hiding (log)
-import System.Directory ( createDirectoryIfMissing )
+import System.Directory ( createDirectoryIfMissing, doesPathExist )
 import System.FilePath ( splitFileName, splitExtension )
 import System.Environment ( getArgs )
 
 import Control.Monad ( forM_, when, unless )
 import Control.Monad.State ( execStateT, execState )
 
-import Data.Map ( Map, (!), empty, elems, mapWithKey, fromList, toList )
+import Data.Map ( Map, empty, mapWithKey, toList )
 import Data.Maybe (fromMaybe, isJust)
 import Data.Either (fromRight)
 
@@ -32,28 +32,25 @@ import Util
 main :: IO ()
 main = do
   -- Configuring as vlconfig.json
-  (rootDirPath, logDirPath, validExt) <- decodeConfig
+  (rootDirPath, validExt) <- decodeConfig
 
   -- Get a filename of a root module from stdin, e.g. `stack run "[ROOT_VL_MODULE].hs"`
   [fnRoot] <- getArgs
   let (fnMain, ext) = splitExtension fnRoot
+      pathMain = rootDirPath ++ fnMain ++ ext
   when (ext /= validExt) $ error "Illegal VL module extension."
+  doesPathExist pathMain >>= \b -> unless b $ error $ show pathMain ++ " does not exists."
 
   -- Logger utility
-  let logFilePath = logDirPath ++ fnMain ++ ".log"
+  let logFilePath = rootDirPath ++ fnMain ++ ".log"
       logP :: PrettyAST a => a -> IO ()
       logP = logPpLn ppP logFilePath
       logPD :: Doc ann -> IO ()
       logPD = logPpLnDoc logFilePath
 
-  -- Create log directory 
-  createDirectoryIfMissing False logDirPath
-  removeFileIfExists logFilePath
-
   -- Parse dependent modules and create dependency graph
   logP "=== Parsing ==="
   logPD $ ppP "[DEBUG] rootDirPath :" <+> ppP rootDirPath
-  logPD $ ppP "[DEBUG] logDirPath  :" <+> ppP logDirPath
   logPD $ ppP "[DEBUG] validExt    :" <+> ppP validExt
   (root, sortedVLMods, mapParsedAst) <- parseDependencyGraph fnMain rootDirPath ext logFilePath
   

@@ -6,7 +6,7 @@ import Data.Maybe (fromMaybe)
 import Control.Monad
 import Control.Monad.State
 
-import qualified Language.Absyn as AB (getImports, Module (..))
+import qualified Language.Absyn as AB (getImports, Module (..), getTopSyms)
 import qualified Language.LambdaVL as VL (Exp (..), Decl (..), getDecls, splitDeclsToMap)
 
 import Syntax.Common
@@ -14,7 +14,7 @@ import Syntax.Common
 import Syntax.Env hiding (setCounter, counter)
 import Syntax.Type (Type(..), Constraints(..), landC)
 
-import Translation.NameResolution ( nameResolve )
+import Translation.NameResolution ( nameResolve, duplicatedTopSyms )
 import Translation.Desugar (desugarAST)
 import Translation.Girard (girardFwd)
 import Translation.Promote ( promoteTopVal )
@@ -192,6 +192,7 @@ compileVLMod target@(VLMod mn v) = do
   logP ast
 
   logP "=== Name resolution ==="
+  liftIO $ duplicatedTopSyms ast
   importedSymbols <- getImportedSymbols importMods
   let ast_resolved = nameResolve importedSymbols ast
   logP ast_resolved
