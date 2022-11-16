@@ -1,5 +1,6 @@
 {-# LANGUAGE DefaultSignatures #-}
 module Util (
+  Extension(..), mkPath,
   pp, logPpLn, logPpLnDoc,
   module Prettyprinter,
   module Prettyprinter.Render.Text,
@@ -8,7 +9,6 @@ module Util (
   putDocString,
   vdash, semicolon, emptyset, pplist,
   Language.Haskell.Exts.ExactPrint.exactPrint,
-  HasVar(..),
   (<!>),
 ) where
 
@@ -23,6 +23,13 @@ import Data.List (nub)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+
+type Extension = String
+
+mkPath :: FilePath -> FilePath -> Extension -> FilePath
+mkPath p mn ext = p ++ mn ++ ext
+
+--------------
 
 pp :: PrettyAST a => a -> IO ()
 pp ast = putDoc $ ppE ast <+> line
@@ -74,18 +81,6 @@ m <!> k = fromMaybe
               "\n  key : " ++ show k ++ 
               "\n  map : " ++ show m ++ "\n") $
             M.lookup k m
-
-------------------------
-
-class HasVar a where
-  freeVars :: a -> [String]  
-  freeVars' :: a -> [String] -- considering VExt
-  vars :: a -> [String]
-
-instance HasVar a => HasVar [a] where
-  freeVars  xs = nub $ concatMap freeVars xs
-  freeVars' xs = nub $ concatMap freeVars' xs
-  vars xs = nub $ concatMap vars xs
 
 ------------------------
 

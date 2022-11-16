@@ -29,10 +29,10 @@ data Module l
 getDecls :: Module l -> [Decl l]
 getDecls (Module l _ _ _ decls) = decls
 
-splitDeclToMap :: Decl l -> Map String (Exp l)
+splitDeclToMap :: Decl l -> Map VarName (Exp l)
 splitDeclToMap d@(PatBind _ p e) = fromList [(getName p, e)]
 
-splitDeclsToMap :: [Decl l] -> Map String (Exp l)
+splitDeclsToMap :: [Decl l] -> Map VarName (Exp l)
 splitDeclsToMap = foldr (\d acc -> acc `union` splitDeclToMap d) empty
 
 -- | A top-level declaration.
@@ -159,18 +159,18 @@ instance HasVar (Alt l) where
   vars (Alt _ p e) = vars e
 
 
--- boundVarsPats :: [Pat l] -> [String]
+-- boundVarsPats :: [Pat l] -> [VarName]
 -- boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
 
-boundVars :: Pat l -> [String]
+boundVars :: Pat l -> [VarName]
 boundVars p = case p of
   PVar _ name          -> [getName name]
   PLit {}              -> []
-  PTuple _ ps         -> concatMap boundVars ps
+  PWildCard _          -> []
+  PTuple _ ps          -> concatMap boundVars ps
   PList _ ps           -> concatMap boundVars ps
   PApp _ _ ps          -> concatMap boundVars ps
   PInfixApp _ p1 qn p2 -> boundVars p1 ++ boundVars p2
-  PWildCard _          -> []
   PBox _ p             -> boundVars p
 
 -----------

@@ -22,7 +22,7 @@ import Data.Map ( empty, insert, insertWith, keys, Map )
 import qualified Data.List as L
 import Data.List.Split ( splitOn )
 
-import Language.Haskell.Exts hiding (parse)
+import Language.Haskell.Exts hiding (parse, Extension)
 import Language.Absyn
 
 import Graph
@@ -38,11 +38,11 @@ parseString ss = return $ fromParseResult $ parseFileContents ss
 
 -------------
 
-cvtMods :: [VLMod] -> Map String [Version]
+cvtMods :: [VLMod] -> Map ModName [Version]
 cvtMods []                = empty
 cvtMods ((VLMod mn v):ms) = insertWith (++) mn [v] $ cvtMods ms
 
-cvtExtMods :: [VLMod] -> Map String [Version]
+cvtExtMods :: [VLMod] -> Map ModName [Version]
 cvtExtMods ms = M.delete "Main" $ cvtMods ms
 
 -- Vis http://www.michaelburge.us/2017/09/01/how-to-use-graphviz-in-haskell.html
@@ -84,7 +84,7 @@ insertFinished str mod = modify $ \env ->
 deleteTBDNode :: VLMod -> Env ()
 deleteTBDNode mod = modify $ \env -> env { dependency = deleteNode mod $ dependency env }
 
-parseDependencyGraph :: String -> FilePath -> String -> FilePath -> IO (VLMod, [VLMod], ParsedAST)
+parseDependencyGraph :: ModName -> FilePath -> Extension -> FilePath -> IO (VLMod, [VLMod], ParsedAST)
 parseDependencyGraph entry dirpath extension logFilePath = do
   let vlModEntry = VLMod entry Root
   state <- execStateT makeDepGraph (Env' EmptyGraph [vlModEntry] empty)
@@ -104,7 +104,7 @@ parseDependencyGraph entry dirpath extension logFilePath = do
           case ver of
             -- parse root module
             Root -> do
-              let pathTarget = dirpath ++ mn ++ extension
+              let pathTarget = mkPath dirpath mn extension
               parsed <- liftIO $ parseAST pathTarget
               let newEdges = map
                     (\(x, y) -> (target, VLMod y TBD))

@@ -56,7 +56,7 @@ kind ty = do
     -- κ_ty
     TyCon qName -> do
       sigma <- gets uEnv
-      if getName qName `elem` basicType
+      if getName qName `elem` basicTypes
         then do
           let result = TypeKind
           putKindingLog sigma ty result

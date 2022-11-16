@@ -16,11 +16,11 @@ import Util
     ( exactPrint, line, (<+>), nest, parens, pplist, PrettyAST(..), emptyDoc )
 import Language.Haskell.Exts (exactPrint)
 
-getImports :: Module l -> [String]
+getImports :: Module l -> [ModName]
 getImports (Module _ _ _ importDecls _) = map getName importDecls
 getImports _ = error "getImports is not defined in any syntax other than Module."
 
-getDepEdge :: Module l -> [(String, String)]
+getDepEdge :: Module l -> [(ModName, ModName)]
 getDepEdge mod@(Module _ mh _ importDecls _) =
   let imports = getImports mod
       modname = maybe (error "This moudle does not have module name.") getName mh

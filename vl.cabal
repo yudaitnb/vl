@@ -38,6 +38,7 @@ library
       Solver
       SolverGT
       Syntax.Common
+      Syntax.Common.HasVar
       Syntax.Common.Keys
       Syntax.Common.Label
       Syntax.Common.Literal
@@ -52,6 +53,7 @@ library
       Translation.Desugar
       Translation.Extraction
       Translation.Girard
+      Translation.NameResolution
       Translation.Normalize
       Translation.Promote
       Translation.RenameExVars
@@ -77,6 +79,7 @@ library
     , filepath
     , ghc
     , ghc-paths
+    , haskell-names
     , haskell-src-exts
     , mtl
     , prettyprinter
@@ -109,6 +112,7 @@ executable vl-exe
     , filepath
     , ghc
     , ghc-paths
+    , haskell-names
     , haskell-src-exts
     , mtl
     , prettyprinter
@@ -146,6 +150,7 @@ test-suite vl-test
     , filepath
     , ghc
     , ghc-paths
+    , haskell-names
     , haskell-src-exts
     , hspec
     , mtl

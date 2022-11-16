@@ -27,13 +27,11 @@ import Util
 --       ((a2'' <= Av1 && a2'' <= a2_v1 && a1'' <= ??) || (a2'' <= Av2 && a2'' <= a2_v1 && a1'' <= ??))
 -- 結局a2_v1/a2_v2のバージョンは1つに決まらなければならないが、これは言語設計の制約の一つなので問題ない
 
-type CounterTable = Map String Int
-type DuplVarTable = Map String 
-
+type CounterTable = Map VarName Int
 
 data RenameEnv' = RenameEnv'
   { counterTable :: CounterTable  -- 各外部モジュール変数の累積数
-  , boundVars :: [String]         -- そのスコープにおける束縛変数のリスト
+  , boundVars :: [VarName]         -- そのスコープにおける束縛変数のリスト
   } deriving (Show)
 type RenameEnv a = State RenameEnv' a
 
@@ -43,30 +41,30 @@ mkInitRenameEnv ct decls = RenameEnv'
         map (\(PatBind _ p@(PVar _ n) e) -> N.getName n) decls
           ++ ["+", "-", "*", "/", "&&", "||", "<" ,"<=", ">", ">=", "==", "/=" ]
   where
-    freeVarsDecls :: [Decl SrcSpanInfo] -> [String]
+    freeVarsDecls :: [Decl SrcSpanInfo] -> [VarName]
     freeVarsDecls [] = []
     freeVarsDecls (d:rst) = (nub . freeVars . getBind $ d) ++ freeVarsDecls rst
 
-getCounterOf :: String -> RenameEnv Int
-getCounterOf s = do
-  gets $ (<!> s) . counterTable
+getCounterOf :: VarName -> RenameEnv Int
+getCounterOf vn = do
+  gets $ (<!> vn) . counterTable
 
-addCounterOf :: String -> RenameEnv ()
-addCounterOf s = do
+addCounterOf :: VarName -> RenameEnv ()
+addCounterOf vn = do
   oldct <- gets counterTable
-  oldc <- getCounterOf s
-  modify $ \env -> env { counterTable = M.insert s (oldc + 1) oldct }
+  oldc <- getCounterOf vn
+  modify $ \env -> env { counterTable = M.insert vn (oldc + 1) oldct }
 
-newNameOfExVar :: String -> Int -> String
+newNameOfExVar :: String -> Int -> VarName
 newNameOfExVar s c = "__" ++ s ++ "_" ++ show c
 
-newNamesOfExVar :: String -> Int -> Int -> [String]
+newNamesOfExVar :: String -> Int -> Int -> [VarName]
 newNamesOfExVar s c cstart = take c $ map (newNameOfExVar s) $ iterate (+1) cstart
 
-newNameOfExTyVar :: String -> Int -> String
+newNameOfExTyVar :: String -> Int -> VarName
 newNameOfExTyVar s c = s ++ "_" ++ show c
 
-newNamesOfExTyVar :: String -> Int -> Int -> [String]
+newNamesOfExTyVar :: String -> Int -> Int -> [VarName]
 newNamesOfExTyVar s c cstart = take c $ map (newNameOfExTyVar s) $ iterate (+1) cstart
 
 genNewVarFrom :: Exp SrcSpanInfo -> RenameEnv (Exp SrcSpanInfo)
@@ -82,12 +80,12 @@ isFree :: Exp SrcSpanInfo -> RenameEnv Bool
 isFree v@(Var _ _) = gets $ not . (N.getName v `elem`) . boundVars
 isFree e           = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
 
-addBoundVar :: String -> RenameEnv ()
-addBoundVar s = do
+addBoundVar :: VarName -> RenameEnv ()
+addBoundVar vn = do
   bv <- gets boundVars
-  modify $ \env -> env { boundVars = s : bv }
+  modify $ \env -> env { boundVars = vn : bv }
 
-setBoundVar :: [String] -> RenameEnv ()
+setBoundVar :: [VarName] -> RenameEnv ()
 setBoundVar ss = modify $ \env -> env { boundVars = ss }
 
 addBoundVarFromPat :: Pat SrcSpanInfo -> RenameEnv ()
@@ -148,10 +146,10 @@ renameExVarAlt (Alt l p e) = do
 -- -> ( [__f_0 : [!_a1_0 Int -> Int]_a0_0, __f_1 : [!_a1_1 Int -> Int]_a0_1,]
 --    , [a0_0:Labels, a1_0:Labels, a0_1:Labels, a1_1:Labels]
 --    , [a0_0 <= C_a0, a1_0 <= C_a1, a0_1 <= C_a0, a1_1 <= C_a1])
-duplicateEnvs :: CounterTable -> CounterTable -> (TEnv, UEnv, Map String Constraints) -> (TEnv, UEnv, Constraints, ExVarResources)
+duplicateEnvs :: CounterTable -> CounterTable -> (TEnv, UEnv, Map VarName Constraints) -> (TEnv, UEnv, Constraints, ExVarResources)
 duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctdiff) ctstart csschm (tenv, uenv, CTop, mempty)
   where
-    duplicateEnvs' :: [(String,Int)] -> CounterTable -> Map String Constraints -> (TEnv, UEnv, Constraints, ExVarResources) -> (TEnv, UEnv, Constraints, ExVarResources)
+    duplicateEnvs' :: [(VarName, Int)] -> CounterTable -> Map VarName Constraints -> (TEnv, UEnv, Constraints, ExVarResources) -> (TEnv, UEnv, Constraints, ExVarResources)
     duplicateEnvs' []          ctstart csschm envs = envs 
     duplicateEnvs' ((s,i):rst) ctstart csschm (oldTEnv, oldUEnv, oldCs, oldResVarMap) = 
       if i /= 0 then
@@ -164,7 +162,7 @@ duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctd
         in duplicateEnvs' rst ctstart csschm (newTEnv, newUEnv, newCs, newResVarMap)
       else
         duplicateEnvs' rst ctstart csschm (oldTEnv, oldUEnv, oldCs, oldResVarMap)
-    duplicateTyVarsUEnv :: [String] -> Int -> Int -> UEnv -> UEnv 
+    duplicateTyVarsUEnv :: [VarName] -> Int -> Int -> UEnv -> UEnv 
     duplicateTyVarsUEnv []       i cstart uenv = uenv
     duplicateTyVarsUEnv (tyn:ss) i cstart uenv = 
       let kind = uenv <!> tyn
@@ -176,14 +174,14 @@ duplicateEnvs ctdiff ctstart (tenv, uenv, csschm) = duplicateEnvs' (M.toList ctd
     duplicateTyVarsCons :: Constraints -> Int -> Int -> Constraints
     duplicateTyVarsCons csschmOfS i cstart = if i == 0 then csschmOfS else
       foldl1 landC $ map (`renameConsWithIdx` csschmOfS) $ take i $ iterate (+1) cstart
-    duplicateVarsTEnv :: String -> Int -> Int -> TEnv -> TEnv
+    duplicateVarsTEnv :: VarName -> Int -> Int -> TEnv -> TEnv
     duplicateVarsTEnv s i cstart tenv =
       let envty = tenv <!> s -- [!_a1 Int -> Int]_a0]
           tenvDeleted = M.delete s tenv
       in foldl (\acc (i, newvn) -> M.insert newvn (renameEnvTyWithIdx i envty) acc)
           tenvDeleted $
           zip (iterate (+1) cstart) (newNamesOfExVar s i cstart) -- [(cstart, "__f_cstart"), (cstart+1, "__f_cstart+1")]
-    duplicateResVarMap :: String -> Int -> Int -> TEnv -> ExVarResources
+    duplicateResVarMap :: VarName -> Int -> Int -> TEnv -> ExVarResources
     duplicateResVarMap s i cstart tenv =
       case tenv <!> s of
         NType _ _    -> error ""

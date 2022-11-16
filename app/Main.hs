@@ -23,8 +23,7 @@ import Translation.Girard ( girardBck )
 import Syntax.Type (landC, Constraints(..), Type, HasName (getName))
 import Syntax.Common (Version(..), Label, ParsedAST(..))
 
--- import Language.Haskell.Names as HN
-import Language.Haskell.Exts.Pretty as PP
+import Language.Haskell.Exts.Pretty
 
 import Util
 
@@ -59,15 +58,14 @@ main = do
   (root, sortedVLMods, mapParsedAst) <- parseDependencyGraph fnMain rootDirPath ext logFilePath
   
   logP "=== Parsed Modules ==="
-  logPD $ ppP mapParsedAst
-  logP . show $ mapParsedAst <!> VLMod "Main" Root
+  logP mapParsedAst
 
   logP "=== Compilation order ==="
   logP sortedVLMods
   env <- compile sortedVLMods mapParsedAst logFilePath
 
   logP "=== External Variables ==="
-  let exVarsRes = exVarResources env
+  let exVarsRes = duplicatedExVars env
   logPD $ concatWith (surround line) $ mapWithKey (\k (orig, m, ty) -> ppP k <+> ppP m <+> ppP ty) exVarsRes
 
   logP "\n=== Constraints ==="

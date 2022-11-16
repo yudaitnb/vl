@@ -3,9 +3,9 @@ module Syntax.Type (
   Coeffect, Type(..), 
   --Constraint(..), 
   Constraints(..), emptyConstraints, landC, lorC,
-  consOn, isClosed,
+  isClosed,
   coeff0, coeff1,
-  tyint, tybool, tychar,
+  tyint, tybool, tychar, tystring,
   (.+), (.*), --(.<),
   HasName(..),
   tySym,
@@ -125,6 +125,9 @@ tybool = TyCon (UnQual (Ident "Bool"))
 tychar :: Type
 tychar = TyCon (UnQual (Ident "Char"))
 
+tystring :: Type
+tystring = TyCon (UnQual (Ident "String"))
+
 coeff0 :: Coeffect
 coeff0 = TyBottom
 
@@ -161,24 +164,6 @@ instance HasVar Constraints where
     COr c1 c2     -> nub $ freeVars c1 ++ freeVars c2
   freeVars' = freeVars
   vars  = freeVars
-
-consOn :: Type -> [String]
-consOn ty = nub $ consOn' ty
-  where
-    consOn' ty =
-      case ty of
-      -- Types
-      TyCon _     -> []
-      TyVar name  -> [getName name]
-      TyFun t1 t2 -> consOn' t1 ++ consOn' t2
-      TyBox c t   -> consOn' c ++ consOn' t
-      -- Coeffects
-      TyBottom    -> []
-      TyLabels _  -> []
-      CAdd c1 c2  -> consOn' c1 ++ consOn' c2
-      CMul c1 c2  -> consOn' c1 ++ consOn' c2
-      -- Constraints
-      -- CSubset c1 c2 -> consOn' c1
 
 isClosed :: Type -> Bool
 isClosed ty = Data.List.null $ freeVars ty

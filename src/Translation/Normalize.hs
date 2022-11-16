@@ -11,11 +11,11 @@ class Normalize ast where
 
 data NormalizeEnv' = NormalizeEnv'
   { counter :: Int             -- 束縛変数の累積数
-  , usedName :: [String]       -- 使用済み変数名
+  , usedName :: [VarName]       -- 使用済み変数名
   }
 type NormalizeEnv a = State NormalizeEnv' a
 
-genNewVar :: NormalizeEnv String
+genNewVar :: NormalizeEnv VarName
 genNewVar = do
   c <- gets counter
   used <- gets usedName

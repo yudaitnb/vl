@@ -37,7 +37,7 @@ instance (Show l, PrettyAST l) => PrettyAST (QName l) where
     <+> ppE srcLocInfo <> line
     <+> ppE name <> ppE ")"
   ppE qn = error $ "\nppE is not defined for an given expression.\n" ++ show qn
-  ppP (Qual _ moduleName name) = ppP moduleName <> ppP "." <> ppP name
+  ppP (Qual _ mn name) = ppP mn <> ppP "." <> ppP name
   ppP (UnQual _ name) = ppP name
   ppP (Special _ spc) = ppP spc
 

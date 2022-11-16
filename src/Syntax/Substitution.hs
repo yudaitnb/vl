@@ -19,7 +19,7 @@ import Control.Monad.State (gets)
 import Control.Monad.Trans.State (evalStateT)
 import Control.Monad (forM,foldM)
 
-newtype Subst = Subst { subst :: [(String, Type)] }
+newtype Subst = Subst { subst :: [(VarName, Type)] }
 
 instance Semigroup Subst where
   Subst a <> Subst b = Subst (a ++ b)
@@ -41,14 +41,14 @@ instance HasVar Subst where
 emptySubst :: Subst
 emptySubst = Subst []
 
-makeSubst :: String -> Type -> Subst
-makeSubst k v = Subst [(k, v)]
+makeSubst :: VarName -> Type -> Subst
+makeSubst vn t = Subst [(vn, t)]
 
-findSubst :: String -> Subst -> Maybe Type
-findSubst str sub = lookup str (subst sub)
+findSubst :: VarName -> Subst -> Maybe Type
+findSubst vn sub = lookup vn (subst sub)
 
-(\\) :: Subst -> String -> Subst
-(\\) s str = Subst $ dropWhile (\(k,_) -> k == str) (subst s)
+(\\) :: Subst -> VarName -> Subst
+(\\) sbt vn = Subst $ dropWhile (\(k,_) -> k == vn) (subst sbt)
 
 putSubstCompLog :: UEnv -> Subst -> Subst -> Subst -> Env ()
 putSubstCompLog oldu s1 s2 s3 = do

@@ -2,37 +2,38 @@ module Translation.Bundling (
   bundle
 ) where
 
-import Data.Map
-import qualified Data.List
 import Control.Monad.State
 import Control.Monad (forM_)
+
+import Data.Map
+import qualified Data.List
+
+import Language.Haskell.Exts (KnownExtension(ConstraintKinds))
 
 import Parser
 import Inference.TypeInference hiding (constraints, uenv)
 
-import Syntax.Common (Version)
+import Syntax.Common (Version, ModName(..), VarName(..))
 import Syntax.Type
 import Syntax.Env hiding (counter)
-
 import Syntax.Kind ( Kind(LabelsKind) )
-import Language.Haskell.Exts (KnownExtension(ConstraintKinds))
 
 import Util
 
 
 data CollectEnv' = CollectEnv'
-  { resources   :: Map String [Version]
-  , types       :: Map String (Map Version Type)
-  , constraints :: Map String (Map Version Constraints)
-  , uenv        :: Map String UEnv
+  { resources   :: Map ModName [Version]
+  , types       :: Map ModName (Map Version Type)
+  , constraints :: Map ModName (Map Version Constraints)
+  , uenv        :: Map ModName UEnv
   }
   deriving (Show)
 type CollectEnv a = State CollectEnv' a
 
-addResource :: String -> Version -> CollectEnv ()
-addResource s v = modify $ \env ->
-  let m' = v : (resources env <!> s)
-  in env {resources = insert s m' $ resources env}
+addResource :: ModName -> Version -> CollectEnv ()
+addResource mn v = modify $ \env ->
+  let m' = v : (resources env <!> mn)
+  in env {resources = insert mn m' $ resources env}
 
 checkTypes :: Map Version Type -> Bool
 checkTypes tys = 
@@ -44,19 +45,10 @@ data BundleEnv' = BundleEnv'
   , bTEnv        :: TEnv
   , bUEnv        :: UEnv
   , bConstraints :: Constraints
-  , bConsScheme  :: Map String Constraints 
+  , bConsScheme  :: Map VarName Constraints 
   }
   deriving (Show)
 type BundleEnv a = State BundleEnv' a
-
--- genNewLabelsVar :: State Int (Type, UEnv)
--- genNewLabelsVar = do
---   c <- get
---   let name = prefixNewTyVar ++ show c
---       uenv' = makeEnv [(name, LabelsKind)]
---       tyvar = TyVar (Ident name)
---   modify $ \c -> c + 1
---   return (tyvar, uenv')
 
 -- 新しいラベル変数を生成し、型変数環境をその新ラベル変数で更新
 genNewLabelsVar :: BundleEnv Type
@@ -73,12 +65,14 @@ genNewLabelsVar = do
 -- f : !_a1 (!_a0 Int -> Int) -> f : f : !_a2 (!_a3 Int -> Int) (a2,a3は逆でも問題なし)
 genSampleType :: Type -> BundleEnv Type
 genSampleType ty = case ty of
-  TyCon _ -> return ty
-  TyVar name -> genNewLabelsVar
+  TyCon _     -> return ty
+  TyVar name  -> genNewLabelsVar
   TyFun t1 t2 -> TyFun <$> genSampleType t1 <*> genSampleType t2
-  TyBox c t -> TyBox <$> genSampleType c <*> genSampleType t
-  TyBottom   -> return ty
-  TyLabels _ -> return ty
+  TyBox c t   -> TyBox <$> genSampleType c <*> genSampleType t
+  TyBottom    -> return ty
+  TyLabels _  -> return ty
+  TyTuple ts  -> TyTuple <$> mapM genSampleType ts
+  TyList ty   -> TyList <$> genSampleType ty
 
 -- 特定のバージョンの型と見本の型を受け取り、その間の制約を生成する
 genConstraints :: Type -> Type -> BundleEnv Constraints
@@ -87,6 +81,10 @@ genConstraints t1 t2 = case (t1, t2) of
   (TyVar _, TyVar _) -> return $ CSubset t1 t2
   (TyFun t1 t2, TyFun t1' t2') -> landC <$> genConstraints t1 t1' <*> genConstraints t2 t2'
   (TyBox c t, TyBox c' t') -> landC <$> genConstraints c c' <*> genConstraints t t'
+  (TyTuple ts, TyTuple ts') -> do
+    cs <- zipWithM genConstraints ts ts'
+    foldM (\c1 c2 -> return $ c1 `landC` c2) emptyConstraints cs
+  (TyList t, TyList t') -> genConstraints t t'
   (TyBottom, TyBottom)   -> return CTop
   (TyLabels _, TyLabels _) -> return CTop
 
@@ -94,7 +92,7 @@ genConstraints t1 t2 = case (t1, t2) of
 -- 1. そのトップレベルシンボルの全てのバージョンの型がtySymの関係の上で同型か検査
 -- 2. そのトップレベルシンボルの実装が存在する全てのバージョンをresourcesに収集
 -- 3. そのトップレベルシンボルに関する全てのバージョン制約をconstraintsに収集
-bundle :: String -> Int -> Map VLMod [TypedExp] -> (TEnv, UEnv, Constraints, Map String Constraints, Int)
+bundle :: ModName -> Int -> Map VLMod [TypedExp] -> (TEnv, UEnv, Constraints, Map VarName Constraints, Int)
 bundle mn initC m =
   let
     CollectEnv' vers tys cons mapu = execState collectAcrossVersion (CollectEnv' empty empty empty empty)
@@ -109,7 +107,7 @@ bundle mn initC m =
       , newCounter)
   where
     -- あるシンボルのバージョン毎の型を受け取り、bundle後のTEnv, 増えたラベルのUEnv, 増えたラベルと前のラベルの間のリソースを計算する
-    bundleOfVnMn :: String -> String -> Map Version Type -> BundleEnv ()
+    bundleOfVnMn :: VarName -> ModName -> Map Version Type -> BundleEnv ()
     bundleOfVnMn vn mn tymap = do
       let tymaplst = toList tymap
           tyhead = snd . head $ tymaplst
@@ -124,10 +122,6 @@ bundle mn initC m =
         { bConstraints = csOfV `landC` bConstraints env
         , bTEnv = insert vn newEnvTy (bTEnv env)
         , bConsScheme = insert vn csOfV (bConsScheme env) } -- bUEnvはラベル生成時に更新済み
-
-    -- -- 収集されたConstraints情報を単純にandする
-    -- bundleConstraints :: Map String (Map Version Constraints) -> Constraints
-    -- bundleConstraints m = foldl1 landC $ Prelude.map (foldl1 landC . elems) $ elems m
   
     collectAcrossVersion :: CollectEnv ()
     collectAcrossVersion =
