@@ -42,19 +42,19 @@ import B
 --   let fst x = case x of (x1,x2) -> x1
 --   in fst (y,b2)
 
--- main =
---   let sumTpl x = case x of (x1,x2) -> x1 + x2
---   in sumTpl (y,b1)
-
 main =
-  let lst = [y,b2]
-      n = length lst
-  in head lst
+  let sumTpl x = case x of (x1,x2) -> x1 + x2
+  in sumTpl (y,b1)
 
-head xs = case xs of
-  []     -> 0
-  hh:rst -> hh
+-- main =
+--   let lst = [y,b2]
+--       n = length lst
+--   in head lst
 
-length xs = case xs of
-  []     -> 0
-  hh:rst -> 1 + length rst
+-- head xs = case xs of
+--   []     -> 0
+--   h:rst -> h
+
+-- length xs = case xs of
+--   []     -> 0
+--   hh:rst -> 1 + length rst

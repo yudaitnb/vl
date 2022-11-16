@@ -18,14 +18,14 @@ packages:
 - completed:
     name: haskell-names
     pantry-tree:
-      sha256: 6fefaf6f98cc4de30222ce306301afeb7b4cb9827758ccb1340e83d14533ca71
-      size: 28820
-    sha256: dc818be2e5c98e3df007f42f8166bdc7ea739ae84d2f90c9e28b782b8d217468
-    size: 651352
-    url: https://github.com/yudaitnb/vl-haskell-names/archive/c8c5504900b45379d98eeeaf4d1ca30cfa187470.tar.gz
+      sha256: 3aa5571a48cdde26296f03eb7f79bb5cec4b0f7408e4b48f3b37665206bbb277
+      size: 29549
+    sha256: 842b4c0cc3296260ed8982c12bfede7f4becc6fcd1475b1273a706be10092ba9
+    size: 811705
+    url: https://github.com/yudaitnb/vl-haskell-names/archive/2ab1d994774646af01d756ddce771fff51558ba7.tar.gz
     version: 0.9.9
   original:
-    url: https://github.com/yudaitnb/vl-haskell-names/archive/c8c5504900b45379d98eeeaf4d1ca30cfa187470.tar.gz
+    url: https://github.com/yudaitnb/vl-haskell-names/archive/2ab1d994774646af01d756ddce771fff51558ba7.tar.gz
 snapshots:
 - completed:
     sha256: 895204e9116cba1f32047525ec5bad7423216587706e5df044c4a7c191a5d8cb

@@ -11,10 +11,10 @@ module Syntax.Env (
   setLogs, initializeLogs, putLog, debugE, debugP, debug,
   addLC, subLC, initializeLC, initLC,
   initializeEnv, initEnv,
-  (.++), (.++.), (.**),
+  (.++), (.++.), (.+++), (.**),
   gradeTEnv,
   genNewTyVar,
-  basicType,
+  basicTypes,
   genConstraint, genConstraintBy, genConstraintPull,
   --Logs
   Logs, reverseLogs, emptyLogs,
@@ -22,15 +22,19 @@ module Syntax.Env (
   Tag(..)
 ) where
 
+import Prelude hiding (log, lookup)
+import Control.Monad.State
+
+import qualified Data.List
 import Data.Map
 
-import Prelude hiding (log, lookup)
 import Syntax.Type
 import Syntax.Kind
-import Control.Monad.State
-import Util
-import qualified Data.List
+import Syntax.Common (HasVar(..), VarName(..), ModName(..))
+
 import Parser (VLMod(..))
+
+import Util
 
 prefixNewTyVar :: String
 prefixNewTyVar = "a"
@@ -46,11 +50,10 @@ getType :: EnvType -> Type
 getType (NType _ t) = t
 getType (GrType _ t _) = t
 
-type TEnv = Map String EnvType
-type UEnv = Map String Kind
-data REnv = EmptyREnv | REnv Coeffect
-  deriving (Show)
-type ExVarResources = Map String (String, Type) -- 元の名前, 付与されたリソース変数
+type TEnv = Map VarName EnvType
+type UEnv = Map VarName Kind
+data REnv = EmptyREnv | REnv Coeffect deriving (Show)
+type ExVarResources = Map VarName (VarName, Type) -- 元の名前, 付与されたリソース変数
 
 class Environment env where
   type Key env
@@ -65,7 +68,7 @@ class Environment env where
   varsInEnv :: env -> [Key env]
 
 instance Environment TEnv where
-  type Key TEnv = String
+  type Key TEnv = VarName
   type Value TEnv = EnvType
   emptyEnv = empty
   makeEnv = fromList
@@ -80,7 +83,7 @@ instance Environment TEnv where
   varsInEnv = keys
 
 instance Environment UEnv where
-  type Key UEnv = String
+  type Key UEnv = VarName
   type Value UEnv = Kind
   emptyEnv = empty
   makeEnv = fromList
@@ -101,6 +104,8 @@ instance HasVar EnvType where
   freeVars' = freeVars
   vars  = freeVars
 
+-- (+) : tenv1をtenv2に足す
+-- tenv1とtenv2の両方に含まれるkeyは存在する場合は両者のリソースをマージする
 (.++) :: TEnv -> TEnv -> TEnv
 (.++) = unionWith concat
   where
@@ -119,6 +124,8 @@ instance HasVar EnvType where
               else error "(.++) : Two EnvTy should have the same tag and type."
           _ -> error $ "Both types " ++ show t1 ++ " and " ++ show t2 ++ " should be types with resources."
 
+-- (,) : tenv1をtenv2に足す
+-- tenv1とtenv2の両方に含まれるkeyは存在する場合はerror
 (.++.) :: TEnv -> TEnv -> TEnv
 (.++.) = unionWithKey (\key t1 t2 -> error $ message key t1 t2)
   where
@@ -127,6 +134,12 @@ instance HasVar EnvType where
       <> ppP "  key:" <+> ppP key <> line
       <> ppP "  t1: " <+> ppP t1 <> line
       <> ppP "  t2: " <+> ppP t2
+
+-- tenv1をtenv2に足す
+-- tenv1とtenv2の両方に含まれるkeyは存在する場合はtenv2で上書きする
+-- PatやCaseから型環境が生成される際に用いる
+(.+++) :: TEnv -> TEnv -> TEnv 
+(.+++) = unionWithKey (\key t1 t2 -> t2)
 
 (.**) :: Coeffect -> TEnv -> TEnv
 (.**) c = Data.Map.map (mul c)
@@ -172,7 +185,8 @@ data Env' = Env'
   deriving (Show)
 type Env a = StateT Env' IO a
 
-newtype Logs = Logs { logs :: [String] }
+type Log = String
+newtype Logs = Logs { logs :: [Log] }
   deriving (Eq, Show)
 
 -- ^ Counter
@@ -192,8 +206,8 @@ setTEnv tenv = modify $ \env -> env { tEnv = tenv }
 initializeTEnv :: Env ()
 initializeTEnv = setTEnv emptyEnv
 
-putTEnv :: String -> EnvType -> Env ()
-putTEnv s et = modify $ \env -> env { tEnv = insert s et (tEnv env) }
+putTEnv :: VarName -> EnvType -> Env ()
+putTEnv vn et = modify $ \env -> env { tEnv = insert vn et (tEnv env) }
 
 -- ^ UEnv
 setUEnv :: UEnv -> Env ()
@@ -236,7 +250,7 @@ setLogs logs = modify $ \env -> env { log = logs }
 initializeLogs :: Env ()
 initializeLogs = modify $ \env -> env { log = Logs [] }
 
-putLog :: String -> Env ()
+putLog :: Log -> Env ()
 putLog str = modify $ \env -> env { log = Logs (str : logs (log env)), logc = logc env - 1 }
 
 reverseLogs :: Logs -> Logs
@@ -293,8 +307,8 @@ genNewTyVar kind = do
 
 ---------------------------------------
 
-basicType :: [String]
-basicType = ["Int", "String", "Char"]
+basicTypes :: [String]
+basicTypes = ["Int", "String", "Bool"]
 
 intTy :: Type
 intTy = TyCon (UnQual (Ident "Int"))

@@ -174,13 +174,18 @@ instance HasVar (Module l) where
   freeVars' (Module _ _ _ _ ds) = nub $ concatMap freeVars' ds
   vars (Module _ _ _ _ ds) = nub $ concatMap vars ds
 
-boundVarsPats :: [Pat l] -> [String]
+boundVarsPats :: [Pat l] -> [VarName]
 boundVarsPats = foldl (\acc p -> boundVars p ++ acc) []
 
-boundVars :: Pat l -> [String]
-boundVars (PVar _ name) = [getName name]
-boundVars (PLit {})  = []
-boundVars (PWildCard _) = []
+boundVars :: Pat l -> [VarName]
+boundVars p = case p of
+  PVar _ name          -> [getName name]
+  PLit {}              -> []
+  PWildCard _          -> []
+  PTuple _ ps          -> concatMap boundVars ps
+  PList _ ps           -> concatMap boundVars ps
+  PApp _ _ ps          -> concatMap boundVars ps
+  PInfixApp _ p1 qn p2 -> boundVars p1 ++ boundVars p2
 
 ---------------------
 --  Pretty printer --

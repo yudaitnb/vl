@@ -9,13 +9,13 @@ import Data.ByteString.Lazy
 
 import Util
 
-configFileName :: String
+configFileName :: FilePath
 configFileName = "vlconfig.json"
 
 data VLConfig = VLConfig
   { root :: FilePath
   , log  :: FilePath
-  , extension :: String
+  , extension :: Extension
   } deriving (Show)
 
 instance FromJSON VLConfig where
@@ -31,7 +31,7 @@ instance ToJSON VLConfig where
     , "extension".= extension
     ]
 
-decodeConfig :: IO (FilePath, FilePath, String)
+decodeConfig :: IO (FilePath, FilePath, Extension)
 decodeConfig = do
   content <- readFile configFileName
   let config = fromMaybe (error "Failed to parse vlconfig.json.") $ decode content

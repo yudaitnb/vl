@@ -46,7 +46,7 @@ extra-deps:
 - github: yudaitnb/vl-haskell-src-exts
   commit: d3591d04110e7c79ac5a42740f3b65935b3b1ae6
 - github: yudaitnb/vl-haskell-names
-  commit: c8c5504900b45379d98eeeaf4d1ca30cfa187470
+  commit: 2ab1d994774646af01d756ddce771fff51558ba7
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

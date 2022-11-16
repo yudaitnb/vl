@@ -5,8 +5,10 @@ module Syntax.Common (
   module Syntax.Common.Name,
   module Syntax.Common.Literal,
   module Syntax.Common.Keys,
+  module Syntax.Common.HasVar,
   VLMod(..),
   ParsedAST,
+  reservedOps,
 ) where
 
 import Data.Map
@@ -17,6 +19,7 @@ import Syntax.Common.Label
 import Syntax.Common.Literal
 import Syntax.Common.Name
 import Syntax.Common.Keys
+import Syntax.Common.HasVar
 
 import Util
 
@@ -28,6 +31,12 @@ data VLMod = VLMod {
   }
   deriving (Eq, Ord, Show)
 
+reservedOps :: [String]
+reservedOps = [ "+", "-", "*", "/"
+              , "&&", "||"
+              , "<" ,"<=", ">", ">=", "==", "/="]
+
+----------------------
 
 instance PrettyAST VLMod where
   ppE (VLMod mn v) = nest 2 $ parens $ ppE "VLMod" <+> ppE mn <+> ppE v

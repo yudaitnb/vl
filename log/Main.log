@@ -34,6 +34,17 @@ g x = x + 1
 
 
 
+ll = length
+
+
+
+
+
+length xs = case xs of
+  [] -> 0
+  hh : rst -> 1 + length rst
+
+
 === B-1.0.1
 module B where
 
@@ -90,24 +101,23 @@ import B
 
 
 
-
-
-
-
 main =
-  let lst = [y,b2]
-      n = length lst
-  in head lst
+  let sumTpl x = case x of (x1,x2) -> x1 + x2
+  in sumTpl (y,b1)
+
+
+
+
+
 
 head xs = case xs of
   []     -> 0
-  hh:rst -> hh
+  h:rst -> h
 
 length xs = case xs of
   []     -> 0
   hh:rst -> 1 + length rst
 
-Module (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 1 61 1, srcInfoPoints = [SrcSpan "./examples/Main.hs" 1 1 1 1,SrcSpan "./examples/Main.hs" 1 1 1 1,SrcSpan "./examples/Main.hs" 3 1 3 1,SrcSpan "./examples/Main.hs" 4 1 4 1,SrcSpan "./examples/Main.hs" 49 1 49 1,SrcSpan "./examples/Main.hs" 54 1 54 1,SrcSpan "./examples/Main.hs" 58 1 58 1,SrcSpan "./examples/Main.hs" 61 1 61 1,SrcSpan "./examples/Main.hs" 61 1 61 1]}) (Just (ModuleHead (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 1 1 18, srcInfoPoints = [SrcSpan "./examples/Main.hs" 1 1 1 7,SrcSpan "./examples/Main.hs" 1 13 1 18]}) (ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 1 8 1 12, srcInfoPoints = []}) "Main") Nothing Nothing)) [] [ImportDecl {importAnn = SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 3 1 3 9, srcInfoPoints = [SrcSpan "./examples/Main.hs" 3 1 3 7]}, importModule = ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 3 8 3 9, srcInfoPoints = []}) "A", importQualified = False, importSrc = False, importSafe = False, importPkg = Nothing, importAs = Nothing, importSpecs = Nothing},ImportDecl {importAnn = SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 4 1 4 9, srcInfoPoints = [SrcSpan "./examples/Main.hs" 4 1 4 7]}, importModule = ModuleName (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 4 8 4 9, srcInfoPoints = []}) "B", importQualified = False, importSrc = False, importSafe = False, importPkg = Nothing, importAs = Nothing, importSpecs = Nothing}] [PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 49 1 52 14, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 49 1 49 5, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 49 1 49 5, srcInfoPoints = []}) "main")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 49 6 52 14, srcInfoPoints = [SrcSpan "./examples/Main.hs" 49 6 49 7]}) (Let (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 3 52 14, srcInfoPoints = [SrcSpan "./examples/Main.hs" 50 3 50 6,SrcSpan "./examples/Main.hs" 52 3 52 5]}) (BDecls (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 7 51 21, srcInfoPoints = [SrcSpan "./examples/Main.hs" 50 7 50 7,SrcSpan "./examples/Main.hs" 51 7 51 7,SrcSpan "./examples/Main.hs" 52 3 52 0]}) [PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 7 50 19, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 7 50 10, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 7 50 10, srcInfoPoints = []}) "lst")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 11 50 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 50 11 50 12]}) (List (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 13 50 19, srcInfoPoints = [SrcSpan "./examples/Main.hs" 50 13 50 14,SrcSpan "./examples/Main.hs" 50 15 50 16,SrcSpan "./examples/Main.hs" 50 18 50 19]}) [Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 14 50 15, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 14 50 15, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 14 50 15, srcInfoPoints = []}) "y")),Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 16 50 18, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 16 50 18, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 50 16 50 18, srcInfoPoints = []}) "b2"))])) Nothing,PatBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 7 51 21, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 7 51 8, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 7 51 8, srcInfoPoints = []}) "n")) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 9 51 21, srcInfoPoints = [SrcSpan "./examples/Main.hs" 51 9 51 10]}) (App (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 11 51 21, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 11 51 17, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 11 51 17, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 11 51 17, srcInfoPoints = []}) "length"))) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 18 51 21, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 18 51 21, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 51 18 51 21, srcInfoPoints = []}) "lst"))))) Nothing]) (App (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 6 52 14, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 6 52 10, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 6 52 10, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 6 52 10, srcInfoPoints = []}) "head"))) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 11 52 14, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 11 52 14, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 52 11 52 14, srcInfoPoints = []}) "lst")))))) Nothing,FunBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 1 56 15, srcInfoPoints = []}) [Match (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 1 56 15, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 1 54 5, srcInfoPoints = []}) "head") [PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 6 54 8, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 6 54 8, srcInfoPoints = []}) "xs")] (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 9 56 15, srcInfoPoints = [SrcSpan "./examples/Main.hs" 54 9 54 10]}) (Case (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 11 56 15, srcInfoPoints = [SrcSpan "./examples/Main.hs" 54 11 54 15,SrcSpan "./examples/Main.hs" 54 19 54 21,SrcSpan "./examples/Main.hs" 55 3 55 3,SrcSpan "./examples/Main.hs" 56 3 56 3,SrcSpan "./examples/Main.hs" 58 1 58 0]}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 16 54 18, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 16 54 18, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 54 16 54 18, srcInfoPoints = []}) "xs"))) [Alt (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 55 3 55 14, srcInfoPoints = []}) (PList (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 55 3 55 5, srcInfoPoints = [SrcSpan "./examples/Main.hs" 55 3 55 4,SrcSpan "./examples/Main.hs" 55 4 55 5]}) []) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 55 10 55 14, srcInfoPoints = [SrcSpan "./examples/Main.hs" 55 10 55 12]}) (Lit (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 55 13 55 14, srcInfoPoints = []}) (Int (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 55 13 55 14, srcInfoPoints = []}) 0 "0"))) Nothing,Alt (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 3 56 15, srcInfoPoints = []}) (PInfixApp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 3 56 9, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 3 56 5, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 3 56 5, srcInfoPoints = []}) "hh")) (Special (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 5 56 6, srcInfoPoints = []}) (Cons (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 5 56 6, srcInfoPoints = []}))) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 6 56 9, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 6 56 9, srcInfoPoints = []}) "rst"))) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 10 56 15, srcInfoPoints = [SrcSpan "./examples/Main.hs" 56 10 56 12]}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 13 56 15, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 13 56 15, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 56 13 56 15, srcInfoPoints = []}) "hh")))) Nothing])) Nothing],FunBind (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 1 60 27, srcInfoPoints = []}) [Match (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 1 60 27, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 1 58 7, srcInfoPoints = []}) "length") [PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 8 58 10, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 8 58 10, srcInfoPoints = []}) "xs")] (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 11 60 27, srcInfoPoints = [SrcSpan "./examples/Main.hs" 58 11 58 12]}) (Case (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 13 60 27, srcInfoPoints = [SrcSpan "./examples/Main.hs" 58 13 58 17,SrcSpan "./examples/Main.hs" 58 21 58 23,SrcSpan "./examples/Main.hs" 59 3 59 3,SrcSpan "./examples/Main.hs" 60 3 60 3,SrcSpan "./examples/Main.hs" 61 1 61 0]}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 18 58 20, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 18 58 20, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 58 18 58 20, srcInfoPoints = []}) "xs"))) [Alt (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 59 3 59 14, srcInfoPoints = []}) (PList (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 59 3 59 5, srcInfoPoints = [SrcSpan "./examples/Main.hs" 59 3 59 4,SrcSpan "./examples/Main.hs" 59 4 59 5]}) []) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 59 10 59 14, srcInfoPoints = [SrcSpan "./examples/Main.hs" 59 10 59 12]}) (Lit (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 59 13 59 14, srcInfoPoints = []}) (Int (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 59 13 59 14, srcInfoPoints = []}) 0 "0"))) Nothing,Alt (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 3 60 27, srcInfoPoints = []}) (PInfixApp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 3 60 9, srcInfoPoints = []}) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 3 60 5, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 3 60 5, srcInfoPoints = []}) "hh")) (Special (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 5 60 6, srcInfoPoints = []}) (Cons (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 5 60 6, srcInfoPoints = []}))) (PVar (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 6 60 9, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 6 60 9, srcInfoPoints = []}) "rst"))) (UnGuardedRhs (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 10 60 27, srcInfoPoints = [SrcSpan "./examples/Main.hs" 60 10 60 12]}) (InfixApp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 13 60 27, srcInfoPoints = []}) (Lit (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 13 60 14, srcInfoPoints = []}) (Int (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 13 60 14, srcInfoPoints = []}) 1 "1")) (QVarOp (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 15 60 16, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 15 60 16, srcInfoPoints = []}) (Symbol (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 15 60 16, srcInfoPoints = []}) "+"))) (App (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 17 60 27, srcInfoPoints = []}) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 17 60 23, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 17 60 23, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 17 60 23, srcInfoPoints = []}) "length"))) (Var (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 24 60 27, srcInfoPoints = []}) (UnQual (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 24 60 27, srcInfoPoints = []}) (Ident (SrcSpanInfo {srcInfoSpan = SrcSpan "./examples/Main.hs" 60 24 60 27, srcInfoPoints = []}) "rst")))))) Nothing])) Nothing]]
 === Compilation order ===
 B-1.0.1
 B-1.0.0
@@ -120,6 +130,17 @@ Main-Root
 ===================================
 
 === AST (Syntax.Absyn) ===
+module B where
+
+y = 2
+b2 = 2
+f x = x + 2
+
+h x = x * 1
+
+
+
+=== Name resolution ===
 module B where
 
 y = 2
@@ -155,24 +176,24 @@ h = (\x.((* x) 1))
 
 === AST (Syntax.VL) ===
 module B where where
-y = [2]
+y = 2
 
-b2 = [2]
+b2 = 2
 
-f = [(\[x].((+ [x]) [2]))]
+f = (\[x].((+ [x]) [2]))
 
-h = [(\[x].((* [x]) [1]))]
+h = (\[x].((* [x]) [1]))
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module B where where
-y = [2]
+y = 2
 
-b2 = [2]
+b2 = 2
 
-f = [(\[x].((+ [x]) [2]))]
+f = (\[x].((+ [x]) [2]))
 
-h = [(\[x].((* [x]) [1]))]
+h = (\[x].((* [x]) [1]))
 
 [DEBUG] ct     : 
 [DEBUG] ct'    : 
@@ -200,7 +221,7 @@ y : Int@[a2]
 (TypeInf) y:[a0]_(a1) |- [2] => (Int@[a2]; (); ⊤)
 b2 : Int@[a6]
 |(TypeInf) {} |- 2 => (Int; (); ⊤)
-(TypeInf) b2:[a4]_(a5), y:[Int@[a2]]_(a3) |- [2] => (Int@[a6]; (); ⊤)
+(TypeInf) b2:[a4]_(a5), y:[Int]_(a3) |- [2] => (Int@[a6]; (); ⊤)
 f : (Int@[a12] -> Int)@[a20]
 |||(Kinding) |- a12 : Label
 ||||(Kinding) |- a13 : Type
@@ -227,7 +248,7 @@ f : (Int@[a12] -> Int)@[a20]
 |||(TyUnify)  |- (Int@[a15] -> Int) ~ (Int@[a18] -> a19) ▷ (a18 ↦ a15, a19 ↦ Int)
 ||(TypeInf) x:[a13]_(a12) |- ((+ [x]) [2]) => (Int; (a17 ↦ (Int@[a15] -> Int), a13 ↦ Int, a16 ↦ a14, a18 ↦ a15, a19 ↦ Int); (a16 ≤ a12))
 |(TypeInf) {} |- (\[x].((+ [x]) [2])) => ((Int@[a12] -> Int); (a17 ↦ (Int@[a15] -> Int), a13 ↦ Int, a11 ↦ Int@[a12], a16 ↦ a14, a18 ↦ a15, a19 ↦ Int); (a16 ≤ a12))
-(TypeInf) b2:[Int@[a6]]_(a7), f:[a9]_(a10), y:[Int@[a2]]_(a8) |- [(\[x].((+ [x]) [2]))] => ((Int@[a12] -> Int)@[a20]; (a17 ↦ (Int@[a15] -> Int), a13 ↦ Int, a11 ↦ Int@[a12], a16 ↦ a14, a18 ↦ a15, a19 ↦ Int); (a16 ≤ a12))
+(TypeInf) b2:[Int]_(a7), f:[a9]_(a10), y:[Int]_(a8) |- [(\[x].((+ [x]) [2]))] => ((Int@[a12] -> Int)@[a20]; (a17 ↦ (Int@[a15] -> Int), a13 ↦ Int, a11 ↦ Int@[a12], a16 ↦ a14, a18 ↦ a15, a19 ↦ Int); (a16 ≤ a12))
 h : (Int@[a27] -> Int)@[a35]
 |||(Kinding) |- a27 : Label
 ||||(Kinding) |- a28 : Type
@@ -254,7 +275,7 @@ h : (Int@[a27] -> Int)@[a35]
 |||(TyUnify)  |- (Int@[a30] -> Int) ~ (Int@[a33] -> a34) ▷ (a33 ↦ a30, a34 ↦ Int)
 ||(TypeInf) x:[a28]_(a27) |- ((* [x]) [1]) => (Int; (a32 ↦ (Int@[a30] -> Int), a28 ↦ Int, a31 ↦ a29, a33 ↦ a30, a34 ↦ Int); (a31 ≤ a27))
 |(TypeInf) {} |- (\[x].((* [x]) [1])) => ((Int@[a27] -> Int); (a32 ↦ (Int@[a30] -> Int), a28 ↦ Int, a26 ↦ Int@[a27], a31 ↦ a29, a33 ↦ a30, a34 ↦ Int); (a31 ≤ a27))
-(TypeInf) b2:[Int@[a6]]_(a22), f:[(Int@[a12] -> Int)@[a20]]_(a21), h:[a24]_(a25), y:[Int@[a2]]_(a23) |- [(\[x].((* [x]) [1]))] => ((Int@[a27] -> Int)@[a35]; (a32 ↦ (Int@[a30] -> Int), a28 ↦ Int, a26 ↦ Int@[a27], a31 ↦ a29, a33 ↦ a30, a34 ↦ Int); (a31 ≤ a27))
+(TypeInf) b2:[Int]_(a22), f:[(Int@[a12] -> Int)]_(a21), h:[a24]_(a25), y:[Int]_(a23) |- [(\[x].((* [x]) [1]))] => ((Int@[a27] -> Int)@[a35]; (a32 ↦ (Int@[a30] -> Int), a28 ↦ Int, a26 ↦ Int@[a27], a31 ↦ a29, a33 ↦ a30, a34 ↦ Int); (a31 ≤ a27))
 
 === Inferred Types (Syntax.VL) ===
 y : Int@[a2]
@@ -296,6 +317,39 @@ g x = x + 1
 
 
 
+ll = length
+
+
+
+
+
+length xs = case xs of
+  [] -> 0
+  hh : rst -> 1 + length rst
+
+
+=== Name resolution ===
+module B where
+
+y = 1
+b1 = 1
+f x = x + 1
+
+g x = x + 1
+
+
+
+ll = B.length
+
+
+
+
+
+length xs = case xs of
+  [] -> 0
+  hh : rst -> 1 + B.lengthrst
+
+
 
 === Desugared AST (Syntax.Desugared) ===
 module B where where
@@ -306,6 +360,10 @@ b1 = 1
 f = (\x.((+ x) 1))
 
 g = (\x.((+ x) 1))
+
+ll = length
+
+length = (\xs.(case xs of {[] -> 0; (hh : rst) -> ((+ 1) (length rst))}))
 
 
 === Normalized AST (Syntax.Desugared) ===
@@ -318,32 +376,44 @@ f = (\x.((+ x) 1))
 
 g = (\x.((+ x) 1))
 
+ll = length
+
+length = (\xs.(case xs of {[] -> 0; (hh : rst) -> ((+ 1) (length rst))}))
+
 
 === AST (Syntax.VL) ===
 module B where where
-y = [1]
+y = 1
 
-b1 = [1]
+b1 = 1
 
-f = [(\[x].((+ [x]) [1]))]
+f = (\[x].((+ [x]) [1]))
 
-g = [(\[x].((+ [x]) [1]))]
+g = (\[x].((+ [x]) [1]))
+
+ll = length
+
+length = (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}))
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module B where where
-y = [1]
+y = 1
 
-b1 = [1]
+b1 = 1
 
-f = [(\[x].((+ [x]) [1]))]
+f = (\[x].((+ [x]) [1]))
 
-g = [(\[x].((+ [x]) [1]))]
+g = (\[x].((+ [x]) [1]))
+
+ll = length
+
+length = (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}))
 
 [DEBUG] ct     : 
-[DEBUG] ct'    : 
-[DEBUG] ctdiff : 
-[DEBUG] ctstart: 
+[DEBUG] ct'    : length->0
+[DEBUG] ctdiff : length->0
+[DEBUG] ctstart: length->0
 
 === Importing Exteranal ModulesType (Syntax.VL) ===
 [DEBUG] Imported TEnv      : {}
@@ -366,7 +436,7 @@ y : Int@[a38]
 (TypeInf) y:[a36]_(a37) |- [1] => (Int@[a38]; (); ⊤)
 b1 : Int@[a42]
 |(TypeInf) {} |- 1 => (Int; (); ⊤)
-(TypeInf) b1:[a40]_(a41), y:[Int@[a38]]_(a39) |- [1] => (Int@[a42]; (); ⊤)
+(TypeInf) b1:[a40]_(a41), y:[Int]_(a39) |- [1] => (Int@[a42]; (); ⊤)
 f : (Int@[a48] -> Int)@[a56]
 |||(Kinding) |- a48 : Label
 ||||(Kinding) |- a49 : Type
@@ -393,7 +463,7 @@ f : (Int@[a48] -> Int)@[a56]
 |||(TyUnify)  |- (Int@[a51] -> Int) ~ (Int@[a54] -> a55) ▷ (a54 ↦ a51, a55 ↦ Int)
 ||(TypeInf) x:[a49]_(a48) |- ((+ [x]) [1]) => (Int; (a53 ↦ (Int@[a51] -> Int), a49 ↦ Int, a52 ↦ a50, a54 ↦ a51, a55 ↦ Int); (a52 ≤ a48))
 |(TypeInf) {} |- (\[x].((+ [x]) [1])) => ((Int@[a48] -> Int); (a53 ↦ (Int@[a51] -> Int), a49 ↦ Int, a47 ↦ Int@[a48], a52 ↦ a50, a54 ↦ a51, a55 ↦ Int); (a52 ≤ a48))
-(TypeInf) b1:[Int@[a42]]_(a43), f:[a45]_(a46), y:[Int@[a38]]_(a44) |- [(\[x].((+ [x]) [1]))] => ((Int@[a48] -> Int)@[a56]; (a53 ↦ (Int@[a51] -> Int), a49 ↦ Int, a47 ↦ Int@[a48], a52 ↦ a50, a54 ↦ a51, a55 ↦ Int); (a52 ≤ a48))
+(TypeInf) b1:[Int]_(a43), f:[a45]_(a46), y:[Int]_(a44) |- [(\[x].((+ [x]) [1]))] => ((Int@[a48] -> Int)@[a56]; (a53 ↦ (Int@[a51] -> Int), a49 ↦ Int, a47 ↦ Int@[a48], a52 ↦ a50, a54 ↦ a51, a55 ↦ Int); (a52 ≤ a48))
 g : (Int@[a63] -> Int)@[a71]
 |||(Kinding) |- a63 : Label
 ||||(Kinding) |- a64 : Type
@@ -420,35 +490,102 @@ g : (Int@[a63] -> Int)@[a71]
 |||(TyUnify)  |- (Int@[a66] -> Int) ~ (Int@[a69] -> a70) ▷ (a69 ↦ a66, a70 ↦ Int)
 ||(TypeInf) x:[a64]_(a63) |- ((+ [x]) [1]) => (Int; (a68 ↦ (Int@[a66] -> Int), a64 ↦ Int, a67 ↦ a65, a69 ↦ a66, a70 ↦ Int); (a67 ≤ a63))
 |(TypeInf) {} |- (\[x].((+ [x]) [1])) => ((Int@[a63] -> Int); (a68 ↦ (Int@[a66] -> Int), a64 ↦ Int, a62 ↦ Int@[a63], a67 ↦ a65, a69 ↦ a66, a70 ↦ Int); (a67 ≤ a63))
-(TypeInf) b1:[Int@[a42]]_(a58), f:[(Int@[a48] -> Int)@[a56]]_(a57), g:[a60]_(a61), y:[Int@[a38]]_(a59) |- [(\[x].((+ [x]) [1]))] => ((Int@[a63] -> Int)@[a71]; (a68 ↦ (Int@[a66] -> Int), a64 ↦ Int, a62 ↦ Int@[a63], a67 ↦ a65, a69 ↦ a66, a70 ↦ Int); (a67 ≤ a63))
+(TypeInf) b1:[Int]_(a58), f:[(Int@[a48] -> Int)]_(a57), g:[a60]_(a61), y:[Int]_(a59) |- [(\[x].((+ [x]) [1]))] => ((Int@[a63] -> Int)@[a71]; (a68 ↦ (Int@[a66] -> Int), a64 ↦ Int, a62 ↦ Int@[a63], a67 ↦ a65, a69 ↦ a66, a70 ↦ Int); (a67 ≤ a63))
+ll : ((List a85)@[a79] -> Int)@[a106]
+||(Kinding) |- a99 : Label
+|(TypeInf) length:[((List a85)@[a79] -> Int)]_(a99) |- length => (((List a85)@[a79] -> Int); (); ⊤)
+(TypeInf) b1:[Int]_(a102), f:[(Int@[a48] -> Int)]_(a101), g:[(Int@[a63] -> Int)]_(a100), length:[((List a85)@[a79] -> Int)]_(a99), ll:[a104]_(a105), y:[Int]_(a103) |- [length] => (((List a85)@[a79] -> Int)@[a106]; (); (a106 ≤ a99))
+length : ((List a85)@[a79] -> Int)@[a98]
+|||(Kinding) |- a79 : Label
+||||(Kinding) |- a80 : Type
+||||(Kinding) |- a79 : Label
+|||(PatSynt) a79 |- xs ▷ (xs:[a80]_(a79); ())
+|||(TyUnify)  |- a80@[a79] ~ a78 ▷ (a78 ↦ a80@[a79])
+||(PatSynt) - |- [xs] ▷ (xs:[a80]_(a79); (a78 ↦ a80@[a79]))
+|||||(Kinding) |- a79 : Label
+||||(TypeInf) xs:[a80]_(a79) |- xs => (a80; (); ⊤)
+|||(TypeInf) length:[a76]_(a77), xs:[a80]_(a79) |- [xs] => (a80@[a81]; (); (a81 ≤ a79))
+||||(Kinding) |- a83 : Label
+|||||(TyUnify)  |- (List a85) ~ a84 ▷ (a84 ↦ (List a85))
+||||(PatSynt) a83 |- [] ▷ ({}; (a84 ↦ (List a85)))
+|||||(TyUnify)  |- a84 ~ a80 ▷ (a84 ↦ a80)
+|||||(TyUnify)  |- a83 ~ a81 ▷ (a83 ↦ a81)
+||||(TyUnify)  |- a84@[a83] ~ a80@[a81] ▷ (a83 ↦ a81, a84 ↦ a80)
+||||(TyUnify)  |- (List a85) ~ a80 ▷ (a80 ↦ (List a85))
+|||(PatSynt) - |- [[]] ▷ ({}; (a80 ↦ (List a85), a83 ↦ a81, a84 ↦ (List a85), a84 ↦ (List a85)))
+|||(TypeInf) length:[a76]_(a77), xs:[a80]_(a79) |- 0 => (Int; (); ⊤)
+||||(Kinding) |- a87 : Label
+||||||(Kinding) |- a89 : Type
+||||||(Kinding) |- a87 : Label
+|||||(PatSynt) a87 |- hh ▷ (hh:[a89]_(a87); ())
+|||||||(Kinding) |- a89 : Type
+||||||(Kinding) |- a89 : Type
+||||||(Kinding) |- a87 : Label
+|||||(PatSynt) a87 |- rst ▷ (rst:[(List a89)]_(a87); ())
+||||(PatSynt) a87 |- (hh : rst) ▷ (hh:[a89]_(a87), rst:[(List a89)]_(a87); ())
+|||||(TyUnify)  |- a88 ~ a80 ▷ (a88 ↦ a80)
+|||||(TyUnify)  |- a87 ~ a81 ▷ (a87 ↦ a81)
+||||(TyUnify)  |- a88@[a87] ~ a80@[a81] ▷ (a87 ↦ a81, a88 ↦ a80)
+|||(PatSynt) - |- [(hh : rst)] ▷ (hh:[a89]_(a87), rst:[(List a89)]_(a87); (a87 ↦ a81, a88 ↦ a80))
+|||||(TypeInf) hh:[a89]_(a87), length:[a76]_(a77), rst:[(List a89)]_(a87), xs:[a80]_(a79) |- + => ((Int@[a90] -> (Int@[a91] -> Int)); (); ⊤)
+||||||(TypeInf) {} |- 1 => (Int; (); ⊤)
+|||||(TypeInf) hh:[a89]_(a87), length:[a76]_(a77), rst:[(List a89)]_(a87), xs:[a80]_(a79) |- [1] => (Int@[a92]; (); ⊤)
+|||||||(TyUnify)  |- Int ~ Int ▷ ()
+|||||||(TyUnify)  |- a92 ~ a90 ▷ (a92 ↦ a90)
+||||||(TyUnify)  |- Int@[a92] ~ Int@[a90] ▷ (a92 ↦ a90)
+||||||(TyUnify)  |- (Int@[a91] -> Int) ~ a93 ▷ (a93 ↦ (Int@[a91] -> Int))
+|||||(TyUnify)  |- (Int@[a90] -> (Int@[a91] -> Int)) ~ (Int@[a92] -> a93) ▷ (a92 ↦ a90, a93 ↦ (Int@[a91] -> Int))
+||||(TypeInf) hh:[a89]_(a87), length:[a76]_(a77), rst:[(List a89)]_(a87), xs:[a80]_(a79) |- (+ [1]) => ((Int@[a91] -> Int); (a92 ↦ a90, a93 ↦ (Int@[a91] -> Int)); ⊤)
+|||||||(Kinding) |- a77 : Label
+||||||(TypeInf) length:[a76]_(a77), rst:[(List a89)]_(a87) |- length => (a76; (); ⊤)
+||||||||(Kinding) |- a87 : Label
+|||||||(TypeInf) rst:[(List a89)]_(a87) |- rst => ((List a89); (); ⊤)
+||||||(TypeInf) length:[a76]_(a77), rst:[(List a89)]_(a87) |- [rst] => ((List a89)@[a94]; (); (a94 ≤ a87))
+||||||(TyUnify)  |- a76 ~ ((List a89)@[a94] -> a95) ▷ (a76 ↦ ((List a89)@[a94] -> a95))
+|||||(TypeInf) length:[a76]_(a77), rst:[(List a89)]_(a87) |- (length [rst]) => (a95; (a76 ↦ ((List a89)@[a94] -> a95)); (a94 ≤ a87))
+||||(TypeInf) hh:[a89]_(a87), length:[a76]_(a77), rst:[(List a89)]_(a87), xs:[a80]_(a79) |- [(length [rst])] => (a95@[a96]; (a76 ↦ ((List a89)@[a94] -> a95)); (a94 ≤ a87) and (a96 ≤ a87) and (a96 ≤ a77))
+||||||(TyUnify)  |- a95 ~ Int ▷ (a95 ↦ Int)
+||||||(TyUnify)  |- a96 ~ a91 ▷ (a96 ↦ a91)
+|||||(TyUnify)  |- a95@[a96] ~ Int@[a91] ▷ (a95 ↦ Int, a96 ↦ a91)
+|||||(TyUnify)  |- Int ~ a97 ▷ (a97 ↦ Int)
+||||(TyUnify)  |- (Int@[a91] -> Int) ~ (a95@[a96] -> a97) ▷ (a95 ↦ Int, a96 ↦ a91, a97 ↦ Int)
+|||(TypeInf) hh:[a89]_(a87), length:[a76]_(a77), rst:[(List a89)]_(a87), xs:[a80]_(a79) |- ((+ [1]) [(length [rst])]) => (Int; (a93 ↦ (Int@[a91] -> Int), a95 ↦ Int, a76 ↦ ((List a89)@[a94] -> Int), a92 ↦ a90, a96 ↦ a91, a97 ↦ Int); (a94 ≤ a87) and (a96 ≤ a87) and (a96 ≤ a77))
+|||(TyUnify)  |- Int ~ Int ▷ ()
+||(TypeInf) length:[a76]_(a77), xs:[a80]_(a79) |- (case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}) => (Int; (a93 ↦ (Int@[a91] -> Int), a95 ↦ Int, a76 ↦ ((List a89)@[a94] -> Int), a80 ↦ (List a85), a83 ↦ a81, a84 ↦ (List a85), a84 ↦ (List a85), a87 ↦ a81, a88 ↦ (List a85), a92 ↦ a90, a96 ↦ a91, a97 ↦ Int); (a81 ≤ a79) and (a94 ≤ a87) and (a96 ≤ a87) and (a96 ≤ a77))
+|(TypeInf) length:[a76]_(a77) |- (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])})) => (((List a85)@[a79] -> Int); (a93 ↦ (Int@[a91] -> Int), a95 ↦ Int, a76 ↦ ((List a89)@[a94] -> Int), a80 ↦ (List a85), a78 ↦ (List a85)@[a79], a83 ↦ a81, a84 ↦ (List a85), a84 ↦ (List a85), a87 ↦ a81, a88 ↦ (List a85), a92 ↦ a90, a96 ↦ a91, a97 ↦ Int); (a81 ≤ a79) and (a94 ≤ a87) and (a96 ≤ a87) and (a96 ≤ a77))
+(TypeInf) b1:[Int]_(a74), f:[(Int@[a48] -> Int)]_(a73), g:[(Int@[a63] -> Int)]_(a72), length:[a76]_(a77), y:[Int]_(a75) |- [(\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}))] => (((List a85)@[a79] -> Int)@[a98]; (a93 ↦ (Int@[a91] -> Int), a95 ↦ Int, a76 ↦ ((List a89)@[a94] -> Int), a80 ↦ (List a85), a78 ↦ (List a85)@[a79], a83 ↦ a81, a84 ↦ (List a85), a84 ↦ (List a85), a87 ↦ a81, a88 ↦ (List a85), a92 ↦ a90, a96 ↦ a91, a97 ↦ Int); (a81 ≤ a79) and (a94 ≤ a87) and (a96 ≤ a87) and (a96 ≤ a77) and (a98 ≤ a77))
 
 === Inferred Types (Syntax.VL) ===
 y : Int@[a38]
 b1 : Int@[a42]
 f : (Int@[a48] -> Int)@[a56]
 g : (Int@[a63] -> Int)@[a71]
+ll : ((List a85)@[a79] -> Int)@[a106]
+length : ((List a85)@[a79] -> Int)@[a98]
 
 [DEBUG] Add global env : y : Int@[a38]
 b1 : Int@[a42]
 f : (Int@[a48] -> Int)@[a56]
 g : (Int@[a63] -> Int)@[a71]
-[DEBUG] Add global constraints : (a50 ≤ a48) and (a65 ≤ a63)
-[DEBUG] Counter: 72
+ll : ((List a85)@[a79] -> Int)@[a106]
+length : ((List a85)@[a79] -> Int)@[a98]
+[DEBUG] Add global constraints : (a50 ≤ a48) and (a65 ≤ a63) and (a106 ≤ a99) and (a81 ≤ a79) and (a94 ≤ a81) and (a91 ≤ a81) and (a91 ≤ a77) and (a98 ≤ a77)
+[DEBUG] Counter: 107
 
 ============================================
 === Bundling top-level symbols of module B
 ============================================
-[DEBUG] Add bundled tenv        : b1:[Int]_(a72), b2:[Int]_(a73), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), y:[Int]_(a80)
-[DEBUG] Add bundled uenv        : a72:Label, a73:Label, a74:Label, a75:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80:Label
-[DEBUG] Add bundled/global constraints : (((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))) and (a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}]) and (a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}]) and (((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}]))) and (a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}]) and (a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}])
-[DEBUG] Add bundled constraints schemes : (b1,(a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}])), (b2,(a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}])), (f,(((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}])))), (g,(a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}])), (h,(a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}])), (y,(((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))))
-[DEBUG] Counter     : 81
+[DEBUG] Add bundled tenv        : b1:[Int]_(a107), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118), y:[Int]_(a121)
+[DEBUG] Add bundled uenv        : a107:Label, a108:Label, a109:Label, a110:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121:Label
+[DEBUG] Add bundled/global constraints : (((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))) and (a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}]) and (a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}]) and (a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}]) and (a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}]) and (((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}]))) and (a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}]) and (a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}])
+[DEBUG] Add bundled constraints schemes : (b1,(a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}])), (b2,(a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}])), (f,(((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}])))), (g,(a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}])), (h,(a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}])), (length,(a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}])), (ll,(a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}])), (y,(((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))))
+[DEBUG] Counter     : 122
 [DEBUG] globalConstraints:
-(((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))) and (a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}]) and (a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}]) and (((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}]))) and (a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}]) and (a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a14 ≤ a12) and (a29 ≤ a27)
+(((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))) and (a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}]) and (a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}]) and (a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}]) and (a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}]) and (((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}]))) and (a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}]) and (a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a106 ≤ a99) and (a81 ≤ a79) and (a94 ≤ a81) and (a91 ≤ a81) and (a91 ≤ a77) and (a98 ≤ a77) and (a14 ≤ a12) and (a29 ≤ a27)
 
 [DEBUG] bundledConsSchemes:
 B
-(b1,(a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}])), (b2,(a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}])), (f,(((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}])))), (g,(a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}])), (h,(a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}])), (y,(((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))))
+(b1,(a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}])), (b2,(a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}])), (f,(((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}])))), (g,(a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}])), (h,(a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}])), (length,(a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}])), (ll,(a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}])), (y,(((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))))
 
 [DEBUG] List of modules not yet compiled:
 A-1.0.1
@@ -467,6 +604,13 @@ import B
 
 a = f (f y)
 
+=== Name resolution ===
+module A where
+
+import B
+
+a = B.f(B.fB.y)
+
 
 === Desugared AST (Syntax.Desugared) ===
 module A where where
@@ -480,74 +624,74 @@ a = (f (f y))
 
 === AST (Syntax.VL) ===
 module A where where
-a = [(f [(f [y])])]
+a = (f [(f [y])])
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module A where where
-a = [(__f_0 [(__f_1 [__y_0])])]
+a = (__f_0 [(__f_1 [__y_0])])
 
-[DEBUG] ct     : 
-[DEBUG] ct'    : f->2, y->1
-[DEBUG] ctdiff : f->2, y->1
-[DEBUG] ctstart: f->0, y->0
+[DEBUG] ct     : length->0
+[DEBUG] ct'    : f->2, length->0, y->1
+[DEBUG] ctdiff : f->2, length->0, y->1
+[DEBUG] ctstart: f->0, length->0, y->0
 
 === Importing Exteranal ModulesType (Syntax.VL) ===
-[DEBUG] Imported TEnv      : b1:[Int]_(a72), b2:[Int]_(a73), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), y:[Int]_(a80)
-[DEBUG] Imported UEnv      : a72:Label, a73:Label, a74:Label, a75:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80:Label
+[DEBUG] Imported TEnv      : b1:[Int]_(a107), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118), y:[Int]_(a121)
+[DEBUG] Imported UEnv      : a107:Label, a108:Label, a109:Label, a110:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121:Label
 === Duplicate External Symbols (Syntax.VL) ===
-[DEBUG] Duplicated Imported TEnv        : __f_0:[(Int@[a75_0] -> Int)]_(a74_0), __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0), b1:[Int]_(a72), b2:[Int]_(a73), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78)
-[DEBUG] Duplicated Imported UEnv        : a72:Label, a73:Label, a74_0:Label, a74_1:Label, a75_0:Label, a75_1:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80_0:Label
-[DEBUG] Duplicated Imported Constraints : (((a74_0 ≤ a56) and (a75_0 ≤ a48) and (a74_0 ≤ [{B:[1.0.0]}])) or ((a74_0 ≤ a20) and (a75_0 ≤ a12) and (a74_0 ≤ [{B:[1.0.1]}]))) and (((a74_1 ≤ a56) and (a75_1 ≤ a48) and (a74_1 ≤ [{B:[1.0.0]}])) or ((a74_1 ≤ a20) and (a75_1 ≤ a12) and (a74_1 ≤ [{B:[1.0.1]}]))) and (((a80_0 ≤ a38) and (a80_0 ≤ [{B:[1.0.0]}])) or ((a80_0 ≤ a2) and (a80_0 ≤ [{B:[1.0.1]}])))
+[DEBUG] Duplicated Imported TEnv        : __f_0:[(Int@[a110_0] -> Int)]_(a109_0), __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0), b1:[Int]_(a107), b2:[Int]_(a108), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118)
+[DEBUG] Duplicated Imported UEnv        : a107:Label, a108:Label, a109_0:Label, a109_1:Label, a110_0:Label, a110_1:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121_0:Label
+[DEBUG] Duplicated Imported Constraints : (((a109_0 ≤ a56) and (a110_0 ≤ a48) and (a109_0 ≤ [{B:[1.0.0]}])) or ((a109_0 ≤ a20) and (a110_0 ≤ a12) and (a109_0 ≤ [{B:[1.0.1]}]))) and (((a109_1 ≤ a56) and (a110_1 ≤ a48) and (a109_1 ≤ [{B:[1.0.0]}])) or ((a109_1 ≤ a20) and (a110_1 ≤ a12) and (a109_1 ≤ [{B:[1.0.1]}]))) and (((a121_0 ≤ a38) and (a121_0 ≤ [{B:[1.0.0]}])) or ((a121_0 ≤ a2) and (a121_0 ≤ [{B:[1.0.1]}])))
 
 [DEBUG] add duplicated constraints                 : 
-(((a74_0 ≤ a56) and (a75_0 ≤ a48) and (a74_0 ≤ [{B:[1.0.0]}])) or ((a74_0 ≤ a20) and (a75_0 ≤ a12) and (a74_0 ≤ [{B:[1.0.1]}]))) and (((a74_1 ≤ a56) and (a75_1 ≤ a48) and (a74_1 ≤ [{B:[1.0.0]}])) or ((a74_1 ≤ a20) and (a75_1 ≤ a12) and (a74_1 ≤ [{B:[1.0.1]}]))) and (((a80_0 ≤ a38) and (a80_0 ≤ [{B:[1.0.0]}])) or ((a80_0 ≤ a2) and (a80_0 ≤ [{B:[1.0.1]}])))
+(((a109_0 ≤ a56) and (a110_0 ≤ a48) and (a109_0 ≤ [{B:[1.0.0]}])) or ((a109_0 ≤ a20) and (a110_0 ≤ a12) and (a109_0 ≤ [{B:[1.0.1]}]))) and (((a109_1 ≤ a56) and (a110_1 ≤ a48) and (a109_1 ≤ [{B:[1.0.0]}])) or ((a109_1 ≤ a20) and (a110_1 ≤ a12) and (a109_1 ≤ [{B:[1.0.1]}]))) and (((a121_0 ≤ a38) and (a121_0 ≤ [{B:[1.0.0]}])) or ((a121_0 ≤ a2) and (a121_0 ≤ [{B:[1.0.1]}])))
 [DEBUG] add duplicated external variable resources : 
 __f_0 -> f
-a74_0,
+a109_0,
 __f_1 -> f
-a74_1,
+a109_1,
 __y_0 -> y
-a80_0
+a121_0
 
-[DEBUG] Initial Counter     : 81
+[DEBUG] Initial Counter     : 122
 
 === Type Inference (Syntax.VL) ===
-a : Int@[a87]
-|||(Kinding) |- a74_0 : Label
-||(TypeInf) __f_0:[(Int@[a75_0] -> Int)]_(a74_0), __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0) |- __f_0 => ((Int@[a75_0] -> Int); (); ⊤)
-|||||(Kinding) |- a74_1 : Label
-||||(TypeInf) __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0) |- __f_1 => ((Int@[a75_1] -> Int); (); ⊤)
-||||||(Kinding) |- a80_0 : Label
-|||||(TypeInf) __y_0:[Int]_(a80_0) |- __y_0 => (Int; (); ⊤)
-||||(TypeInf) __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0) |- [__y_0] => (Int@[a83]; (); (a83 ≤ a80_0))
+a : Int@[a128]
+|||(Kinding) |- a109_0 : Label
+||(TypeInf) __f_0:[(Int@[a110_0] -> Int)]_(a109_0), __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0) |- __f_0 => ((Int@[a110_0] -> Int); (); ⊤)
+|||||(Kinding) |- a109_1 : Label
+||||(TypeInf) __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0) |- __f_1 => ((Int@[a110_1] -> Int); (); ⊤)
+||||||(Kinding) |- a121_0 : Label
+|||||(TypeInf) __y_0:[Int]_(a121_0) |- __y_0 => (Int; (); ⊤)
+||||(TypeInf) __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0) |- [__y_0] => (Int@[a124]; (); (a124 ≤ a121_0))
 ||||||(TyUnify)  |- Int ~ Int ▷ ()
-||||||(TyUnify)  |- a83 ~ a75_1 ▷ (a83 ↦ a75_1)
-|||||(TyUnify)  |- Int@[a83] ~ Int@[a75_1] ▷ (a83 ↦ a75_1)
-|||||(TyUnify)  |- Int ~ a84 ▷ (a84 ↦ Int)
-||||(TyUnify)  |- (Int@[a75_1] -> Int) ~ (Int@[a83] -> a84) ▷ (a83 ↦ a75_1, a84 ↦ Int)
-|||(TypeInf) __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0) |- (__f_1 [__y_0]) => (Int; (a83 ↦ a75_1, a84 ↦ Int); (a83 ≤ a80_0))
-||(TypeInf) __f_0:[(Int@[a75_0] -> Int)]_(a74_0), __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0) |- [(__f_1 [__y_0])] => (Int@[a85]; (a83 ↦ a75_1, a84 ↦ Int); (a83 ≤ a80_0) and (a85 ≤ a80_0) and (a85 ≤ a74_1))
+||||||(TyUnify)  |- a124 ~ a110_1 ▷ (a124 ↦ a110_1)
+|||||(TyUnify)  |- Int@[a124] ~ Int@[a110_1] ▷ (a124 ↦ a110_1)
+|||||(TyUnify)  |- Int ~ a125 ▷ (a125 ↦ Int)
+||||(TyUnify)  |- (Int@[a110_1] -> Int) ~ (Int@[a124] -> a125) ▷ (a124 ↦ a110_1, a125 ↦ Int)
+|||(TypeInf) __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0) |- (__f_1 [__y_0]) => (Int; (a124 ↦ a110_1, a125 ↦ Int); (a124 ≤ a121_0))
+||(TypeInf) __f_0:[(Int@[a110_0] -> Int)]_(a109_0), __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0) |- [(__f_1 [__y_0])] => (Int@[a126]; (a124 ↦ a110_1, a125 ↦ Int); (a124 ≤ a121_0) and (a126 ≤ a121_0) and (a126 ≤ a109_1))
 ||||(TyUnify)  |- Int ~ Int ▷ ()
-||||(TyUnify)  |- a85 ~ a75_0 ▷ (a85 ↦ a75_0)
-|||(TyUnify)  |- Int@[a85] ~ Int@[a75_0] ▷ (a85 ↦ a75_0)
-|||(TyUnify)  |- Int ~ a86 ▷ (a86 ↦ Int)
-||(TyUnify)  |- (Int@[a75_0] -> Int) ~ (Int@[a85] -> a86) ▷ (a85 ↦ a75_0, a86 ↦ Int)
-|(TypeInf) __f_0:[(Int@[a75_0] -> Int)]_(a74_0), __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0) |- (__f_0 [(__f_1 [__y_0])]) => (Int; (a84 ↦ Int, a83 ↦ a75_1, a85 ↦ a75_0, a86 ↦ Int); (a83 ≤ a80_0) and (a85 ≤ a80_0) and (a85 ≤ a74_1))
-(TypeInf) __f_0:[(Int@[a75_0] -> Int)]_(a74_0), __f_1:[(Int@[a75_1] -> Int)]_(a74_1), __y_0:[Int]_(a80_0), a:[a81]_(a82), b1:[Int]_(a72), b2:[Int]_(a73), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78) |- [(__f_0 [(__f_1 [__y_0])])] => (Int@[a87]; (a84 ↦ Int, a83 ↦ a75_1, a85 ↦ a75_0, a86 ↦ Int); (a83 ≤ a80_0) and (a85 ≤ a80_0) and (a85 ≤ a74_1) and (a87 ≤ a80_0) and (a87 ≤ a74_1) and (a87 ≤ a74_0))
+||||(TyUnify)  |- a126 ~ a110_0 ▷ (a126 ↦ a110_0)
+|||(TyUnify)  |- Int@[a126] ~ Int@[a110_0] ▷ (a126 ↦ a110_0)
+|||(TyUnify)  |- Int ~ a127 ▷ (a127 ↦ Int)
+||(TyUnify)  |- (Int@[a110_0] -> Int) ~ (Int@[a126] -> a127) ▷ (a126 ↦ a110_0, a127 ↦ Int)
+|(TypeInf) __f_0:[(Int@[a110_0] -> Int)]_(a109_0), __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0) |- (__f_0 [(__f_1 [__y_0])]) => (Int; (a125 ↦ Int, a124 ↦ a110_1, a126 ↦ a110_0, a127 ↦ Int); (a124 ≤ a121_0) and (a126 ≤ a121_0) and (a126 ≤ a109_1))
+(TypeInf) __f_0:[(Int@[a110_0] -> Int)]_(a109_0), __f_1:[(Int@[a110_1] -> Int)]_(a109_1), __y_0:[Int]_(a121_0), a:[a122]_(a123), b1:[Int]_(a107), b2:[Int]_(a108), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118) |- [(__f_0 [(__f_1 [__y_0])])] => (Int@[a128]; (a125 ↦ Int, a124 ↦ a110_1, a126 ↦ a110_0, a127 ↦ Int); (a124 ≤ a121_0) and (a126 ≤ a121_0) and (a126 ≤ a109_1) and (a128 ≤ a121_0) and (a128 ≤ a109_1) and (a128 ≤ a109_0))
 
 === Inferred Types (Syntax.VL) ===
-a : Int@[a87]
+a : Int@[a128]
 
-[DEBUG] Add global env : a : Int@[a87]
-[DEBUG] Add global constraints : (a75_1 ≤ a80_0) and (a75_0 ≤ a80_0) and (a75_0 ≤ a74_1) and (a87 ≤ a80_0) and (a87 ≤ a74_1) and (a87 ≤ a74_0)
-[DEBUG] Counter: 88
+[DEBUG] Add global env : a : Int@[a128]
+[DEBUG] Add global constraints : (a110_1 ≤ a121_0) and (a110_0 ≤ a121_0) and (a110_0 ≤ a109_1) and (a128 ≤ a121_0) and (a128 ≤ a109_1) and (a128 ≤ a109_0)
+[DEBUG] Counter: 129
 [DEBUG] globalConstraints:
-(a75_1 ≤ a80_0) and (a75_0 ≤ a80_0) and (a75_0 ≤ a74_1) and (a87 ≤ a80_0) and (a87 ≤ a74_1) and (a87 ≤ a74_0) and (((a74_0 ≤ a56) and (a75_0 ≤ a48) and (a74_0 ≤ [{B:[1.0.0]}])) or ((a74_0 ≤ a20) and (a75_0 ≤ a12) and (a74_0 ≤ [{B:[1.0.1]}]))) and (((a74_1 ≤ a56) and (a75_1 ≤ a48) and (a74_1 ≤ [{B:[1.0.0]}])) or ((a74_1 ≤ a20) and (a75_1 ≤ a12) and (a74_1 ≤ [{B:[1.0.1]}]))) and (((a80_0 ≤ a38) and (a80_0 ≤ [{B:[1.0.0]}])) or ((a80_0 ≤ a2) and (a80_0 ≤ [{B:[1.0.1]}]))) and (((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))) and (a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}]) and (a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}]) and (((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}]))) and (a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}]) and (a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a14 ≤ a12) and (a29 ≤ a27)
+(a110_1 ≤ a121_0) and (a110_0 ≤ a121_0) and (a110_0 ≤ a109_1) and (a128 ≤ a121_0) and (a128 ≤ a109_1) and (a128 ≤ a109_0) and (((a109_0 ≤ a56) and (a110_0 ≤ a48) and (a109_0 ≤ [{B:[1.0.0]}])) or ((a109_0 ≤ a20) and (a110_0 ≤ a12) and (a109_0 ≤ [{B:[1.0.1]}]))) and (((a109_1 ≤ a56) and (a110_1 ≤ a48) and (a109_1 ≤ [{B:[1.0.0]}])) or ((a109_1 ≤ a20) and (a110_1 ≤ a12) and (a109_1 ≤ [{B:[1.0.1]}]))) and (((a121_0 ≤ a38) and (a121_0 ≤ [{B:[1.0.0]}])) or ((a121_0 ≤ a2) and (a121_0 ≤ [{B:[1.0.1]}]))) and (((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))) and (a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}]) and (a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}]) and (a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}]) and (a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}]) and (((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}]))) and (a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}]) and (a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a106 ≤ a99) and (a81 ≤ a79) and (a94 ≤ a81) and (a91 ≤ a81) and (a91 ≤ a77) and (a98 ≤ a77) and (a14 ≤ a12) and (a29 ≤ a27)
 
 [DEBUG] bundledConsSchemes:
 B
-(b1,(a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}])), (b2,(a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}])), (f,(((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}])))), (g,(a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}])), (h,(a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}])), (y,(((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))))
+(b1,(a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}])), (b2,(a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}])), (f,(((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}])))), (g,(a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}])), (h,(a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}])), (length,(a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}])), (ll,(a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}])), (y,(((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))))
 
 [DEBUG] List of modules not yet compiled:
 A-1.0.0
@@ -565,6 +709,13 @@ import B
 
 a = f y
 
+=== Name resolution ===
+module A where
+
+import B
+
+a = B.fB.y
+
 
 === Desugared AST (Syntax.Desugared) ===
 module A where where
@@ -578,73 +729,73 @@ a = (f y)
 
 === AST (Syntax.VL) ===
 module A where where
-a = [(f [y])]
+a = (f [y])
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module A where where
-a = [(__f_2 [__y_1])]
+a = (__f_2 [__y_1])
 
-[DEBUG] ct     : f->2, y->1
-[DEBUG] ct'    : f->3, y->2
-[DEBUG] ctdiff : f->1, y->1
-[DEBUG] ctstart: f->2, y->1
+[DEBUG] ct     : f->2, length->0, y->1
+[DEBUG] ct'    : f->3, length->0, y->2
+[DEBUG] ctdiff : f->1, length->0, y->1
+[DEBUG] ctstart: f->2, length->0, y->1
 
 === Importing Exteranal ModulesType (Syntax.VL) ===
-[DEBUG] Imported TEnv      : b1:[Int]_(a72), b2:[Int]_(a73), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), y:[Int]_(a80)
-[DEBUG] Imported UEnv      : a72:Label, a73:Label, a74:Label, a75:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80:Label
+[DEBUG] Imported TEnv      : b1:[Int]_(a107), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118), y:[Int]_(a121)
+[DEBUG] Imported UEnv      : a107:Label, a108:Label, a109:Label, a110:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121:Label
 === Duplicate External Symbols (Syntax.VL) ===
-[DEBUG] Duplicated Imported TEnv        : __f_2:[(Int@[a75_2] -> Int)]_(a74_2), __y_1:[Int]_(a80_1), b1:[Int]_(a72), b2:[Int]_(a73), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78)
-[DEBUG] Duplicated Imported UEnv        : a72:Label, a73:Label, a74_2:Label, a75_2:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80_1:Label
-[DEBUG] Duplicated Imported Constraints : (((a74_2 ≤ a56) and (a75_2 ≤ a48) and (a74_2 ≤ [{B:[1.0.0]}])) or ((a74_2 ≤ a20) and (a75_2 ≤ a12) and (a74_2 ≤ [{B:[1.0.1]}]))) and (((a80_1 ≤ a38) and (a80_1 ≤ [{B:[1.0.0]}])) or ((a80_1 ≤ a2) and (a80_1 ≤ [{B:[1.0.1]}])))
+[DEBUG] Duplicated Imported TEnv        : __f_2:[(Int@[a110_2] -> Int)]_(a109_2), __y_1:[Int]_(a121_1), b1:[Int]_(a107), b2:[Int]_(a108), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118)
+[DEBUG] Duplicated Imported UEnv        : a107:Label, a108:Label, a109_2:Label, a110_2:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121_1:Label
+[DEBUG] Duplicated Imported Constraints : (((a109_2 ≤ a56) and (a110_2 ≤ a48) and (a109_2 ≤ [{B:[1.0.0]}])) or ((a109_2 ≤ a20) and (a110_2 ≤ a12) and (a109_2 ≤ [{B:[1.0.1]}]))) and (((a121_1 ≤ a38) and (a121_1 ≤ [{B:[1.0.0]}])) or ((a121_1 ≤ a2) and (a121_1 ≤ [{B:[1.0.1]}])))
 
 [DEBUG] add duplicated constraints                 : 
-(((a74_2 ≤ a56) and (a75_2 ≤ a48) and (a74_2 ≤ [{B:[1.0.0]}])) or ((a74_2 ≤ a20) and (a75_2 ≤ a12) and (a74_2 ≤ [{B:[1.0.1]}]))) and (((a80_1 ≤ a38) and (a80_1 ≤ [{B:[1.0.0]}])) or ((a80_1 ≤ a2) and (a80_1 ≤ [{B:[1.0.1]}])))
+(((a109_2 ≤ a56) and (a110_2 ≤ a48) and (a109_2 ≤ [{B:[1.0.0]}])) or ((a109_2 ≤ a20) and (a110_2 ≤ a12) and (a109_2 ≤ [{B:[1.0.1]}]))) and (((a121_1 ≤ a38) and (a121_1 ≤ [{B:[1.0.0]}])) or ((a121_1 ≤ a2) and (a121_1 ≤ [{B:[1.0.1]}])))
 [DEBUG] add duplicated external variable resources : 
 __f_2 -> f
-a74_2,
+a109_2,
 __y_1 -> y
-a80_1
+a121_1
 
-[DEBUG] Initial Counter     : 88
+[DEBUG] Initial Counter     : 129
 
 === Type Inference (Syntax.VL) ===
-a : Int@[a92]
-|||(Kinding) |- a74_2 : Label
-||(TypeInf) __f_2:[(Int@[a75_2] -> Int)]_(a74_2), __y_1:[Int]_(a80_1) |- __f_2 => ((Int@[a75_2] -> Int); (); ⊤)
-||||(Kinding) |- a80_1 : Label
-|||(TypeInf) __y_1:[Int]_(a80_1) |- __y_1 => (Int; (); ⊤)
-||(TypeInf) __f_2:[(Int@[a75_2] -> Int)]_(a74_2), __y_1:[Int]_(a80_1) |- [__y_1] => (Int@[a90]; (); (a90 ≤ a80_1))
+a : Int@[a133]
+|||(Kinding) |- a109_2 : Label
+||(TypeInf) __f_2:[(Int@[a110_2] -> Int)]_(a109_2), __y_1:[Int]_(a121_1) |- __f_2 => ((Int@[a110_2] -> Int); (); ⊤)
+||||(Kinding) |- a121_1 : Label
+|||(TypeInf) __y_1:[Int]_(a121_1) |- __y_1 => (Int; (); ⊤)
+||(TypeInf) __f_2:[(Int@[a110_2] -> Int)]_(a109_2), __y_1:[Int]_(a121_1) |- [__y_1] => (Int@[a131]; (); (a131 ≤ a121_1))
 ||||(TyUnify)  |- Int ~ Int ▷ ()
-||||(TyUnify)  |- a90 ~ a75_2 ▷ (a90 ↦ a75_2)
-|||(TyUnify)  |- Int@[a90] ~ Int@[a75_2] ▷ (a90 ↦ a75_2)
-|||(TyUnify)  |- Int ~ a91 ▷ (a91 ↦ Int)
-||(TyUnify)  |- (Int@[a75_2] -> Int) ~ (Int@[a90] -> a91) ▷ (a90 ↦ a75_2, a91 ↦ Int)
-|(TypeInf) __f_2:[(Int@[a75_2] -> Int)]_(a74_2), __y_1:[Int]_(a80_1) |- (__f_2 [__y_1]) => (Int; (a90 ↦ a75_2, a91 ↦ Int); (a90 ≤ a80_1))
-(TypeInf) __f_2:[(Int@[a75_2] -> Int)]_(a74_2), __y_1:[Int]_(a80_1), a:[a88]_(a89), b1:[Int]_(a72), b2:[Int]_(a73), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78) |- [(__f_2 [__y_1])] => (Int@[a92]; (a90 ↦ a75_2, a91 ↦ Int); (a90 ≤ a80_1) and (a92 ≤ a80_1) and (a92 ≤ a74_2))
+||||(TyUnify)  |- a131 ~ a110_2 ▷ (a131 ↦ a110_2)
+|||(TyUnify)  |- Int@[a131] ~ Int@[a110_2] ▷ (a131 ↦ a110_2)
+|||(TyUnify)  |- Int ~ a132 ▷ (a132 ↦ Int)
+||(TyUnify)  |- (Int@[a110_2] -> Int) ~ (Int@[a131] -> a132) ▷ (a131 ↦ a110_2, a132 ↦ Int)
+|(TypeInf) __f_2:[(Int@[a110_2] -> Int)]_(a109_2), __y_1:[Int]_(a121_1) |- (__f_2 [__y_1]) => (Int; (a131 ↦ a110_2, a132 ↦ Int); (a131 ≤ a121_1))
+(TypeInf) __f_2:[(Int@[a110_2] -> Int)]_(a109_2), __y_1:[Int]_(a121_1), a:[a129]_(a130), b1:[Int]_(a107), b2:[Int]_(a108), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118) |- [(__f_2 [__y_1])] => (Int@[a133]; (a131 ↦ a110_2, a132 ↦ Int); (a131 ≤ a121_1) and (a133 ≤ a121_1) and (a133 ≤ a109_2))
 
 === Inferred Types (Syntax.VL) ===
-a : Int@[a92]
+a : Int@[a133]
 
-[DEBUG] Add global env : a : Int@[a92]
-[DEBUG] Add global constraints : (a75_2 ≤ a80_1) and (a92 ≤ a80_1) and (a92 ≤ a74_2)
-[DEBUG] Counter: 93
+[DEBUG] Add global env : a : Int@[a133]
+[DEBUG] Add global constraints : (a110_2 ≤ a121_1) and (a133 ≤ a121_1) and (a133 ≤ a109_2)
+[DEBUG] Counter: 134
 
 ============================================
 === Bundling top-level symbols of module A
 ============================================
-[DEBUG] Add bundled tenv        : a:[Int]_(a93)
-[DEBUG] Add bundled uenv        : a93:Label
-[DEBUG] Add bundled/global constraints : (((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}])))
-[DEBUG] Add bundled constraints schemes : (a,(((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}]))))
-[DEBUG] Counter     : 94
+[DEBUG] Add bundled tenv        : a:[Int]_(a134)
+[DEBUG] Add bundled uenv        : a134:Label
+[DEBUG] Add bundled/global constraints : (((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}])))
+[DEBUG] Add bundled constraints schemes : (a,(((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}]))))
+[DEBUG] Counter     : 135
 [DEBUG] globalConstraints:
-(((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}]))) and (a75_2 ≤ a80_1) and (a92 ≤ a80_1) and (a92 ≤ a74_2) and (((a74_2 ≤ a56) and (a75_2 ≤ a48) and (a74_2 ≤ [{B:[1.0.0]}])) or ((a74_2 ≤ a20) and (a75_2 ≤ a12) and (a74_2 ≤ [{B:[1.0.1]}]))) and (((a80_1 ≤ a38) and (a80_1 ≤ [{B:[1.0.0]}])) or ((a80_1 ≤ a2) and (a80_1 ≤ [{B:[1.0.1]}]))) and (a75_1 ≤ a80_0) and (a75_0 ≤ a80_0) and (a75_0 ≤ a74_1) and (a87 ≤ a80_0) and (a87 ≤ a74_1) and (a87 ≤ a74_0) and (((a74_0 ≤ a56) and (a75_0 ≤ a48) and (a74_0 ≤ [{B:[1.0.0]}])) or ((a74_0 ≤ a20) and (a75_0 ≤ a12) and (a74_0 ≤ [{B:[1.0.1]}]))) and (((a74_1 ≤ a56) and (a75_1 ≤ a48) and (a74_1 ≤ [{B:[1.0.0]}])) or ((a74_1 ≤ a20) and (a75_1 ≤ a12) and (a74_1 ≤ [{B:[1.0.1]}]))) and (((a80_0 ≤ a38) and (a80_0 ≤ [{B:[1.0.0]}])) or ((a80_0 ≤ a2) and (a80_0 ≤ [{B:[1.0.1]}]))) and (((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))) and (a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}]) and (a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}]) and (((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}]))) and (a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}]) and (a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a14 ≤ a12) and (a29 ≤ a27)
+(((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}]))) and (a110_2 ≤ a121_1) and (a133 ≤ a121_1) and (a133 ≤ a109_2) and (((a109_2 ≤ a56) and (a110_2 ≤ a48) and (a109_2 ≤ [{B:[1.0.0]}])) or ((a109_2 ≤ a20) and (a110_2 ≤ a12) and (a109_2 ≤ [{B:[1.0.1]}]))) and (((a121_1 ≤ a38) and (a121_1 ≤ [{B:[1.0.0]}])) or ((a121_1 ≤ a2) and (a121_1 ≤ [{B:[1.0.1]}]))) and (a110_1 ≤ a121_0) and (a110_0 ≤ a121_0) and (a110_0 ≤ a109_1) and (a128 ≤ a121_0) and (a128 ≤ a109_1) and (a128 ≤ a109_0) and (((a109_0 ≤ a56) and (a110_0 ≤ a48) and (a109_0 ≤ [{B:[1.0.0]}])) or ((a109_0 ≤ a20) and (a110_0 ≤ a12) and (a109_0 ≤ [{B:[1.0.1]}]))) and (((a109_1 ≤ a56) and (a110_1 ≤ a48) and (a109_1 ≤ [{B:[1.0.0]}])) or ((a109_1 ≤ a20) and (a110_1 ≤ a12) and (a109_1 ≤ [{B:[1.0.1]}]))) and (((a121_0 ≤ a38) and (a121_0 ≤ [{B:[1.0.0]}])) or ((a121_0 ≤ a2) and (a121_0 ≤ [{B:[1.0.1]}]))) and (((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))) and (a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}]) and (a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}]) and (a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}]) and (a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}]) and (((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}]))) and (a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}]) and (a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a106 ≤ a99) and (a81 ≤ a79) and (a94 ≤ a81) and (a91 ≤ a81) and (a91 ≤ a77) and (a98 ≤ a77) and (a14 ≤ a12) and (a29 ≤ a27)
 
 [DEBUG] bundledConsSchemes:
 A
-(a,(((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}])))), B
-(b1,(a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}])), (b2,(a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}])), (f,(((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}])))), (g,(a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}])), (h,(a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}])), (y,(((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))))
+(a,(((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}])))), B
+(b1,(a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}])), (b2,(a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}])), (f,(((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}])))), (g,(a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}])), (h,(a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}])), (length,(a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}])), (ll,(a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}])), (y,(((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))))
 
 [DEBUG] List of modules not yet compiled:
 Main-Root
@@ -699,18 +850,80 @@ import B
 
 
 
+main =
+  let sumTpl x = case x of (x1,x2) -> x1 + x2
+  in sumTpl (y,b1)
+
+
+
+
+
+
+head xs = case xs of
+  []     -> 0
+  h:rst -> h
+
+length xs = case xs of
+  []     -> 0
+  hh:rst -> 1 + length rst
+
+=== Name resolution ===
+module Main where
+
+import A
+import B
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 main =
-  let lst = [y,b2]
-      n = length lst
-  in head lst
+  let sumTpl x = case x of (x1,x2) -> x1 + x2
+  in sumTpl (B.y,B.b1)
+
+
+
+
+
 
 head xs = case xs of
   []     -> 0
-  hh:rst -> hh
+  h:rst -> h
 
 length xs = case xs of
   []     -> 0
@@ -719,274 +932,319 @@ length xs = case xs of
 
 === Desugared AST (Syntax.Desugared) ===
 module Main where where
-main = ((\lst.((\n.(head lst)) (length lst))) [y, b2])
+main = ((\sumTpl.(sumTpl (y, b1))) (\x.(case x of {(x1, x2) -> ((+ x1) x2)})))
 
-head = (\xs.(case xs of {[] -> 0; (hh : rst) -> hh}))
+head = (\xs.(case xs of {[] -> 0; (h : rst) -> h}))
 
 length = (\xs.(case xs of {[] -> 0; (hh : rst) -> ((+ 1) (length rst))}))
 
 
 === Normalized AST (Syntax.Desugared) ===
 module Main where where
-main = ((\lst.((\n.(head lst)) (length lst))) [y, b2])
+main = ((\sumTpl.(sumTpl (y, b1))) (\x.(case x of {(x1, x2) -> ((+ x1) x2)})))
 
-head = (\xs.(case xs of {[] -> 0; (hh : rst) -> hh}))
+head = (\xs.(case xs of {[] -> 0; (h : rst) -> h}))
 
 length = (\xs.(case xs of {[] -> 0; (hh : rst) -> ((+ 1) (length rst))}))
 
 
 === AST (Syntax.VL) ===
 module Main where where
-main = ((\[lst].((\[n].(head [lst])) [(length [lst])])) [[y, b2]])
+main = ((\[sumTpl].(sumTpl [(y, b1)])) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
 
-head = (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [hh]}))
+head = (\[xs].(case [xs] of {[[]] -> 0; [(h : rst)] -> h}))
 
-length = (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [((+ [1]) [(length [rst])])]}))
+length = (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}))
 
 
 === AST (Syntax.VL), after duplicating external variables ===
 module Main where where
-main = ((\[lst].((\[n].(head [lst])) [(length [lst])])) [[__y_2, __b2_0]])
+main = ((\[sumTpl].(sumTpl [(__y_2, __b1_0)])) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
 
-head = (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [hh]}))
+head = (\[xs].(case [xs] of {[[]] -> 0; [(h : rst)] -> h}))
 
-length = (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [((+ [1]) [(length [rst])])]}))
+length = (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}))
 
-[DEBUG] ct     : f->3, y->2
-[DEBUG] ct'    : b2->1, f->3, head->0, length->0, y->3
-[DEBUG] ctdiff : b2->1, f->0, head->0, length->0, y->1
-[DEBUG] ctstart: b2->0, f->3, head->0, length->0, y->2
+[DEBUG] ct     : f->3, length->0, y->2
+[DEBUG] ct'    : b1->1, f->3, length->0, y->3
+[DEBUG] ctdiff : b1->1, f->0, length->0, y->1
+[DEBUG] ctstart: b1->0, f->3, length->0, y->2
 
 === Importing Exteranal ModulesType (Syntax.VL) ===
-[DEBUG] Imported TEnv      : a:[Int]_(a93), b1:[Int]_(a72), b2:[Int]_(a73), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), y:[Int]_(a80)
-[DEBUG] Imported UEnv      : a72:Label, a73:Label, a74:Label, a75:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80:Label, a93:Label
+[DEBUG] Imported TEnv      : a:[Int]_(a134), b1:[Int]_(a107), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118), y:[Int]_(a121)
+[DEBUG] Imported UEnv      : a107:Label, a108:Label, a109:Label, a110:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121:Label, a134:Label
 === Duplicate External Symbols (Syntax.VL) ===
-[DEBUG] Duplicated Imported TEnv        : __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78)
-[DEBUG] Duplicated Imported UEnv        : a72:Label, a73_0:Label, a74:Label, a75:Label, a76:Label, a77:Label, a78:Label, a79:Label, a80_2:Label, a93:Label
-[DEBUG] Duplicated Imported Constraints : (a73_0 ≤ a6) and (a73_0 ≤ [{B:[1.0.1]}]) and (((a80_2 ≤ a38) and (a80_2 ≤ [{B:[1.0.0]}])) or ((a80_2 ≤ a2) and (a80_2 ≤ [{B:[1.0.1]}])))
+[DEBUG] Duplicated Imported TEnv        : __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), a:[Int]_(a134), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118)
+[DEBUG] Duplicated Imported UEnv        : a107_0:Label, a108:Label, a109:Label, a110:Label, a111:Label, a112:Label, a113:Label, a114:Label, a115:Label, a116:Label, a117:Label, a118:Label, a119:Label, a120:Label, a121_2:Label, a134:Label
+[DEBUG] Duplicated Imported Constraints : (a107_0 ≤ a42) and (a107_0 ≤ [{B:[1.0.0]}]) and (((a121_2 ≤ a38) and (a121_2 ≤ [{B:[1.0.0]}])) or ((a121_2 ≤ a2) and (a121_2 ≤ [{B:[1.0.1]}])))
 
 [DEBUG] add duplicated constraints                 : 
-(a73_0 ≤ a6) and (a73_0 ≤ [{B:[1.0.1]}]) and (((a80_2 ≤ a38) and (a80_2 ≤ [{B:[1.0.0]}])) or ((a80_2 ≤ a2) and (a80_2 ≤ [{B:[1.0.1]}])))
+(a107_0 ≤ a42) and (a107_0 ≤ [{B:[1.0.0]}]) and (((a121_2 ≤ a38) and (a121_2 ≤ [{B:[1.0.0]}])) or ((a121_2 ≤ a2) and (a121_2 ≤ [{B:[1.0.1]}])))
 [DEBUG] add duplicated external variable resources : 
-__b2_0 -> b2
-a73_0,
+__b1_0 -> b1
+a107_0,
 __y_2 -> y
-a80_2
+a121_2
 
-[DEBUG] Initial Counter     : 94
+[DEBUG] Initial Counter     : 135
 
 === Type Inference (Syntax.VL) ===
-main : Int@[a104]
-|||(Kinding) |- a140 : Label
-||||(Kinding) |- a141 : Type
-||||(Kinding) |- a140 : Label
-|||(PatSynt) a140 |- lst ▷ (lst:[a141]_(a140); ())
-|||(TyUnify)  |- a141@[a140] ~ a139 ▷ (a139 ↦ a141@[a140])
-||(PatSynt) - |- [lst] ▷ (lst:[a141]_(a140); (a139 ↦ a141@[a140]))
+main : Int@[a159]
+||||(Kinding) |- a138 : Label
+|||||(Kinding) |- a139 : Type
+|||||(Kinding) |- a138 : Label
+||||(PatSynt) a138 |- sumTpl ▷ (sumTpl:[a139]_(a138); ())
+||||(TyUnify)  |- a139@[a138] ~ a137 ▷ (a137 ↦ a139@[a138])
+|||(PatSynt) - |- [sumTpl] ▷ (sumTpl:[a139]_(a138); (a137 ↦ a139@[a138]))
+|||||(Kinding) |- a138 : Label
+||||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), sumTpl:[a139]_(a138) |- sumTpl => (a139; (); ⊤)
+|||||||(Kinding) |- a121_2 : Label
+||||||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2) |- __y_2 => (Int; (); ⊤)
+|||||||(Kinding) |- a107_0 : Label
+||||||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2) |- __b1_0 => (Int; (); ⊤)
+|||||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2) |- (__y_2, __b1_0) => ((Tuple Int Int); (); ⊤)
+||||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), sumTpl:[a139]_(a138) |- [(__y_2, __b1_0)] => ((Tuple Int Int)@[a140]; (); (a140 ≤ a121_2) and (a140 ≤ a107_0))
+||||(TyUnify)  |- a139 ~ ((Tuple Int Int)@[a140] -> a141) ▷ (a139 ↦ ((Tuple Int Int)@[a140] -> a141))
+|||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), sumTpl:[a139]_(a138) |- (sumTpl [(__y_2, __b1_0)]) => (a141; (a139 ↦ ((Tuple Int Int)@[a140] -> a141)); (a140 ≤ a121_2) and (a140 ≤ a107_0))
+||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2) |- (\[sumTpl].(sumTpl [(__y_2, __b1_0)])) => ((((Tuple Int Int)@[a140] -> a141)@[a138] -> a141); (a139 ↦ ((Tuple Int Int)@[a140] -> a141), a137 ↦ ((Tuple Int Int)@[a140] -> a141)@[a138]); (a140 ≤ a121_2) and (a140 ≤ a107_0))
 |||||(Kinding) |- a143 : Label
 ||||||(Kinding) |- a144 : Type
 ||||||(Kinding) |- a143 : Label
-|||||(PatSynt) a143 |- n ▷ (n:[a144]_(a143); ())
+|||||(PatSynt) a143 |- x ▷ (x:[a144]_(a143); ())
 |||||(TyUnify)  |- a144@[a143] ~ a142 ▷ (a142 ↦ a144@[a143])
-||||(PatSynt) - |- [n] ▷ (n:[a144]_(a143); (a142 ↦ a144@[a143]))
-||||||(Kinding) |- a136 : Label
-|||||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140), main:[a137]_(a138), n:[a144]_(a143) |- head => (((List a103)@[a97] -> Int@[a104]); (); ⊤)
-|||||||(Kinding) |- a140 : Label
-||||||(TypeInf) lst:[a141]_(a140) |- lst => (a141; (); ⊤)
-|||||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140), main:[a137]_(a138), n:[a144]_(a143) |- [lst] => (a141@[a145]; (); (a145 ≤ a140))
-|||||||(TyUnify)  |- a141 ~ (List a103) ▷ (a141 ↦ (List a103))
-|||||||(TyUnify)  |- a145 ~ a97 ▷ (a145 ↦ a97)
-||||||(TyUnify)  |- a141@[a145] ~ (List a103)@[a97] ▷ (a141 ↦ (List a103), a145 ↦ a97)
-||||||(TyUnify)  |- Int@[a104] ~ a146 ▷ (a146 ↦ Int@[a104])
-|||||(TyUnify)  |- ((List a103)@[a97] -> Int@[a104]) ~ (a141@[a145] -> a146) ▷ (a141 ↦ (List a103), a145 ↦ a97, a146 ↦ Int@[a104])
-||||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140), main:[a137]_(a138), n:[a144]_(a143) |- (head [lst]) => (Int@[a104]; (a141 ↦ (List a103), a145 ↦ a97, a146 ↦ Int@[a104]); (a145 ≤ a140))
-|||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140), main:[a137]_(a138) |- (\[n].(head [lst])) => ((a144@[a143] -> Int@[a104]); (a141 ↦ (List a103), a142 ↦ a144@[a143], a145 ↦ a97, a146 ↦ Int@[a104]); (a145 ≤ a140))
-||||||(Kinding) |- a135 : Label
-|||||(TypeInf) length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140) |- length => (((List a120)@[a114] -> Int@[a121]); (); ⊤)
-|||||||(Kinding) |- a140 : Label
-||||||(TypeInf) lst:[a141]_(a140) |- lst => (a141; (); ⊤)
-|||||(TypeInf) length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140) |- [lst] => (a141@[a147]; (); (a147 ≤ a140))
-|||||||(TyUnify)  |- a141 ~ (List a120) ▷ (a141 ↦ (List a120))
-|||||||(TyUnify)  |- a147 ~ a114 ▷ (a147 ↦ a114)
-||||||(TyUnify)  |- a141@[a147] ~ (List a120)@[a114] ▷ (a141 ↦ (List a120), a147 ↦ a114)
-||||||(TyUnify)  |- Int@[a121] ~ a148 ▷ (a148 ↦ Int@[a121])
-|||||(TyUnify)  |- ((List a120)@[a114] -> Int@[a121]) ~ (a141@[a147] -> a148) ▷ (a141 ↦ (List a120), a147 ↦ a114, a148 ↦ Int@[a121])
-||||(TypeInf) length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140) |- (length [lst]) => (Int@[a121]; (a141 ↦ (List a120), a147 ↦ a114, a148 ↦ Int@[a121]); (a147 ≤ a140))
-|||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140), main:[a137]_(a138) |- [(length [lst])] => (Int@[a121]@[a149]; (a141 ↦ (List a120), a147 ↦ a114, a148 ↦ Int@[a121]); (a147 ≤ a140) and (a149 ≤ a140) and (a149 ≤ a135))
-|||||(TyUnify)  |- Int@[a121] ~ a144 ▷ (a144 ↦ Int@[a121])
-|||||(TyUnify)  |- a149 ~ a143 ▷ (a149 ↦ a143)
-||||(TyUnify)  |- Int@[a121]@[a149] ~ a144@[a143] ▷ (a144 ↦ Int@[a121], a149 ↦ a143)
-||||(TyUnify)  |- Int@[a104] ~ a150 ▷ (a150 ↦ Int@[a104])
-|||(TyUnify)  |- (a144@[a143] -> Int@[a104]) ~ (Int@[a121]@[a149] -> a150) ▷ (a144 ↦ Int@[a121], a149 ↦ a143, a150 ↦ Int@[a104])
-||||(TyUnify)  |- a103 ~ a120 ▷ (a103 ↦ a120)
-|||(TyUnify)  |- (List a103) ~ (List a120) ▷ (a103 ↦ a120)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), lst:[a141]_(a140), main:[a137]_(a138) |- ((\[n].(head [lst])) [(length [lst])]) => (Int@[a104]; (a146 ↦ Int@[a104], a148 ↦ Int@[a121], a103 ↦ a120, a141 ↦ (List a120), a144 ↦ Int@[a121], a142 ↦ Int@[a121]@[a143], a145 ↦ a97, a147 ↦ a114, a149 ↦ a143, a150 ↦ Int@[a104]); (a145 ≤ a140) and (a147 ≤ a140) and (a149 ≤ a140) and (a149 ≤ a135))
-|(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), main:[a137]_(a138) |- (\[lst].((\[n].(head [lst])) [(length [lst])])) => (((List a120)@[a140] -> Int@[a104]); (a146 ↦ Int@[a104], a148 ↦ Int@[a121], a103 ↦ a120, a141 ↦ (List a120), a139 ↦ (List a120)@[a140], a142 ↦ Int@[a121]@[a143], a144 ↦ Int@[a121], a145 ↦ a97, a147 ↦ a114, a149 ↦ a143, a150 ↦ Int@[a104]); (a145 ≤ a140) and (a147 ≤ a140) and (a149 ≤ a140) and (a149 ≤ a135))
-||||(Kinding) |- a80_2 : Label
-|||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2) |- __y_2 => (Int; (); ⊤)
-||||(Kinding) |- a73_0 : Label
-|||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2) |- __b2_0 => (Int; (); ⊤)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2) |- [__y_2, __b2_0] => ((List Int); (); ⊤)
-|(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), main:[a137]_(a138) |- [[__y_2, __b2_0]] => ((List Int)@[a151]; (); (a151 ≤ a80_2) and (a151 ≤ a73_0))
-||||(TyUnify)  |- Int ~ a120 ▷ (a120 ↦ Int)
-|||(TyUnify)  |- (List Int) ~ (List a120) ▷ (a120 ↦ Int)
-|||(TyUnify)  |- a151 ~ a140 ▷ (a151 ↦ a140)
-||(TyUnify)  |- (List Int)@[a151] ~ (List a120)@[a140] ▷ (a120 ↦ Int, a151 ↦ a140)
-||(TyUnify)  |- Int@[a104] ~ a152 ▷ (a152 ↦ Int@[a104])
-|(TyUnify)  |- ((List a120)@[a140] -> Int@[a104]) ~ ((List Int)@[a151] -> a152) ▷ (a120 ↦ Int, a151 ↦ a140, a152 ↦ Int@[a104])
-(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a136), length:[((List a120)@[a114] -> Int@[a121])]_(a135), main:[a137]_(a138) |- ((\[lst].((\[n].(head [lst])) [(length [lst])])) [[__y_2, __b2_0]]) => (Int@[a104]; (a146 ↦ Int@[a104], a148 ↦ Int@[a121], a103 ↦ a120, a150 ↦ Int@[a104], a120 ↦ Int, a139 ↦ (List Int)@[a140], a141 ↦ (List Int), a142 ↦ Int@[a121]@[a143], a144 ↦ Int@[a121], a145 ↦ a97, a147 ↦ a114, a149 ↦ a143, a151 ↦ a140, a152 ↦ Int@[a104]); (a145 ≤ a140) and (a147 ≤ a140) and (a149 ≤ a140) and (a149 ≤ a135) and (a151 ≤ a80_2) and (a151 ≤ a73_0))
-head : ((List a103)@[a97] -> Int@[a104])
-||(Kinding) |- a97 : Label
-|||(Kinding) |- a98 : Type
-|||(Kinding) |- a97 : Label
-||(PatSynt) a97 |- xs ▷ (xs:[a98]_(a97); ())
-||(TyUnify)  |- a98@[a97] ~ a96 ▷ (a96 ↦ a98@[a97])
-|(PatSynt) - |- [xs] ▷ (xs:[a98]_(a97); (a96 ↦ a98@[a97]))
-||||(Kinding) |- a97 : Label
-|||(TypeInf) xs:[a98]_(a97) |- xs => (a98; (); ⊤)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[a94]_(a95), xs:[a98]_(a97) |- [xs] => (a98@[a99]; (); (a99 ≤ a97))
-|||(Kinding) |- a101 : Label
-||||(TyUnify)  |- (List a103) ~ a102 ▷ (a102 ↦ (List a103))
-|||(PatSynt) a101 |- [] ▷ ({}; (a102 ↦ (List a103)))
-||||(TyUnify)  |- a102 ~ a98 ▷ (a102 ↦ a98)
-||||(TyUnify)  |- a101 ~ a99 ▷ (a101 ↦ a99)
-|||(TyUnify)  |- a102@[a101] ~ a98@[a99] ▷ (a101 ↦ a99, a102 ↦ a98)
-|||(TyUnify)  |- (List a103) ~ a98 ▷ (a98 ↦ (List a103))
-||(PatSynt) - |- [[]] ▷ ({}; (a101 ↦ a99, a102 ↦ (List a103), a102 ↦ (List a103), a98 ↦ (List a103)))
-|||(TypeInf) {} |- 0 => (Int; (); ⊤)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[a94]_(a95), xs:[a98]_(a97) |- [0] => (Int@[a104]; (); ⊤)
-|||(Kinding) |- a106 : Label
-|||||(Kinding) |- a108 : Type
-|||||(Kinding) |- a106 : Label
-||||(PatSynt) a106 |- hh ▷ (hh:[a108]_(a106); ())
-||||||(Kinding) |- a108 : Type
-|||||(Kinding) |- a108 : Type
-|||||(Kinding) |- a106 : Label
-||||(PatSynt) a106 |- rst ▷ (rst:[(List a108)]_(a106); ())
-|||(PatSynt) a106 |- (hh : rst) ▷ (hh:[a108]_(a106), rst:[(List a108)]_(a106); ())
-||||(TyUnify)  |- a107 ~ a98 ▷ (a107 ↦ a98)
-||||(TyUnify)  |- a106 ~ a99 ▷ (a106 ↦ a99)
-|||(TyUnify)  |- a107@[a106] ~ a98@[a99] ▷ (a106 ↦ a99, a107 ↦ a98)
-||(PatSynt) - |- [(hh : rst)] ▷ (hh:[a108]_(a106), rst:[(List a108)]_(a106); (a106 ↦ a99, a107 ↦ a98))
-||||(Kinding) |- a106 : Label
-|||(TypeInf) hh:[a108]_(a106) |- hh => (a108; (); ⊤)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[a94]_(a95), hh:[a108]_(a106), rst:[(List a108)]_(a106), xs:[a98]_(a97) |- [hh] => (a108@[a109]; (); (a109 ≤ a106))
-|||(TyUnify)  |- a108 ~ Int ▷ (a108 ↦ Int)
-|||(TyUnify)  |- a109 ~ a104 ▷ (a109 ↦ a104)
-||(TyUnify)  |- a108@[a109] ~ Int@[a104] ▷ (a108 ↦ Int, a109 ↦ a104)
-|(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[a94]_(a95), xs:[a98]_(a97) |- (case [xs] of {[[]] -> [0]; [(hh : rst)] -> [hh]}) => (Int@[a104]; (a101 ↦ a99, a102 ↦ (List a103), a102 ↦ (List a103), a106 ↦ a99, a107 ↦ (List a103), a108 ↦ Int, a109 ↦ a104, a98 ↦ (List a103)); (a99 ≤ a97) and (a109 ≤ a106))
-(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[a94]_(a95) |- (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [hh]})) => (((List a103)@[a97] -> Int@[a104]); (a101 ↦ a99, a102 ↦ (List a103), a102 ↦ (List a103), a106 ↦ a99, a107 ↦ (List a103), a108 ↦ Int, a109 ↦ a104, a98 ↦ (List a103), a96 ↦ (List a103)@[a97]); (a99 ≤ a97) and (a109 ≤ a106))
-length : ((List a120)@[a114] -> Int@[a121])
-||(Kinding) |- a114 : Label
-|||(Kinding) |- a115 : Type
-|||(Kinding) |- a114 : Label
-||(PatSynt) a114 |- xs ▷ (xs:[a115]_(a114); ())
-||(TyUnify)  |- a115@[a114] ~ a113 ▷ (a113 ↦ a115@[a114])
-|(PatSynt) - |- [xs] ▷ (xs:[a115]_(a114); (a113 ↦ a115@[a114]))
-||||(Kinding) |- a114 : Label
-|||(TypeInf) xs:[a115]_(a114) |- xs => (a115; (); ⊤)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a110), length:[a111]_(a112), xs:[a115]_(a114) |- [xs] => (a115@[a116]; (); (a116 ≤ a114))
-|||(Kinding) |- a118 : Label
-||||(TyUnify)  |- (List a120) ~ a119 ▷ (a119 ↦ (List a120))
-|||(PatSynt) a118 |- [] ▷ ({}; (a119 ↦ (List a120)))
-||||(TyUnify)  |- a119 ~ a115 ▷ (a119 ↦ a115)
-||||(TyUnify)  |- a118 ~ a116 ▷ (a118 ↦ a116)
-|||(TyUnify)  |- a119@[a118] ~ a115@[a116] ▷ (a118 ↦ a116, a119 ↦ a115)
-|||(TyUnify)  |- (List a120) ~ a115 ▷ (a115 ↦ (List a120))
-||(PatSynt) - |- [[]] ▷ ({}; (a115 ↦ (List a120), a118 ↦ a116, a119 ↦ (List a120), a119 ↦ (List a120)))
-|||(TypeInf) {} |- 0 => (Int; (); ⊤)
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a110), length:[a111]_(a112), xs:[a115]_(a114) |- [0] => (Int@[a121]; (); ⊤)
-|||(Kinding) |- a123 : Label
-|||||(Kinding) |- a125 : Type
-|||||(Kinding) |- a123 : Label
-||||(PatSynt) a123 |- hh ▷ (hh:[a125]_(a123); ())
-||||||(Kinding) |- a125 : Type
-|||||(Kinding) |- a125 : Type
-|||||(Kinding) |- a123 : Label
-||||(PatSynt) a123 |- rst ▷ (rst:[(List a125)]_(a123); ())
-|||(PatSynt) a123 |- (hh : rst) ▷ (hh:[a125]_(a123), rst:[(List a125)]_(a123); ())
-||||(TyUnify)  |- a124 ~ a115 ▷ (a124 ↦ a115)
-||||(TyUnify)  |- a123 ~ a116 ▷ (a123 ↦ a116)
-|||(TyUnify)  |- a124@[a123] ~ a115@[a116] ▷ (a123 ↦ a116, a124 ↦ a115)
-||(PatSynt) - |- [(hh : rst)] ▷ (hh:[a125]_(a123), rst:[(List a125)]_(a123); (a123 ↦ a116, a124 ↦ a115))
-|||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- + => ((Int@[a126] -> (Int@[a127] -> Int)); (); ⊤)
-||||||(TypeInf) {} |- 1 => (Int; (); ⊤)
-|||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- [1] => (Int@[a128]; (); ⊤)
+||||(PatSynt) - |- [x] ▷ (x:[a144]_(a143); (a142 ↦ a144@[a143]))
+|||||||(Kinding) |- a143 : Label
+||||||(TypeInf) x:[a144]_(a143) |- x => (a144; (); ⊤)
+|||||(TypeInf) x:[a144]_(a143) |- [x] => (a144@[a145]; (); (a145 ≤ a143))
+||||||(Kinding) |- a147 : Label
+|||||||(TyUnify)  |- (Tuple a149 a150) ~ a148 ▷ (a148 ↦ (Tuple a149 a150))
+|||||||(Kinding) |- a149 : Type
+||||||||(Kinding) |- a149 : Type
+||||||||(Kinding) |- a147 : Label
+|||||||(PatSynt) a147 |- x1 ▷ (x1:[a149]_(a147); ())
+|||||||(Kinding) |- a150 : Type
+||||||||(Kinding) |- a150 : Type
+||||||||(Kinding) |- a147 : Label
+|||||||(PatSynt) a147 |- x2 ▷ (x2:[a150]_(a147); ())
+||||||(PatSynt) a147 |- (x1, x2) ▷ (x1:[a149]_(a147), x2:[a150]_(a147); (a148 ↦ (Tuple a149 a150)))
+|||||||(TyUnify)  |- a148 ~ a144 ▷ (a148 ↦ a144)
+|||||||(TyUnify)  |- a147 ~ a145 ▷ (a147 ↦ a145)
+||||||(TyUnify)  |- a148@[a147] ~ a144@[a145] ▷ (a147 ↦ a145, a148 ↦ a144)
+||||||(TyUnify)  |- (Tuple a149 a150) ~ a144 ▷ (a144 ↦ (Tuple a149 a150))
+|||||(PatSynt) - |- [(x1, x2)] ▷ (x1:[a149]_(a147), x2:[a150]_(a147); (a144 ↦ (Tuple a149 a150), a147 ↦ a145, a148 ↦ (Tuple a149 a150), a148 ↦ (Tuple a149 a150)))
+|||||||(TypeInf) x:[a144]_(a143), x1:[a149]_(a147), x2:[a150]_(a147) |- + => ((Int@[a151] -> (Int@[a152] -> Int)); (); ⊤)
+|||||||||(Kinding) |- a147 : Label
+||||||||(TypeInf) x1:[a149]_(a147) |- x1 => (a149; (); ⊤)
+|||||||(TypeInf) x:[a144]_(a143), x1:[a149]_(a147), x2:[a150]_(a147) |- [x1] => (a149@[a153]; (); (a153 ≤ a147))
+|||||||||(TyUnify)  |- a149 ~ Int ▷ (a149 ↦ Int)
+|||||||||(TyUnify)  |- a153 ~ a151 ▷ (a153 ↦ a151)
+||||||||(TyUnify)  |- a149@[a153] ~ Int@[a151] ▷ (a149 ↦ Int, a153 ↦ a151)
+||||||||(TyUnify)  |- (Int@[a152] -> Int) ~ a154 ▷ (a154 ↦ (Int@[a152] -> Int))
+|||||||(TyUnify)  |- (Int@[a151] -> (Int@[a152] -> Int)) ~ (a149@[a153] -> a154) ▷ (a149 ↦ Int, a153 ↦ a151, a154 ↦ (Int@[a152] -> Int))
+||||||(TypeInf) x:[a144]_(a143), x1:[a149]_(a147), x2:[a150]_(a147) |- (+ [x1]) => ((Int@[a152] -> Int); (a149 ↦ Int, a153 ↦ a151, a154 ↦ (Int@[a152] -> Int)); (a153 ≤ a147))
+||||||||(Kinding) |- a147 : Label
+|||||||(TypeInf) x2:[a150]_(a147) |- x2 => (a150; (); ⊤)
+||||||(TypeInf) x:[a144]_(a143), x1:[a149]_(a147), x2:[a150]_(a147) |- [x2] => (a150@[a155]; (); (a155 ≤ a147))
+||||||||(TyUnify)  |- a150 ~ Int ▷ (a150 ↦ Int)
+||||||||(TyUnify)  |- a155 ~ a152 ▷ (a155 ↦ a152)
+|||||||(TyUnify)  |- a150@[a155] ~ Int@[a152] ▷ (a150 ↦ Int, a155 ↦ a152)
+|||||||(TyUnify)  |- Int ~ a156 ▷ (a156 ↦ Int)
+||||||(TyUnify)  |- (Int@[a152] -> Int) ~ (a150@[a155] -> a156) ▷ (a150 ↦ Int, a155 ↦ a152, a156 ↦ Int)
+|||||(TypeInf) x:[a144]_(a143), x1:[a149]_(a147), x2:[a150]_(a147) |- ((+ [x1]) [x2]) => (Int; (a154 ↦ (Int@[a152] -> Int), a149 ↦ Int, a150 ↦ Int, a153 ↦ a151, a155 ↦ a152, a156 ↦ Int); (a153 ≤ a147) and (a155 ≤ a147))
+||||(TypeInf) x:[a144]_(a143) |- (case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}) => (Int; (a154 ↦ (Int@[a152] -> Int), a144 ↦ (Tuple Int Int), a147 ↦ a145, a148 ↦ (Tuple Int Int), a148 ↦ (Tuple Int Int), a149 ↦ Int, a150 ↦ Int, a153 ↦ a151, a155 ↦ a152, a156 ↦ Int); (a145 ≤ a143) and (a153 ≤ a147) and (a155 ≤ a147))
+|||(TypeInf) {} |- (\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])})) => (((Tuple Int Int)@[a143] -> Int); (a154 ↦ (Int@[a152] -> Int), a144 ↦ (Tuple Int Int), a142 ↦ (Tuple Int Int)@[a143], a147 ↦ a145, a148 ↦ (Tuple Int Int), a148 ↦ (Tuple Int Int), a149 ↦ Int, a150 ↦ Int, a153 ↦ a151, a155 ↦ a152, a156 ↦ Int); (a145 ≤ a143) and (a153 ≤ a147) and (a155 ≤ a147))
+||(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2) |- [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))] => (((Tuple Int Int)@[a143] -> Int)@[a157]; (a154 ↦ (Int@[a152] -> Int), a144 ↦ (Tuple Int Int), a142 ↦ (Tuple Int Int)@[a143], a147 ↦ a145, a148 ↦ (Tuple Int Int), a148 ↦ (Tuple Int Int), a149 ↦ Int, a150 ↦ Int, a153 ↦ a151, a155 ↦ a152, a156 ↦ Int); (a145 ≤ a143) and (a153 ≤ a147) and (a155 ≤ a147))
 |||||||(TyUnify)  |- Int ~ Int ▷ ()
-|||||||(TyUnify)  |- a128 ~ a126 ▷ (a128 ↦ a126)
-||||||(TyUnify)  |- Int@[a128] ~ Int@[a126] ▷ (a128 ↦ a126)
-||||||(TyUnify)  |- (Int@[a127] -> Int) ~ a129 ▷ (a129 ↦ (Int@[a127] -> Int))
-|||||(TyUnify)  |- (Int@[a126] -> (Int@[a127] -> Int)) ~ (Int@[a128] -> a129) ▷ (a128 ↦ a126, a129 ↦ (Int@[a127] -> Int))
-||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- (+ [1]) => ((Int@[a127] -> Int); (a128 ↦ a126, a129 ↦ (Int@[a127] -> Int)); ⊤)
-|||||||(Kinding) |- a112 : Label
-||||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- length => (a111; (); ⊤)
-||||||||(Kinding) |- a123 : Label
-|||||||(TypeInf) rst:[(List a125)]_(a123) |- rst => ((List a125); (); ⊤)
-||||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- [rst] => ((List a125)@[a130]; (); (a130 ≤ a123))
-||||||(TyUnify)  |- a111 ~ ((List a125)@[a130] -> a131) ▷ (a111 ↦ ((List a125)@[a130] -> a131))
-|||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- (length [rst]) => (a131; (a111 ↦ ((List a125)@[a130] -> a131)); (a130 ≤ a123))
-||||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- [(length [rst])] => (a131@[a132]; (a111 ↦ ((List a125)@[a130] -> a131)); (a130 ≤ a123) and (a132 ≤ a123) and (a132 ≤ a112))
-||||||(TyUnify)  |- a131 ~ Int ▷ (a131 ↦ Int)
-||||||(TyUnify)  |- a132 ~ a127 ▷ (a132 ↦ a127)
-|||||(TyUnify)  |- a131@[a132] ~ Int@[a127] ▷ (a131 ↦ Int, a132 ↦ a127)
-|||||(TyUnify)  |- Int ~ a133 ▷ (a133 ↦ Int)
-||||(TyUnify)  |- (Int@[a127] -> Int) ~ (a131@[a132] -> a133) ▷ (a131 ↦ Int, a132 ↦ a127, a133 ↦ Int)
-|||(TypeInf) length:[a111]_(a112), rst:[(List a125)]_(a123) |- ((+ [1]) [(length [rst])]) => (Int; (a129 ↦ (Int@[a127] -> Int), a131 ↦ Int, a111 ↦ ((List a125)@[a130] -> Int), a128 ↦ a126, a132 ↦ a127, a133 ↦ Int); (a130 ≤ a123) and (a132 ≤ a123) and (a132 ≤ a112))
-||(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a110), hh:[a125]_(a123), length:[a111]_(a112), rst:[(List a125)]_(a123), xs:[a115]_(a114) |- [((+ [1]) [(length [rst])])] => (Int@[a134]; (a129 ↦ (Int@[a127] -> Int), a131 ↦ Int, a111 ↦ ((List a125)@[a130] -> Int), a128 ↦ a126, a132 ↦ a127, a133 ↦ Int); (a130 ≤ a123) and (a132 ≤ a123) and (a132 ≤ a112) and (a134 ≤ a123) and (a134 ≤ a112))
+|||||||(TyUnify)  |- Int ~ Int ▷ ()
+||||||(TyUnify)  |- (Tuple Int Int) ~ (Tuple Int Int) ▷ ()
+||||||(TyUnify)  |- a140 ~ a143 ▷ (a140 ↦ a143)
+|||||(TyUnify)  |- (Tuple Int Int)@[a140] ~ (Tuple Int Int)@[a143] ▷ (a140 ↦ a143)
+|||||(TyUnify)  |- Int ~ a141 ▷ (a141 ↦ Int)
+||||(TyUnify)  |- ((Tuple Int Int)@[a143] -> Int) ~ ((Tuple Int Int)@[a140] -> a141) ▷ (a141 ↦ Int, a140 ↦ a143)
+||||(TyUnify)  |- a157 ~ a138 ▷ (a157 ↦ a138)
+|||(TyUnify)  |- ((Tuple Int Int)@[a143] -> Int)@[a157] ~ ((Tuple Int Int)@[a140] -> a141)@[a138] ▷ (a141 ↦ Int, a140 ↦ a143, a157 ↦ a138)
+|||(TyUnify)  |- Int ~ a158 ▷ (a158 ↦ Int)
+||(TyUnify)  |- (((Tuple Int Int)@[a140] -> a141)@[a138] -> a141) ~ (((Tuple Int Int)@[a143] -> Int)@[a157] -> a158) ▷ (a141 ↦ Int, a140 ↦ a143, a157 ↦ a138, a158 ↦ Int)
+|(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2) |- ((\[sumTpl].(sumTpl [(__y_2, __b1_0)])) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))]) => (Int; (a154 ↦ (Int@[a152] -> Int), a156 ↦ Int, a141 ↦ Int, a137 ↦ ((Tuple Int Int)@[a143] -> Int)@[a138], a139 ↦ ((Tuple Int Int)@[a143] -> Int), a140 ↦ a143, a142 ↦ (Tuple Int Int)@[a143], a144 ↦ (Tuple Int Int), a147 ↦ a145, a148 ↦ (Tuple Int Int), a148 ↦ (Tuple Int Int), a149 ↦ Int, a150 ↦ Int, a153 ↦ a151, a155 ↦ a152, a157 ↦ a138, a158 ↦ Int); (a140 ≤ a121_2) and (a140 ≤ a107_0) and (a145 ≤ a143) and (a153 ≤ a147) and (a155 ≤ a147))
+(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), a:[Int]_(a134), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118), main:[a135]_(a136) |- [((\[sumTpl].(sumTpl [(__y_2, __b1_0)])) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])] => (Int@[a159]; (a154 ↦ (Int@[a152] -> Int), a156 ↦ Int, a141 ↦ Int, a137 ↦ ((Tuple Int Int)@[a143] -> Int)@[a138], a139 ↦ ((Tuple Int Int)@[a143] -> Int), a140 ↦ a143, a142 ↦ (Tuple Int Int)@[a143], a144 ↦ (Tuple Int Int), a147 ↦ a145, a148 ↦ (Tuple Int Int), a148 ↦ (Tuple Int Int), a149 ↦ Int, a150 ↦ Int, a153 ↦ a151, a155 ↦ a152, a157 ↦ a138, a158 ↦ Int); (a140 ≤ a121_2) and (a140 ≤ a107_0) and (a145 ≤ a143) and (a153 ≤ a147) and (a155 ≤ a147) and (a159 ≤ a121_2) and (a159 ≤ a107_0))
+head : ((List a170)@[a164] -> Int)@[a175]
+|||(Kinding) |- a164 : Label
+||||(Kinding) |- a165 : Type
+||||(Kinding) |- a164 : Label
+|||(PatSynt) a164 |- xs ▷ (xs:[a165]_(a164); ())
+|||(TyUnify)  |- a165@[a164] ~ a163 ▷ (a163 ↦ a165@[a164])
+||(PatSynt) - |- [xs] ▷ (xs:[a165]_(a164); (a163 ↦ a165@[a164]))
+|||||(Kinding) |- a164 : Label
+||||(TypeInf) xs:[a165]_(a164) |- xs => (a165; (); ⊤)
+|||(TypeInf) xs:[a165]_(a164) |- [xs] => (a165@[a166]; (); (a166 ≤ a164))
+||||(Kinding) |- a168 : Label
+|||||(TyUnify)  |- (List a170) ~ a169 ▷ (a169 ↦ (List a170))
+||||(PatSynt) a168 |- [] ▷ ({}; (a169 ↦ (List a170)))
+|||||(TyUnify)  |- a169 ~ a165 ▷ (a169 ↦ a165)
+|||||(TyUnify)  |- a168 ~ a166 ▷ (a168 ↦ a166)
+||||(TyUnify)  |- a169@[a168] ~ a165@[a166] ▷ (a168 ↦ a166, a169 ↦ a165)
+||||(TyUnify)  |- (List a170) ~ a165 ▷ (a165 ↦ (List a170))
+|||(PatSynt) - |- [[]] ▷ ({}; (a165 ↦ (List a170), a168 ↦ a166, a169 ↦ (List a170), a169 ↦ (List a170)))
+|||(TypeInf) xs:[a165]_(a164) |- 0 => (Int; (); ⊤)
+||||(Kinding) |- a172 : Label
+||||||(Kinding) |- a174 : Type
+||||||(Kinding) |- a172 : Label
+|||||(PatSynt) a172 |- h ▷ (h:[a174]_(a172); ())
+|||||||(Kinding) |- a174 : Type
+||||||(Kinding) |- a174 : Type
+||||||(Kinding) |- a172 : Label
+|||||(PatSynt) a172 |- rst ▷ (rst:[(List a174)]_(a172); ())
+||||(PatSynt) a172 |- (h : rst) ▷ (h:[a174]_(a172), rst:[(List a174)]_(a172); ())
+|||||(TyUnify)  |- a173 ~ a165 ▷ (a173 ↦ a165)
+|||||(TyUnify)  |- a172 ~ a166 ▷ (a172 ↦ a166)
+||||(TyUnify)  |- a173@[a172] ~ a165@[a166] ▷ (a172 ↦ a166, a173 ↦ a165)
+|||(PatSynt) - |- [(h : rst)] ▷ (h:[a174]_(a172), rst:[(List a174)]_(a172); (a172 ↦ a166, a173 ↦ a165))
+||||(Kinding) |- a172 : Label
+|||(TypeInf) h:[a174]_(a172), rst:[(List a174)]_(a172), xs:[a165]_(a164) |- h => (a174; (); ⊤)
+|||(TyUnify)  |- a174 ~ Int ▷ (a174 ↦ Int)
+||(TypeInf) xs:[a165]_(a164) |- (case [xs] of {[[]] -> 0; [(h : rst)] -> h}) => (Int; (a165 ↦ (List a170), a168 ↦ a166, a169 ↦ (List a170), a169 ↦ (List a170), a172 ↦ a166, a173 ↦ (List a170), a174 ↦ Int); (a166 ≤ a164))
+|(TypeInf) {} |- (\[xs].(case [xs] of {[[]] -> 0; [(h : rst)] -> h})) => (((List a170)@[a164] -> Int); (a165 ↦ (List a170), a163 ↦ (List a170)@[a164], a168 ↦ a166, a169 ↦ (List a170), a169 ↦ (List a170), a172 ↦ a166, a173 ↦ (List a170), a174 ↦ Int); (a166 ≤ a164))
+(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), a:[Int]_(a134), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), head:[a161]_(a162), length:[((List a117)@[a116] -> Int)]_(a115), ll:[((List a120)@[a119] -> Int)]_(a118), main:[Int]_(a160) |- [(\[xs].(case [xs] of {[[]] -> 0; [(h : rst)] -> h}))] => (((List a170)@[a164] -> Int)@[a175]; (a165 ↦ (List a170), a163 ↦ (List a170)@[a164], a168 ↦ a166, a169 ↦ (List a170), a169 ↦ (List a170), a172 ↦ a166, a173 ↦ (List a170), a174 ↦ Int); (a166 ≤ a164))
+length : ((List a187)@[a181] -> Int)@[a200]
+|||(Kinding) |- a181 : Label
+||||(Kinding) |- a182 : Type
+||||(Kinding) |- a181 : Label
+|||(PatSynt) a181 |- xs ▷ (xs:[a182]_(a181); ())
+|||(TyUnify)  |- a182@[a181] ~ a180 ▷ (a180 ↦ a182@[a181])
+||(PatSynt) - |- [xs] ▷ (xs:[a182]_(a181); (a180 ↦ a182@[a181]))
+|||||(Kinding) |- a181 : Label
+||||(TypeInf) xs:[a182]_(a181) |- xs => (a182; (); ⊤)
+|||(TypeInf) length:[a178]_(a179), xs:[a182]_(a181) |- [xs] => (a182@[a183]; (); (a183 ≤ a181))
+||||(Kinding) |- a185 : Label
+|||||(TyUnify)  |- (List a187) ~ a186 ▷ (a186 ↦ (List a187))
+||||(PatSynt) a185 |- [] ▷ ({}; (a186 ↦ (List a187)))
+|||||(TyUnify)  |- a186 ~ a182 ▷ (a186 ↦ a182)
+|||||(TyUnify)  |- a185 ~ a183 ▷ (a185 ↦ a183)
+||||(TyUnify)  |- a186@[a185] ~ a182@[a183] ▷ (a185 ↦ a183, a186 ↦ a182)
+||||(TyUnify)  |- (List a187) ~ a182 ▷ (a182 ↦ (List a187))
+|||(PatSynt) - |- [[]] ▷ ({}; (a182 ↦ (List a187), a185 ↦ a183, a186 ↦ (List a187), a186 ↦ (List a187)))
+|||(TypeInf) length:[a178]_(a179), xs:[a182]_(a181) |- 0 => (Int; (); ⊤)
+||||(Kinding) |- a189 : Label
+||||||(Kinding) |- a191 : Type
+||||||(Kinding) |- a189 : Label
+|||||(PatSynt) a189 |- hh ▷ (hh:[a191]_(a189); ())
+|||||||(Kinding) |- a191 : Type
+||||||(Kinding) |- a191 : Type
+||||||(Kinding) |- a189 : Label
+|||||(PatSynt) a189 |- rst ▷ (rst:[(List a191)]_(a189); ())
+||||(PatSynt) a189 |- (hh : rst) ▷ (hh:[a191]_(a189), rst:[(List a191)]_(a189); ())
+|||||(TyUnify)  |- a190 ~ a182 ▷ (a190 ↦ a182)
+|||||(TyUnify)  |- a189 ~ a183 ▷ (a189 ↦ a183)
+||||(TyUnify)  |- a190@[a189] ~ a182@[a183] ▷ (a189 ↦ a183, a190 ↦ a182)
+|||(PatSynt) - |- [(hh : rst)] ▷ (hh:[a191]_(a189), rst:[(List a191)]_(a189); (a189 ↦ a183, a190 ↦ a182))
+|||||(TypeInf) hh:[a191]_(a189), length:[a178]_(a179), rst:[(List a191)]_(a189), xs:[a182]_(a181) |- + => ((Int@[a192] -> (Int@[a193] -> Int)); (); ⊤)
+||||||(TypeInf) {} |- 1 => (Int; (); ⊤)
+|||||(TypeInf) hh:[a191]_(a189), length:[a178]_(a179), rst:[(List a191)]_(a189), xs:[a182]_(a181) |- [1] => (Int@[a194]; (); ⊤)
+|||||||(TyUnify)  |- Int ~ Int ▷ ()
+|||||||(TyUnify)  |- a194 ~ a192 ▷ (a194 ↦ a192)
+||||||(TyUnify)  |- Int@[a194] ~ Int@[a192] ▷ (a194 ↦ a192)
+||||||(TyUnify)  |- (Int@[a193] -> Int) ~ a195 ▷ (a195 ↦ (Int@[a193] -> Int))
+|||||(TyUnify)  |- (Int@[a192] -> (Int@[a193] -> Int)) ~ (Int@[a194] -> a195) ▷ (a194 ↦ a192, a195 ↦ (Int@[a193] -> Int))
+||||(TypeInf) hh:[a191]_(a189), length:[a178]_(a179), rst:[(List a191)]_(a189), xs:[a182]_(a181) |- (+ [1]) => ((Int@[a193] -> Int); (a194 ↦ a192, a195 ↦ (Int@[a193] -> Int)); ⊤)
+|||||||(Kinding) |- a179 : Label
+||||||(TypeInf) length:[a178]_(a179), rst:[(List a191)]_(a189) |- length => (a178; (); ⊤)
+||||||||(Kinding) |- a189 : Label
+|||||||(TypeInf) rst:[(List a191)]_(a189) |- rst => ((List a191); (); ⊤)
+||||||(TypeInf) length:[a178]_(a179), rst:[(List a191)]_(a189) |- [rst] => ((List a191)@[a196]; (); (a196 ≤ a189))
+||||||(TyUnify)  |- a178 ~ ((List a191)@[a196] -> a197) ▷ (a178 ↦ ((List a191)@[a196] -> a197))
+|||||(TypeInf) length:[a178]_(a179), rst:[(List a191)]_(a189) |- (length [rst]) => (a197; (a178 ↦ ((List a191)@[a196] -> a197)); (a196 ≤ a189))
+||||(TypeInf) hh:[a191]_(a189), length:[a178]_(a179), rst:[(List a191)]_(a189), xs:[a182]_(a181) |- [(length [rst])] => (a197@[a198]; (a178 ↦ ((List a191)@[a196] -> a197)); (a196 ≤ a189) and (a198 ≤ a189) and (a198 ≤ a179))
+||||||(TyUnify)  |- a197 ~ Int ▷ (a197 ↦ Int)
+||||||(TyUnify)  |- a198 ~ a193 ▷ (a198 ↦ a193)
+|||||(TyUnify)  |- a197@[a198] ~ Int@[a193] ▷ (a197 ↦ Int, a198 ↦ a193)
+|||||(TyUnify)  |- Int ~ a199 ▷ (a199 ↦ Int)
+||||(TyUnify)  |- (Int@[a193] -> Int) ~ (a197@[a198] -> a199) ▷ (a197 ↦ Int, a198 ↦ a193, a199 ↦ Int)
+|||(TypeInf) hh:[a191]_(a189), length:[a178]_(a179), rst:[(List a191)]_(a189), xs:[a182]_(a181) |- ((+ [1]) [(length [rst])]) => (Int; (a195 ↦ (Int@[a193] -> Int), a197 ↦ Int, a178 ↦ ((List a191)@[a196] -> Int), a194 ↦ a192, a198 ↦ a193, a199 ↦ Int); (a196 ≤ a189) and (a198 ≤ a189) and (a198 ≤ a179))
 |||(TyUnify)  |- Int ~ Int ▷ ()
-|||(TyUnify)  |- a134 ~ a121 ▷ (a134 ↦ a121)
-||(TyUnify)  |- Int@[a134] ~ Int@[a121] ▷ (a134 ↦ a121)
-|(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a110), length:[a111]_(a112), xs:[a115]_(a114) |- (case [xs] of {[[]] -> [0]; [(hh : rst)] -> [((+ [1]) [(length [rst])])]}) => (Int@[a121]; (a129 ↦ (Int@[a127] -> Int), a131 ↦ Int, a111 ↦ ((List a125)@[a130] -> Int), a115 ↦ (List a120), a118 ↦ a116, a119 ↦ (List a120), a119 ↦ (List a120), a123 ↦ a116, a124 ↦ (List a120), a128 ↦ a126, a132 ↦ a127, a133 ↦ Int, a134 ↦ a121); (a116 ≤ a114) and (a130 ≤ a123) and (a132 ≤ a123) and (a132 ≤ a112) and (a134 ≤ a123) and (a134 ≤ a112))
-(TypeInf) __b2_0:[Int]_(a73_0), __y_2:[Int]_(a80_2), a:[Int]_(a93), b1:[Int]_(a72), f:[(Int@[a75] -> Int)]_(a74), g:[(Int@[a77] -> Int)]_(a76), h:[(Int@[a79] -> Int)]_(a78), head:[((List a103)@[a97] -> Int@[a104])]_(a110), length:[a111]_(a112) |- (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [((+ [1]) [(length [rst])])]})) => (((List a120)@[a114] -> Int@[a121]); (a129 ↦ (Int@[a127] -> Int), a131 ↦ Int, a111 ↦ ((List a125)@[a130] -> Int), a115 ↦ (List a120), a113 ↦ (List a120)@[a114], a118 ↦ a116, a119 ↦ (List a120), a119 ↦ (List a120), a123 ↦ a116, a124 ↦ (List a120), a128 ↦ a126, a132 ↦ a127, a133 ↦ Int, a134 ↦ a121); (a116 ≤ a114) and (a130 ≤ a123) and (a132 ≤ a123) and (a132 ≤ a112) and (a134 ≤ a123) and (a134 ≤ a112))
+||(TypeInf) length:[a178]_(a179), xs:[a182]_(a181) |- (case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}) => (Int; (a195 ↦ (Int@[a193] -> Int), a197 ↦ Int, a178 ↦ ((List a191)@[a196] -> Int), a182 ↦ (List a187), a185 ↦ a183, a186 ↦ (List a187), a186 ↦ (List a187), a189 ↦ a183, a190 ↦ (List a187), a194 ↦ a192, a198 ↦ a193, a199 ↦ Int); (a183 ≤ a181) and (a196 ≤ a189) and (a198 ≤ a189) and (a198 ≤ a179))
+|(TypeInf) length:[a178]_(a179) |- (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])})) => (((List a187)@[a181] -> Int); (a195 ↦ (Int@[a193] -> Int), a197 ↦ Int, a178 ↦ ((List a191)@[a196] -> Int), a182 ↦ (List a187), a180 ↦ (List a187)@[a181], a185 ↦ a183, a186 ↦ (List a187), a186 ↦ (List a187), a189 ↦ a183, a190 ↦ (List a187), a194 ↦ a192, a198 ↦ a193, a199 ↦ Int); (a183 ≤ a181) and (a196 ≤ a189) and (a198 ≤ a189) and (a198 ≤ a179))
+(TypeInf) __b1_0:[Int]_(a107_0), __y_2:[Int]_(a121_2), a:[Int]_(a134), b2:[Int]_(a108), f:[(Int@[a110] -> Int)]_(a109), g:[(Int@[a112] -> Int)]_(a111), h:[(Int@[a114] -> Int)]_(a113), head:[((List a170)@[a164] -> Int)]_(a176), length:[a178]_(a179), ll:[((List a120)@[a119] -> Int)]_(a118), main:[Int]_(a177) |- [(\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])}))] => (((List a187)@[a181] -> Int)@[a200]; (a195 ↦ (Int@[a193] -> Int), a197 ↦ Int, a178 ↦ ((List a191)@[a196] -> Int), a182 ↦ (List a187), a180 ↦ (List a187)@[a181], a185 ↦ a183, a186 ↦ (List a187), a186 ↦ (List a187), a189 ↦ a183, a190 ↦ (List a187), a194 ↦ a192, a198 ↦ a193, a199 ↦ Int); (a183 ≤ a181) and (a196 ≤ a189) and (a198 ≤ a189) and (a198 ≤ a179) and (a200 ≤ a179))
 
 === Inferred Types (Syntax.VL) ===
-main : Int@[a104]
-head : ((List a103)@[a97] -> Int@[a104])
-length : ((List a120)@[a114] -> Int@[a121])
+main : Int@[a159]
+head : ((List a170)@[a164] -> Int)@[a175]
+length : ((List a187)@[a181] -> Int)@[a200]
 
-[DEBUG] Add global env : main : Int@[a104]
-head : ((List a103)@[a97] -> Int@[a104])
-length : ((List a120)@[a114] -> Int@[a121])
-[DEBUG] Add global constraints : (a97 ≤ a140) and (a114 ≤ a140) and (a143 ≤ a140) and (a143 ≤ a135) and (a140 ≤ a80_2) and (a140 ≤ a73_0) and (a99 ≤ a97) and (a104 ≤ a99) and (a116 ≤ a114) and (a130 ≤ a116) and (a127 ≤ a116) and (a127 ≤ a112) and (a121 ≤ a116) and (a121 ≤ a112)
-[DEBUG] Counter: 153
+[DEBUG] Add global env : main : Int@[a159]
+head : ((List a170)@[a164] -> Int)@[a175]
+length : ((List a187)@[a181] -> Int)@[a200]
+[DEBUG] Add global constraints : (a143 ≤ a121_2) and (a143 ≤ a107_0) and (a145 ≤ a143) and (a151 ≤ a145) and (a152 ≤ a145) and (a159 ≤ a121_2) and (a159 ≤ a107_0) and (a166 ≤ a164) and (a183 ≤ a181) and (a196 ≤ a183) and (a193 ≤ a183) and (a193 ≤ a179) and (a200 ≤ a179)
+[DEBUG] Counter: 201
 [DEBUG] globalConstraints:
-(a97 ≤ a140) and (a114 ≤ a140) and (a143 ≤ a140) and (a143 ≤ a135) and (a140 ≤ a80_2) and (a140 ≤ a73_0) and (a99 ≤ a97) and (a104 ≤ a99) and (a116 ≤ a114) and (a130 ≤ a116) and (a127 ≤ a116) and (a127 ≤ a112) and (a121 ≤ a116) and (a121 ≤ a112) and (a73_0 ≤ a6) and (a73_0 ≤ [{B:[1.0.1]}]) and (((a80_2 ≤ a38) and (a80_2 ≤ [{B:[1.0.0]}])) or ((a80_2 ≤ a2) and (a80_2 ≤ [{B:[1.0.1]}]))) and (((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}]))) and (a75_2 ≤ a80_1) and (a92 ≤ a80_1) and (a92 ≤ a74_2) and (((a74_2 ≤ a56) and (a75_2 ≤ a48) and (a74_2 ≤ [{B:[1.0.0]}])) or ((a74_2 ≤ a20) and (a75_2 ≤ a12) and (a74_2 ≤ [{B:[1.0.1]}]))) and (((a80_1 ≤ a38) and (a80_1 ≤ [{B:[1.0.0]}])) or ((a80_1 ≤ a2) and (a80_1 ≤ [{B:[1.0.1]}]))) and (a75_1 ≤ a80_0) and (a75_0 ≤ a80_0) and (a75_0 ≤ a74_1) and (a87 ≤ a80_0) and (a87 ≤ a74_1) and (a87 ≤ a74_0) and (((a74_0 ≤ a56) and (a75_0 ≤ a48) and (a74_0 ≤ [{B:[1.0.0]}])) or ((a74_0 ≤ a20) and (a75_0 ≤ a12) and (a74_0 ≤ [{B:[1.0.1]}]))) and (((a74_1 ≤ a56) and (a75_1 ≤ a48) and (a74_1 ≤ [{B:[1.0.0]}])) or ((a74_1 ≤ a20) and (a75_1 ≤ a12) and (a74_1 ≤ [{B:[1.0.1]}]))) and (((a80_0 ≤ a38) and (a80_0 ≤ [{B:[1.0.0]}])) or ((a80_0 ≤ a2) and (a80_0 ≤ [{B:[1.0.1]}]))) and (((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))) and (a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}]) and (a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}]) and (((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}]))) and (a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}]) and (a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a14 ≤ a12) and (a29 ≤ a27)
+(a143 ≤ a121_2) and (a143 ≤ a107_0) and (a145 ≤ a143) and (a151 ≤ a145) and (a152 ≤ a145) and (a159 ≤ a121_2) and (a159 ≤ a107_0) and (a166 ≤ a164) and (a183 ≤ a181) and (a196 ≤ a183) and (a193 ≤ a183) and (a193 ≤ a179) and (a200 ≤ a179) and (a107_0 ≤ a42) and (a107_0 ≤ [{B:[1.0.0]}]) and (((a121_2 ≤ a38) and (a121_2 ≤ [{B:[1.0.0]}])) or ((a121_2 ≤ a2) and (a121_2 ≤ [{B:[1.0.1]}]))) and (((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}]))) and (a110_2 ≤ a121_1) and (a133 ≤ a121_1) and (a133 ≤ a109_2) and (((a109_2 ≤ a56) and (a110_2 ≤ a48) and (a109_2 ≤ [{B:[1.0.0]}])) or ((a109_2 ≤ a20) and (a110_2 ≤ a12) and (a109_2 ≤ [{B:[1.0.1]}]))) and (((a121_1 ≤ a38) and (a121_1 ≤ [{B:[1.0.0]}])) or ((a121_1 ≤ a2) and (a121_1 ≤ [{B:[1.0.1]}]))) and (a110_1 ≤ a121_0) and (a110_0 ≤ a121_0) and (a110_0 ≤ a109_1) and (a128 ≤ a121_0) and (a128 ≤ a109_1) and (a128 ≤ a109_0) and (((a109_0 ≤ a56) and (a110_0 ≤ a48) and (a109_0 ≤ [{B:[1.0.0]}])) or ((a109_0 ≤ a20) and (a110_0 ≤ a12) and (a109_0 ≤ [{B:[1.0.1]}]))) and (((a109_1 ≤ a56) and (a110_1 ≤ a48) and (a109_1 ≤ [{B:[1.0.0]}])) or ((a109_1 ≤ a20) and (a110_1 ≤ a12) and (a109_1 ≤ [{B:[1.0.1]}]))) and (((a121_0 ≤ a38) and (a121_0 ≤ [{B:[1.0.0]}])) or ((a121_0 ≤ a2) and (a121_0 ≤ [{B:[1.0.1]}]))) and (((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))) and (a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}]) and (a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}]) and (a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}]) and (a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}]) and (((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}]))) and (a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}]) and (a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a106 ≤ a99) and (a81 ≤ a79) and (a94 ≤ a81) and (a91 ≤ a81) and (a91 ≤ a77) and (a98 ≤ a77) and (a14 ≤ a12) and (a29 ≤ a27)
 
 [DEBUG] bundledConsSchemes:
 A
-(a,(((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}])))), B
-(b1,(a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}])), (b2,(a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}])), (f,(((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}])))), (g,(a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}])), (h,(a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}])), (y,(((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))))
+(a,(((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}])))), B
+(b1,(a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}])), (b2,(a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}])), (f,(((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}])))), (g,(a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}])), (h,(a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}])), (length,(a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}])), (ll,(a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}])), (y,(((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))))
 
 [DEBUG] List of modules not yet compiled:
 None
 
 === External Variables ===
-__b2_0 Main-Root a73_0
-__f_0 A-1.0.1 a74_0
-__f_1 A-1.0.1 a74_1
-__f_2 A-1.0.0 a74_2
-__y_0 A-1.0.1 a80_0
-__y_1 A-1.0.0 a80_1
-__y_2 Main-Root a80_2
+__b1_0 Main-Root a107_0
+__f_0 A-1.0.1 a109_0
+__f_1 A-1.0.1 a109_1
+__f_2 A-1.0.0 a109_2
+__y_0 A-1.0.1 a121_0
+__y_1 A-1.0.0 a121_1
+__y_2 Main-Root a121_2
 
 === Constraints ===
-(a97 ≤ a140) and (a114 ≤ a140) and (a143 ≤ a140) and (a143 ≤ a135) and (a140 ≤ a80_2) and (a140 ≤ a73_0) and (a99 ≤ a97) and (a104 ≤ a99) and (a116 ≤ a114) and (a130 ≤ a116) and (a127 ≤ a116) and (a127 ≤ a112) and (a121 ≤ a116) and (a121 ≤ a112) and (a73_0 ≤ a6) and (a73_0 ≤ [{B:[1.0.1]}]) and (((a80_2 ≤ a38) and (a80_2 ≤ [{B:[1.0.0]}])) or ((a80_2 ≤ a2) and (a80_2 ≤ [{B:[1.0.1]}]))) and (((a93 ≤ a92) and (a93 ≤ [{A:[1.0.0]}])) or ((a93 ≤ a87) and (a93 ≤ [{A:[1.0.1]}]))) and (a75_2 ≤ a80_1) and (a92 ≤ a80_1) and (a92 ≤ a74_2) and (((a74_2 ≤ a56) and (a75_2 ≤ a48) and (a74_2 ≤ [{B:[1.0.0]}])) or ((a74_2 ≤ a20) and (a75_2 ≤ a12) and (a74_2 ≤ [{B:[1.0.1]}]))) and (((a80_1 ≤ a38) and (a80_1 ≤ [{B:[1.0.0]}])) or ((a80_1 ≤ a2) and (a80_1 ≤ [{B:[1.0.1]}]))) and (a75_1 ≤ a80_0) and (a75_0 ≤ a80_0) and (a75_0 ≤ a74_1) and (a87 ≤ a80_0) and (a87 ≤ a74_1) and (a87 ≤ a74_0) and (((a74_0 ≤ a56) and (a75_0 ≤ a48) and (a74_0 ≤ [{B:[1.0.0]}])) or ((a74_0 ≤ a20) and (a75_0 ≤ a12) and (a74_0 ≤ [{B:[1.0.1]}]))) and (((a74_1 ≤ a56) and (a75_1 ≤ a48) and (a74_1 ≤ [{B:[1.0.0]}])) or ((a74_1 ≤ a20) and (a75_1 ≤ a12) and (a74_1 ≤ [{B:[1.0.1]}]))) and (((a80_0 ≤ a38) and (a80_0 ≤ [{B:[1.0.0]}])) or ((a80_0 ≤ a2) and (a80_0 ≤ [{B:[1.0.1]}]))) and (((a80 ≤ a38) and (a80 ≤ [{B:[1.0.0]}])) or ((a80 ≤ a2) and (a80 ≤ [{B:[1.0.1]}]))) and (a78 ≤ a35) and (a79 ≤ a27) and (a78 ≤ [{B:[1.0.1]}]) and (a76 ≤ a71) and (a77 ≤ a63) and (a76 ≤ [{B:[1.0.0]}]) and (((a74 ≤ a56) and (a75 ≤ a48) and (a74 ≤ [{B:[1.0.0]}])) or ((a74 ≤ a20) and (a75 ≤ a12) and (a74 ≤ [{B:[1.0.1]}]))) and (a73 ≤ a6) and (a73 ≤ [{B:[1.0.1]}]) and (a72 ≤ a42) and (a72 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a14 ≤ a12) and (a29 ≤ a27)
+(a143 ≤ a121_2) and (a143 ≤ a107_0) and (a145 ≤ a143) and (a151 ≤ a145) and (a152 ≤ a145) and (a159 ≤ a121_2) and (a159 ≤ a107_0) and (a166 ≤ a164) and (a183 ≤ a181) and (a196 ≤ a183) and (a193 ≤ a183) and (a193 ≤ a179) and (a200 ≤ a179) and (a107_0 ≤ a42) and (a107_0 ≤ [{B:[1.0.0]}]) and (((a121_2 ≤ a38) and (a121_2 ≤ [{B:[1.0.0]}])) or ((a121_2 ≤ a2) and (a121_2 ≤ [{B:[1.0.1]}]))) and (((a134 ≤ a133) and (a134 ≤ [{A:[1.0.0]}])) or ((a134 ≤ a128) and (a134 ≤ [{A:[1.0.1]}]))) and (a110_2 ≤ a121_1) and (a133 ≤ a121_1) and (a133 ≤ a109_2) and (((a109_2 ≤ a56) and (a110_2 ≤ a48) and (a109_2 ≤ [{B:[1.0.0]}])) or ((a109_2 ≤ a20) and (a110_2 ≤ a12) and (a109_2 ≤ [{B:[1.0.1]}]))) and (((a121_1 ≤ a38) and (a121_1 ≤ [{B:[1.0.0]}])) or ((a121_1 ≤ a2) and (a121_1 ≤ [{B:[1.0.1]}]))) and (a110_1 ≤ a121_0) and (a110_0 ≤ a121_0) and (a110_0 ≤ a109_1) and (a128 ≤ a121_0) and (a128 ≤ a109_1) and (a128 ≤ a109_0) and (((a109_0 ≤ a56) and (a110_0 ≤ a48) and (a109_0 ≤ [{B:[1.0.0]}])) or ((a109_0 ≤ a20) and (a110_0 ≤ a12) and (a109_0 ≤ [{B:[1.0.1]}]))) and (((a109_1 ≤ a56) and (a110_1 ≤ a48) and (a109_1 ≤ [{B:[1.0.0]}])) or ((a109_1 ≤ a20) and (a110_1 ≤ a12) and (a109_1 ≤ [{B:[1.0.1]}]))) and (((a121_0 ≤ a38) and (a121_0 ≤ [{B:[1.0.0]}])) or ((a121_0 ≤ a2) and (a121_0 ≤ [{B:[1.0.1]}]))) and (((a121 ≤ a38) and (a121 ≤ [{B:[1.0.0]}])) or ((a121 ≤ a2) and (a121 ≤ [{B:[1.0.1]}]))) and (a118 ≤ a106) and (a119 ≤ a79) and (a120 ≤ a85) and (a118 ≤ [{B:[1.0.0]}]) and (a115 ≤ a98) and (a116 ≤ a79) and (a117 ≤ a85) and (a115 ≤ [{B:[1.0.0]}]) and (a113 ≤ a35) and (a114 ≤ a27) and (a113 ≤ [{B:[1.0.1]}]) and (a111 ≤ a71) and (a112 ≤ a63) and (a111 ≤ [{B:[1.0.0]}]) and (((a109 ≤ a56) and (a110 ≤ a48) and (a109 ≤ [{B:[1.0.0]}])) or ((a109 ≤ a20) and (a110 ≤ a12) and (a109 ≤ [{B:[1.0.1]}]))) and (a108 ≤ a6) and (a108 ≤ [{B:[1.0.1]}]) and (a107 ≤ a42) and (a107 ≤ [{B:[1.0.0]}]) and (a50 ≤ a48) and (a65 ≤ a63) and (a106 ≤ a99) and (a81 ≤ a79) and (a94 ≤ a81) and (a91 ≤ a81) and (a91 ≤ a77) and (a98 ≤ a77) and (a14 ≤ a12) and (a29 ≤ a27)
 
 === Solver result ===
-a104 : {B:[1.0.1]}
+a106 : {}
+a107 : {B:[1.0.0]}
+a107_0 : {B:[1.0.0]}
+a108 : {B:[1.0.1]}
+a109 : {B:[1.0.1]}
+a109_0 : {B:[1.0.1]}
+a109_1 : {B:[1.0.1]}
+a109_2 : {B:[1.0.1]}
+a110 : {}
+a110_0 : {B:[1.0.1]}
+a110_1 : {B:[1.0.1]}
+a110_2 : {B:[1.0.1]}
+a111 : {B:[1.0.0]}
 a112 : {}
-a114 : {B:[1.0.1]}
-a116 : {B:[1.0.1]}
+a113 : {B:[1.0.1]}
+a114 : {}
+a115 : {B:[1.0.0]}
+a116 : {}
+a117 : {}
+a118 : {B:[1.0.0]}
+a119 : {}
 a12 : {}
+a120 : {}
 a121 : {B:[1.0.1]}
-a127 : {B:[1.0.1]}
-a130 : {B:[1.0.1]}
-a135 : {}
+a121_0 : {B:[1.0.1]}
+a121_1 : {B:[1.0.1]}
+a121_2 : {B:[1.0.0]}
+a128 : {B:[1.0.1]}
+a133 : {B:[1.0.1]}
+a134 : {A:[1.0.1], B:[1.0.1]}
 a14 : {}
-a140 : {B:[1.0.1]}
-a143 : {B:[1.0.1]}
+a143 : {B:[1.0.0]}
+a145 : {B:[1.0.0]}
+a151 : {B:[1.0.0]}
+a152 : {B:[1.0.0]}
+a159 : {B:[1.0.0]}
+a164 : {}
+a166 : {}
+a179 : {}
+a181 : {}
+a183 : {}
+a193 : {}
+a196 : {}
 a2 : {}
 a20 : {}
+a200 : {}
 a27 : {}
 a29 : {}
 a35 : {}
@@ -999,39 +1257,23 @@ a6 : {}
 a63 : {}
 a65 : {}
 a71 : {}
-a72 : {B:[1.0.0]}
-a73 : {B:[1.0.1]}
-a73_0 : {B:[1.0.1]}
-a74 : {B:[1.0.1]}
-a74_0 : {B:[1.0.1]}
-a74_1 : {B:[1.0.1]}
-a74_2 : {B:[1.0.1]}
-a75 : {}
-a75_0 : {B:[1.0.1]}
-a75_1 : {B:[1.0.1]}
-a75_2 : {B:[1.0.1]}
-a76 : {B:[1.0.0]}
 a77 : {}
-a78 : {B:[1.0.1]}
 a79 : {}
-a80 : {B:[1.0.1]}
-a80_0 : {B:[1.0.1]}
-a80_1 : {B:[1.0.1]}
-a80_2 : {B:[1.0.1]}
-a87 : {B:[1.0.1]}
-a92 : {B:[1.0.1]}
-a93 : {A:[1.0.1], B:[1.0.1]}
-a97 : {B:[1.0.1]}
-a99 : {B:[1.0.1]}
+a81 : {}
+a85 : {}
+a91 : {}
+a94 : {}
+a98 : {}
+a99 : {}
 
 === Labels of External Variables ===
-__b2_0 : b2 : Main-Root : a73_0 : {B:[1.0.1]}
-__f_0 : f : A-1.0.1 : a74_0 : {B:[1.0.1]}
-__f_1 : f : A-1.0.1 : a74_1 : {B:[1.0.1]}
-__f_2 : f : A-1.0.0 : a74_2 : {B:[1.0.1]}
-__y_0 : y : A-1.0.1 : a80_0 : {B:[1.0.1]}
-__y_1 : y : A-1.0.0 : a80_1 : {B:[1.0.1]}
-__y_2 : y : Main-Root : a80_2 : {B:[1.0.1]}
+__b1_0 : b1 : Main-Root : a107_0 : {B:[1.0.0]}
+__f_0 : f : A-1.0.1 : a109_0 : {B:[1.0.1]}
+__f_1 : f : A-1.0.1 : a109_1 : {B:[1.0.1]}
+__f_2 : f : A-1.0.0 : a109_2 : {B:[1.0.1]}
+__y_0 : y : A-1.0.1 : a121_0 : {B:[1.0.1]}
+__y_1 : y : A-1.0.0 : a121_1 : {B:[1.0.1]}
+__y_2 : y : Main-Root : a121_2 : {B:[1.0.0]}
 
 === Prettyprint ===
 
@@ -1051,6 +1293,11 @@ y = 1
 b1 = 1
 f x = x + 1
 g x = x + 1
+ll = length
+length xs
+  = case xs of
+        [] -> 0
+        hh : rst -> 1 + length rst
 
 -- B v1.0.1
 module B where
@@ -1064,24 +1311,28 @@ module Main where
 import A
 import B
 main
-  = let lst = [y, b2]
-        n = length lst
-      in head lst
+  = let sumTpl x
+          = case x of
+                (x1, x2) -> x1 + x2
+      in sumTpl (y, b1)
 head xs
   = case xs of
         [] -> 0
-        hh : rst -> hh
+        h : rst -> h
 length xs
   = case xs of
         [] -> 0
         hh : rst -> 1 + length rst
 
 === VLDecls ===
-A-1.0.0 : a = [(__f_2 [__y_1])]
-A-1.0.1 : a = [(__f_0 [(__f_1 [__y_0])])]
-B-1.0.0 : b1 = [1], f = [(\[x].((+ [x]) [1]))], g = [(\[x].((+ [x]) [1]))], y = [1]
-B-1.0.1 : b2 = [2], f = [(\[x].((+ [x]) [2]))], h = [(\[x].((* [x]) [1]))], y = [2]
-Main-Root : head = (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [hh]})), length = (\[xs].(case [xs] of {[[]] -> [0]; [(hh : rst)] -> [((+ [1]) [(length [rst])])]})), main = ((\[lst].((\[n].(head [lst])) [(length [lst])])) [[__y_2, __b2_0]])
+A-1.0.0 : a = (__f_2 [__y_1])
+A-1.0.1 : a = (__f_0 [(__f_1 [__y_0])])
+B-1.0.0 : b1 = 1, f = (\[x].((+ [x]) [1])), g = (\[x].((+ [x]) [1])), length = (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])})), ll = length, y = 1
+B-1.0.1 : b2 = 2, f = (\[x].((+ [x]) [2])), h = (\[x].((* [x]) [1])), y = 2
+Main-Root : head = (\[xs].(case [xs] of {[[]] -> 0; [(h : rst)] -> h})), length = (\[xs].(case [xs] of {[[]] -> 0; [(hh : rst)] -> ((+ [1]) [(length [rst])])})), main = ((\[sumTpl].(sumTpl [(__y_2, __b1_0)])) [(\[x].(case [x] of {[(x1, x2)] -> ((+ [x1]) [x2])}))])
 
 === Extraction ===
-(\ lst -> (\ n -> head lst) (length lst)) [2, 2]
+(\ sumTpl -> sumTpl (1, 1))
+  (\ x ->
+     case x of
+         (x1, x2) -> (+) x1 x2)

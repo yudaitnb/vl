@@ -33,7 +33,7 @@ dependencies:
 - split
 - sbv
 - transformers
-# - haskell-names
+- haskell-names
 - aeson
 - bytestring
 - regex-posix

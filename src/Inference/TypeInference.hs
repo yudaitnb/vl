@@ -1,5 +1,6 @@
 module Inference.TypeInference  where
 
+import Prelude hiding (log)
 import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import Data.List (foldl, map, elemIndex, sortBy, sortOn, intersect, nub, (\\))
@@ -24,7 +25,6 @@ import Inference.PatternSynthesis
 
 import Graph
 import Util
-import Prelude hiding (log)
 
 type TyInfRes =
     ( Type
@@ -64,39 +64,16 @@ instance Typable (VL.Exp SrcSpanInfo) where
   infer exp = do
     addLC
     case exp of
-      -- ^ ⇒_int
-      VL.Lit _ (VL.Char {}) -> do
+      -- ^ ⇒_int, ⇒_char, ⇒_string 
+      VL.Lit _ con -> do
         gamma <- gets tEnv
         sigma <- gets uEnv
-        let tychar = TyCon (UnQual (Ident "Char"))
+        let ty = case con of
+              VL.Char {}   -> tychar
+              VL.String {} -> tystring
+              VL.Int {}    -> tyint
             result =
-              ( tychar
-              -- , emptyEnv
-              , sigma
-              , emptySubst
-              , emptyConstraints
-              )
-        putTyInfLog sigma gamma exp result
-        return result
-      VL.Lit _ (VL.String {}) -> do
-        gamma <- gets tEnv
-        sigma <- gets uEnv
-        let tystr = TyCon (UnQual (Ident "String"))
-            result =
-              ( tystr
-              -- , emptyEnv
-              , sigma
-              , emptySubst
-              , emptyConstraints
-              )
-        putTyInfLog sigma gamma exp result
-        return result
-      VL.Lit _ (VL.Int {}) -> do
-        gamma <- gets tEnv
-        sigma <- gets uEnv
-        let tyint = TyCon (UnQual (Ident "Int"))
-            result =
-              ( tyint
+              ( ty
               -- , emptyEnv
               , sigma
               , emptySubst
@@ -107,55 +84,27 @@ instance Typable (VL.Exp SrcSpanInfo) where
 
       -- ^ Variables
       VL.Var _ qName
-        -- ^ +, -, *, /
-        | getName qName `elem` ["+", "-", "*", "/"] -> do
+        -- ^ reserved binary operators
+        | getName qName `elem` reservedOps -> do
           gamma <- gets tEnv
           sigma <- gets uEnv
           alpha0 <- genNewTyVar LabelsKind
           alpha1 <- genNewTyVar LabelsKind
           sigma' <- gets uEnv
-          let intToIntToInt = TyFun (TyBox alpha0 tyint)
-                                    (TyFun (TyBox alpha1 tyint) tyint)
+          let (t1,t2,t3)
+                | getName qName `elem` ["+", "-", "*", "/"] = 
+                  (tyint, tyint, tyint)
+                | getName qName `elem` ["&&", "||"] = 
+                  (tybool, tybool, tybool)
+                | getName qName `elem` ["<" ,"<=", ">", ">=", "==", "/="] =
+                  (tyint, tyint, tybool)
+              ty = TyFun
+                    (TyBox alpha0 t1)
+                    (TyFun
+                      (TyBox alpha1 t2)
+                      t3)
               result =
-                ( intToIntToInt
-                -- , emptyEnv
-                , sigma'
-                , emptySubst
-                , emptyConstraints
-                )
-          putTyInfLog sigma gamma exp result
-          return result
-
-        -- ^ &&, ||
-        | getName qName `elem` ["&&", "||"] -> do
-          gamma <- gets tEnv
-          sigma <- gets uEnv
-          alpha0 <- genNewTyVar LabelsKind
-          alpha1 <- genNewTyVar LabelsKind
-          sigma' <- gets uEnv
-          let boolToBoolToBool = TyFun (TyBox alpha0 tybool)
-                                       (TyFun (TyBox alpha1 tybool) tybool)
-              result =
-                ( boolToBoolToBool
-                -- , emptyEnv
-                , sigma'
-                , emptySubst
-                , emptyConstraints
-                )
-          putTyInfLog sigma gamma exp result
-          return result
-
-        -- ^ < ,<=, >, >=, ==, /=
-        | getName qName `elem` ["<" ,"<=", ">", ">=", "==", "/="] -> do
-          gamma <- gets tEnv
-          sigma <- gets uEnv
-          alpha0 <- genNewTyVar LabelsKind
-          alpha1 <- genNewTyVar LabelsKind
-          sigma' <- gets uEnv
-          let intTointToBool = TyFun (TyBox alpha0 tyint)
-                                     (TyFun (TyBox alpha1 tyint) tybool)
-              result =
-                ( intTointToBool
+                ( ty
                 -- , emptyEnv
                 , sigma'
                 , emptySubst
@@ -241,7 +190,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
         setREnv emptyREnv
         (gamma', sigma2, theta) <- patternSynthesis p alpha
         setUEnv sigma2
-        setTEnv $ gamma .++. gamma'
+        setTEnv $ gamma .+++ gamma' -- シンボルが被った場合は新たに生成した環境で上書き (コア計算とは異なる)
         -- (tyb, delta, sigma3, theta', c1) <- infer t
         (tyb, sigma3, theta', c1) <- infer t
         theta'' <- theta `comp` theta'
@@ -343,7 +292,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
           setREnv emptyREnv
           (deltai, sigmai, thetai) <- patternSynthesis pi tya
           setUEnv sigmai
-          setTEnv $ gamma .++. deltai
+          setTEnv $ gamma .+++ deltai -- シンボルが被った場合はdeltaiに新たに束縛した変数でgammaの環境を上書き (コア計算とは異なる)
           -- te <- gets tEnv
           -- liftIO $ print . putDocString . ppP $ te
           (tyb, sigmai', thetai', ci') <- infer ti
@@ -456,29 +405,25 @@ getInterface importedTEnv importedUEnv initC (VL.Module _ _ _ _ decls) = do
       initializeEnv
       setTEnv importedTEnv
       setUEnv importedUEnv
-      forM_ (map fst decls') addDeclToTEnv -- 環境にこれまで生成した束縛・制約を追加
+
+      -- 環境にこれまで生成した束縛・制約を追加
+      -- TypedExp中の型はpromote済みなので、モジュール内の型検査の際にはTyBoxの中の型を取り出す
+      let prevTyExps = map fst decls'
+      forM_ prevTyExps $ \(TypedExp s ty@(TyBox c tyin) _ _) -> do
+        alpha <- genNewTyVar LabelsKind
+        putTEnv s (GrType Local tyin alpha)
 
       -- 全てのトップレベルシンボルは再帰関数扱い
       alpha <- genNewTyVar TypeKind
       beta  <- genNewTyVar LabelsKind
       putTEnv (getName pat) (GrType Local alpha beta)
 
-      -- 対象の宣言の型検査
-      (ty, uenv, sub, con) <- infer exp
+      -- 対象の宣言の型検査 with promotion
+      (ty, uenv, sub, con) <- infer $ VL.Pr (VL.ann exp) exp
       let con' = constraintsSubstitution sub con
-          -- con' = nub $ map (typeSubstitution sub) con
-          -- inc = [ c | c <- con', null $ consOn c `intersect` freeTyVars ty ]
-          -- exc = [ c | c <- con', not . null $ consOn c `intersect` freeTyVars ty ]
-          -- exu = filterEnvBy (freeVars ty) uenv
       l <- gets (reverseLogs . log)
       return $
         (TypedExp (getName pat) ty con' uenv, l) : decls'
-
-    -- ^ addDeclToTEnv (x : ty, c) => x : [ty]@[a_new] | C U c
-    addDeclToTEnv :: TypedExp -> Env ()
-    addDeclToTEnv (TypedExp s ty _ _) = do
-      tyvar <- genNewTyVar LabelsKind
-      putTEnv s (GrType Local ty tyvar)
 
     -- 元の宣言の順番に並び替える
     rearrange :: [(TypedExp, Logs)] -> [(TypedExp, Logs)]

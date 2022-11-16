@@ -14,7 +14,7 @@ import Inference.TypeInference (TypedExp)
 
 import Util
 
-extract :: Map String (String, VLMod, Type, Label) -> Map VLMod (Map String (Exp SrcSpanInfo)) -> Exp SrcSpanInfo -> Exp SrcSpanInfo
+extract :: Map VarName (VarName, VLMod, Type, Label) -> Map VLMod (Map VarName (Exp SrcSpanInfo)) -> Exp SrcSpanInfo -> Exp SrcSpanInfo
 extract exVarLabels vldecls = extractExp
   where
     extractExp :: Exp SrcSpanInfo -> Exp SrcSpanInfo
