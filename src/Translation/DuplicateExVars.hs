@@ -1,4 +1,4 @@
-module Translation.RenameExVars where
+module Translation.DuplicateExVars where
 
 import Control.Monad.Trans.State
 import Control.Monad (forM_, forM)
@@ -32,15 +32,15 @@ import GHC (noSrcLoc)
 
 type CounterTable = Map VarKey Int
 
-data RenameEnv' = RenameEnv'
+data DuplicateEnv' = DuplicateEnv'
   { counterTable :: CounterTable  -- 各外部モジュール変数の累積数
   , boundVars :: [VarKey]         -- そのスコープにおける束縛変数のリスト
   } deriving (Show)
-type RenameEnv a = State RenameEnv' a
+type DuplicateEnv a = State DuplicateEnv' a
 
-mkInitRenameEnv :: ModName -> CounterTable -> [Decl SrcSpanInfo] -> RenameEnv'
-mkInitRenameEnv mn ct decls =
-  RenameEnv'
+mkInitDuplicateEnv :: ModName -> CounterTable -> [Decl SrcSpanInfo] -> DuplicateEnv'
+mkInitDuplicateEnv mn ct decls =
+  DuplicateEnv'
     (M.unionWith max ct $ M.fromList $ zip (freeVarsDecls decls) (repeat 0))
     ( map
         (\(PatBind _ p@(PVar _ n) e) -> QVar mn (getName n))
@@ -53,11 +53,11 @@ mkInitRenameEnv mn ct decls =
     freeVarsDecls [] = []
     freeVarsDecls (d:rst) = (nub . freeVars . getBind $ d) ++ freeVarsDecls rst
 
-getCounterOf :: VarKey -> RenameEnv Int
+getCounterOf :: VarKey -> DuplicateEnv Int
 getCounterOf vn = do
   gets $ (<!> vn) . counterTable
 
-addCounterOf :: VarKey -> RenameEnv ()
+addCounterOf :: VarKey -> DuplicateEnv ()
 addCounterOf vn = do
   oldct <- gets counterTable
   oldc <- getCounterOf vn
@@ -84,7 +84,7 @@ newNamesOfExTyVar :: String -> Int -> Int -> [VarName]
 newNamesOfExTyVar s c cstart = take c $ map (newNameOfExTyVar s) $ iterate (+1) cstart
 
 -- 変数を一つ受け取り、変数名のみが異なる新しい変数を生成する
-genNewVarFrom :: Exp SrcSpanInfo -> RenameEnv (Exp SrcSpanInfo)
+genNewVarFrom :: Exp SrcSpanInfo -> DuplicateEnv (Exp SrcSpanInfo)
 genNewVarFrom (Var l1 qn) = case qn of
   N.UnQual l2 (N.Ident l3 s) -> do
     let vk = UQVar s
@@ -102,19 +102,19 @@ genNewVarFrom (Var l1 qn) = case qn of
     return newVar
 genNewVarFrom e = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
   
-isFree :: Exp SrcSpanInfo -> RenameEnv Bool
+isFree :: Exp SrcSpanInfo -> DuplicateEnv Bool
 isFree v@(Var _ qn) = gets $ not . (mkVKFromQN qn `elem`) . boundVars
 isFree e           = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
 
-addBoundVar :: VarKey -> RenameEnv ()
+addBoundVar :: VarKey -> DuplicateEnv ()
 addBoundVar vn = do
   bv <- gets boundVars
   modify $ \env -> env { boundVars = vn : bv }
 
-setBoundVar :: [VarKey] -> RenameEnv ()
+setBoundVar :: [VarKey] -> DuplicateEnv ()
 setBoundVar ss = modify $ \env -> env { boundVars = ss }
 
-addBoundVarFromPat :: Pat SrcSpanInfo -> RenameEnv ()
+addBoundVarFromPat :: Pat SrcSpanInfo -> DuplicateEnv ()
 addBoundVarFromPat p = case p of
   PVar _ name          -> addBoundVar $ UQVar (getName name)
   PBox _ p'            -> addBoundVarFromPat p'
@@ -127,44 +127,44 @@ addBoundVarFromPat p = case p of
 
 ----------------
 
-renameExVarModule :: CounterTable -> Module SrcSpanInfo -> (Module SrcSpanInfo, CounterTable)
-renameExVarModule ct mod@(Module l mh pragmas imps decls) =
-  let mn = maybe (error "renameExVarModule : No moduleHead") getName mh
-      (decls', renv) = runState (forM decls renameExVarDecl) (mkInitRenameEnv mn ct decls)
+duplicateExVarModule :: CounterTable -> Module SrcSpanInfo -> (Module SrcSpanInfo, CounterTable)
+duplicateExVarModule ct mod@(Module l mh pragmas imps decls) =
+  let mn = maybe (error "duplicateExVarModule : No moduleHead") getName mh
+      (decls', renv) = runState (forM decls duplicateExVarDecl) (mkInitDuplicateEnv mn ct decls)
   in (Module l mh pragmas imps decls', counterTable renv)
 
-renameExVarDecl :: Decl SrcSpanInfo -> RenameEnv (Decl SrcSpanInfo)
-renameExVarDecl pb@(PatBind l p@(PVar _ name) e) = PatBind l p <$> renameExVarExp e
+duplicateExVarDecl :: Decl SrcSpanInfo -> DuplicateEnv (Decl SrcSpanInfo)
+duplicateExVarDecl pb@(PatBind l p@(PVar _ name) e) = PatBind l p <$> duplicateExVarExp e
 
-renameExVarExp :: Exp SrcSpanInfo -> RenameEnv (Exp SrcSpanInfo)
-renameExVarExp exp = case exp of
+duplicateExVarExp :: Exp SrcSpanInfo -> DuplicateEnv (Exp SrcSpanInfo)
+duplicateExVarExp exp = case exp of
   Lit _ _ -> return exp
   Var _ _ -> isFree exp >>= \b -> if b
               then genNewVarFrom exp -- 自由変数は外部モジュール由来のはず
               else return exp        -- パターンかλに束縛された変数
-  App l e1 e2   -> App l <$> renameExVarExp e1 <*> renameExVarExp e2
-  -- If even one pattern that binds the same name exists, terminate the renameExVarExp function,
+  App l e1 e2   -> App l <$> duplicateExVarExp e1 <*> duplicateExVarExp e2
+  -- If even one pattern that binds the same name exists, terminate the duplicateExVarExp function,
   Lambda l p e -> do
     oldBoundVars <- gets boundVars   -- 旧テーブルを保存
     addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
-    e' <- renameExVarExp e           -- 更新された環境でrename
+    e' <- duplicateExVarExp e           -- 更新された環境でduplicate
     setBoundVar oldBoundVars         -- 旧テーブルに戻す
-    return $ Lambda l p e'           -- rename済み式と新しい束縛変数リストを用いてLambdaのrename済み式を構成
-  Tuple l elms   -> Tuple l <$> mapM renameExVarExp elms
-  List l elms    -> List l <$> mapM renameExVarExp elms
-  If l e1 e2 e3  -> If l <$> renameExVarExp e1 <*> renameExVarExp e2 <*> renameExVarExp e3
-  Case l e alts  -> Case l <$> renameExVarExp e <*> mapM renameExVarAlt alts
-  Pr l e         -> Pr l <$> renameExVarExp e
-  VRes l label e -> VRes l label <$> renameExVarExp e
-  VExt l e       -> VExt l <$> renameExVarExp e
+    return $ Lambda l p e'           -- duplicate済み式と新しい束縛変数リストを用いてLambdaのduplicate済み式を構成
+  Tuple l elms   -> Tuple l <$> mapM duplicateExVarExp elms
+  List l elms    -> List l <$> mapM duplicateExVarExp elms
+  If l e1 e2 e3  -> If l <$> duplicateExVarExp e1 <*> duplicateExVarExp e2 <*> duplicateExVarExp e3
+  Case l e alts  -> Case l <$> duplicateExVarExp e <*> mapM duplicateExVarAlt alts
+  Pr l e         -> Pr l <$> duplicateExVarExp e
+  VRes l label e -> VRes l label <$> duplicateExVarExp e
+  VExt l e       -> VExt l <$> duplicateExVarExp e
   
-renameExVarAlt :: Alt SrcSpanInfo -> RenameEnv (Alt SrcSpanInfo)
-renameExVarAlt (Alt l p e) = do
+duplicateExVarAlt :: Alt SrcSpanInfo -> DuplicateEnv (Alt SrcSpanInfo)
+duplicateExVarAlt (Alt l p e) = do
   oldBoundVars <- gets boundVars   -- 旧テーブルを保存
   addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
-  e' <- renameExVarExp e           -- 更新された環境でrename
+  e' <- duplicateExVarExp e           -- 更新された環境でduplicate
   setBoundVar oldBoundVars         -- 旧テーブルに戻す
-  return $ Alt l p e'              -- rename済み式と新しい束縛変数リストを用いてLambdaのrename済み式を構成  
+  return $ Alt l p e'              -- duplicate済み式と新しい束縛変数リストを用いてLambdaのduplicate済み式を構成  
 
 -------------------
 

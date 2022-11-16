@@ -19,7 +19,7 @@ import Translation.Desugar (desugarAST)
 import Translation.Girard (girardFwd)
 import Translation.Promote ( promoteTopVal )
 import Translation.Normalize (normalize)
-import Translation.RenameExVars (renameExVarModule, duplicateEnvs, CounterTable)
+import Translation.DuplicateExVars (duplicateExVarModule, duplicateEnvs, CounterTable)
 import Translation.Bundling ( bundle )
 
 import Inference.TypeInference (getInterface, TypedExp (..))
@@ -210,7 +210,7 @@ compileVLMod target@(VLMod mn v) = do
 
   logP "\n=== AST (Syntax.VL), after duplicating external variables ==="
   ct <- gets counterTable
-  let (astVLDuplicated, ct') = renameExVarModule ct astVL
+  let (astVLDuplicated, ct') = duplicateExVarModule ct astVL
       ctdiff = unionWith (-) ct' ct
       ctstart = unionWith min ct' (Data.Map.union ct $ Data.Map.map (const 0) ct') -- ct'のkeyだけ先に入れておく
   logP astVLDuplicated
