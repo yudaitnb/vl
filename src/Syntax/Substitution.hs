@@ -101,18 +101,6 @@ normalize :: Subst -> Subst
 normalize (Subst [])          = emptySubst
 normalize (Subst ((k,v):lst)) = Subst $ (k,v) : map (second (typeSubstitution (Subst [(k,v)]))) (subst $ normalize $ Subst lst)
 
-isCompatible :: Subst -> Env Bool
-isCompatible (Subst []) = return True
-isCompatible (Subst ((alpha, tya):theta)) = do
-  sigma <- gets uEnv
-  case lookupEnv alpha sigma of
-    Nothing    -> return False
-    Just kappa -> do
-      b1 <- isCompatible $ Subst theta
-      setUEnv (exclude sigma (makeEnv [(alpha, kappa)]))
-      kappa' <- kind tya
-      return $ kappa == kappa'
-
 --------------------------
 
 typeSubstitution :: Subst -> Type -> Type

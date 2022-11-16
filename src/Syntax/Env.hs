@@ -28,9 +28,10 @@ import Control.Monad.State
 import qualified Data.List
 import Data.Map
 
-import Syntax.Type
+import Syntax.Type as T
 import Syntax.Kind
-import Syntax.Common (HasVar(..), VarName(..), ModName(..))
+import Syntax.Common (HasVar(..), VarName(..), ModName(..), SrcSpanInfo(..))
+import Syntax.Common as N (QName(..))
 
 import Parser (VLMod(..))
 
@@ -50,6 +51,7 @@ getType :: EnvType -> Type
 getType (NType _ t) = t
 getType (GrType _ t _) = t
 
+-- type TEnv = Map (N.QName SrcSpanInfo) EnvType
 type TEnv = Map VarName EnvType
 type UEnv = Map VarName Kind
 data REnv = EmptyREnv | REnv Coeffect deriving (Show)
@@ -311,19 +313,19 @@ basicTypes :: [String]
 basicTypes = ["Int", "String", "Bool"]
 
 intTy :: Type
-intTy = TyCon (UnQual (Ident "Int"))
+intTy = TyCon (T.UnQual (Ident "Int"))
 
 bxIntTy1 :: Type
 bxIntTy1 =
   TyBox
     (TyVar (Ident "a0"))
-    (TyCon (UnQual (Ident "Int")))
+    (TyCon (T.UnQual (Ident "Int")))
 
 bxIntTy2 :: Type
 bxIntTy2 =
   TyBox
     (TyVar (Ident "a1"))
-    (TyCon (UnQual (Ident "Int")))
+    (TyCon (T.UnQual (Ident "Int")))
 
 intToInt :: Type
 intToInt = TyFun bxIntTy1 intTy
