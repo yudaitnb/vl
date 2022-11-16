@@ -27,7 +27,7 @@ promoteTopVal vlmod (Module l mh pragmas imp decls) =
           Alt l p e -> Alt l p $ promoteExp e
 
     promoteDecl :: Decl l -> Decl l
-    promoteDecl pb@(PatBind l1 pvar exp) = PatBind l1 pvar (promoteExp exp) -- [TODO] not l1
+    promoteDecl pb@(PatBind l1 p exp) = PatBind l1 p (promoteExp exp) -- [TODO] not l1
       where
         promoteExp :: Exp l -> Exp l
         promoteExp exp = case exp of

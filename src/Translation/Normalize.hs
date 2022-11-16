@@ -44,7 +44,6 @@ instance Normalize (Exp l) where
       let pat = PVar l (Ident l str)
           var = Var l (UnQual l (Ident l str))
           res = App l (Lambda l pat $ VRes l vbs var) e
-          -- res = App l (Lambda l pat var) exp
       return res
     VExt l e        -> return $ VExt l e
 
