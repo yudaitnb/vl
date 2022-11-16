@@ -11,6 +11,7 @@ import Language.Absyn
 import Syntax.Common (VarName(..), ModName(..), reservedOps)
 
 import Util hiding (annotate)
+import Control.Monad (when)
 
 nameResolve :: Map ModName [VarName] -> Module SrcSpanInfo -> Module SrcSpanInfo
 nameResolve importedSymbols mod =
@@ -96,3 +97,15 @@ scopeError err = case err of
   EModNotFound mn -> error $ putDocString $ line <> ppP "Module not found" <> line <> ppP mn
   EInternal str   -> error str
   _               -> error "scopeError: Undefined error occurs in nameresolution"
+
+duplicatedTopSyms :: Module l -> IO ()
+duplicatedTopSyms mod =
+  let ss = getTopSyms mod in
+  duplicatedTopSyms' (getDecls mod) []
+  where
+    duplicatedTopSyms' :: [Decl l] -> [VarName] -> IO ()
+    duplicatedTopSyms' []     _     = return ()
+    duplicatedTopSyms' (d:ds) found = do
+      let n = getName d
+      when (n `elem` found) $ error $ "Duplicated symbols found : " ++ n
+      duplicatedTopSyms' ds found

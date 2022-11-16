@@ -5,7 +5,7 @@ module Language.Absyn (
   HasWhere(..),
   -- PrettyAST(..),
   decomposeDecl,
-  getImports, getDepEdge,
+  getImports, getDepEdge, getDecls, getTopSyms,
 ) where
 
 import Language.Haskell.Exts.Syntax hiding (Name, QName, ModuleName, Literal)
@@ -19,6 +19,15 @@ import Language.Haskell.Exts (exactPrint)
 getImports :: Module l -> [ModName]
 getImports (Module _ _ _ importDecls _) = map getName importDecls
 getImports _ = error "getImports is not defined in any syntax other than Module."
+
+getDecls :: Module l -> [Decl l]
+getDecls (Module _ _ _ _ ds) = ds
+getDecls _                   = error "getDecls is not defined in any syntax other than Module."
+
+getTopSyms :: Module l -> [String]
+getTopSyms mod = case mod of
+  Module _ _ _ _ decls -> map getName decls
+  _                    -> error "getTopSyms is not defined in any syntax other than Module."
 
 getDepEdge :: Module l -> [(ModName, ModName)]
 getDepEdge mod@(Module _ mh _ importDecls _) =
@@ -35,6 +44,17 @@ instance HasName (Exp l) where
 instance HasName (Pat l) where
   getName (PVar _ name) = getName name
   getName _             = error "Patterns without PVar do not have a name field."
+
+instance HasName (Decl l) where
+  getName decl = case decl of
+    PatBind _ p _ _ -> getName p
+    FunBind _ ms    -> head $ map getName ms
+    _               -> error "Decls without PatBind and FunBind do not have a name field."
+
+instance HasName (Match l) where
+  getName m = case m of
+    Match _ n _ _ _        -> getName n
+    InfixMatch _ _ n _ _ _ -> getName n
 
 instance HasName (ImportDecl l) where
   getName (ImportDecl _ importModule _ _ _ _ _ _) = getName importModule
