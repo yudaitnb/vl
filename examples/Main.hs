@@ -4,36 +4,42 @@ import A
 import B
 
 -- Sample programs
+
+-- 1. All programs acceptable at STLC are also acceptable at VL.
 -- main = a + 1 -- OK
 
--- main = g a + h a -- Rejected
--- main = (unversion (g y)) + (unversion (h y)) -- RejectedだがOKにしたい
+-- 2-1. "unversion" makes programs that require multiple versions acceptable.
+-- （Identifying the cause of version inconsistencies is currently not implemented）
+main = g a + h a -- Rejected
+-- main = (unversion (g y)) + (unversion (h y)) -- OK
 
--- main =
---   let xx = g a
---       yy = h a
---   in xx + yy -- Rejected
-
--- main = let xx = unversion (g (version {A=1.0.0} of a))
---            yy = unversion (h (version {A=1.0.1} of a))
---        in xx + yy -- OK
-
+-- 2-2. unversion can qualify any value.
 -- main = let xx = (unversion g) a
 --            yy = (unversion h) a
 --        in xx + yy -- OK
 
--- main = let xx = (unversion (g a))
---            yy = (unversion (h a))
---        in xx + yy -- duplicatingによってOKになった
+-- 3-1. version ... of ... : user-defined version specification.
+-- main = let xx = unversion (g (version {A=1.0.0} of a))
+--            yy = unversion (h (version {A=1.0.1} of a))
+--        in xx + yy -- OK
 
+-- 3-2. Simply put, one version is determined for each "data flow".
+-- The version of a is implicitly determined by g and h.
 -- main = let xx = (unversion (g (version {A=1.0.1} of a)))
 --            yy = (unversion (h (version {A=1.0.0} of a)))
---        in xx + yy -- OK。gやhによって暗黙的にaのバージョンが決まっている。
+--        in xx + yy -- OK
 
+-- 3-3. Rejected because a v1.0.1 cannot depend on multiple B versions.
 -- main = let xx = (unversion (g (version {A=1.0.1} of a)))
 --            yy = (unversion (h (version {A=1.0.1} of a)))
---        in xx + yy -- Rejected。v1.0.1のaは複数のBのバージョンに依存できないため。
+--        in xx + yy -- Rejected
 
+-- 4. Data consturctor requires that all elements have consistent versions.
+-- (現状バージョン変数について単相だからそうなっているだけで、将来的には変更する予定)
+-- main = [b1,b2] -- Rejected
+-- main = (b1, y)  -- OK
+
+-- 4-2. Pattern match (時間があったら)
 -- main = 1
 -- main = \x -> case x of (x1,x2) -> x1
 -- main = [1, 2]
@@ -42,9 +48,9 @@ import B
 --   let fst x = case x of (x1,x2) -> x1
 --   in fst (y,b2)
 
-main =
-  let sumTpl x = case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b1)
+-- main =
+--   let sumTpl x = case x of (x1,x2) -> x1 + x2
+--   in sumTpl (y,b1)
 
 -- main =
 --   let lst = [y,b2]
