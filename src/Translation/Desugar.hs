@@ -29,6 +29,7 @@ instance Show l => Desugaring (AB.Pat l) where
     AB.PVar l name          -> DS.PVar l name
     AB.PLit l sign lit      -> DS.PLit l sign lit
     AB.PTuple l _ ps        -> DS.PTuple l (map desugar ps)
+    AB.PParen l pat         -> desugar pat
     AB.PList l ps           -> DS.PList l (map desugar ps)
     AB.PApp l qn ps         -> DS.PApp l qn (map desugar ps)
     AB.PInfixApp l p1 qn p2 -> DS.PInfixApp l (desugar p1) qn (desugar p2)
@@ -90,13 +91,13 @@ instance Show l => Desugaring (AB.Exp l) where
     AB.Paren l e -> desugar e
 
     -- desugar x -> x
-    AB.Var l qName -> DS.Var l qName
+    AB.Var l qn -> DS.Var l qn
 
     -- desugar c -> c
-    AB.Lit l literal -> DS.Lit l literal
+    AB.Lit l lit -> DS.Lit l lit
 
     -- desugar (f ○ x) -> desugar f ○ desugar x
-    AB.App l exp1 exp2 -> DS.App l (desugar exp1) (desugar exp2)
+    AB.App l e1 e2 -> DS.App l (desugar e1) (desugar e2)
 
     -- desugar ('-' e) -> 0 '-' desugar e
     AB.NegApp l exp -> -- DS.NegApp l (desugar exp)
@@ -162,8 +163,9 @@ instance Show l => Desugaring (AB.Exp l) where
     -- ^ 
     AB.Tuple l boxed elems -> DS.Tuple l $ map desugar elems
     AB.List l elems -> DS.List l $ map desugar elems
+    AB.Con l qn     -> DS.Con l qn
 
-    _              -> error $ "\nGiven exp is no supported.\n  exp : " ++ show exp
+    _              -> error $ "\nGiven exp is not supported.\n  exp : " ++ show exp
 
 vbsToCs :: AB.VBinds l -> Label
 vbsToCs (AB.VBinds _ vbs) = vbsToCs' vbs

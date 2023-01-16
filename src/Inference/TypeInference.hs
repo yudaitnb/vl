@@ -220,11 +220,35 @@ instance Typable (VL.Exp SrcSpanInfo) where
         putTyInfLog sigma gamma exp result
         return result
 
+      -- ^ ⇒_clet
+      VL.CLet _ p t -> do
+        gamma <- gets tEnv
+        sigma <- gets uEnv
+        alpha <- genNewTyVar TypeKind
+        sigma1' <- gets uEnv
+        setREnv emptyREnv
+        (gamma', sigma2, theta) <- patternSynthesis p alpha
+        setUEnv sigma2
+        setTEnv $ gamma .+++ gamma' -- シンボルが被った場合は新たに生成した環境で上書き (コア計算とは異なる)
+        -- (tyb, delta, sigma3, theta', c1) <- infer t
+        (tyb, sigma3, theta', c1) <- infer t
+        theta'' <- theta `comp` theta'
+        let result =  ( -- typeSubstitution theta (TyFun alpha tyb)
+                        typeSubstitution theta'' (TyFun alpha tyb) -- [TODO] ?
+                      -- , delta `exclude` gamma'
+                      , insertEnv (getName alpha) TypeKind sigma3
+                      , theta''
+                      , c1)
+        putTyInfLog sigma gamma exp result
+        return result
+
       -- ^ =>_()
       VL.Tuple _ elms -> do
         gamma <- gets tEnv
         sigma1 <- gets uEnv
-        tyInfResLst <- forM elms $ \e -> infer e
+        tyInfResLst <- forM elms $ \e -> do
+          setTEnv gamma
+          infer e
         let resTy = TyTuple $ map (\(t,_,_,_) -> t) tyInfResLst
         sigma' <- gets uEnv
         let sigmaLast = if null tyInfResLst
@@ -246,7 +270,9 @@ instance Typable (VL.Exp SrcSpanInfo) where
       VL.List _ elms -> do
         gamma <- gets tEnv
         sigma1 <- gets uEnv
-        tyInfResLst <- forM elms $ \e -> infer e
+        tyInfResLst <- forM elms $ \e -> do
+          setTEnv gamma
+          infer e
         let tys = map (\(t,_,_,_) -> t) tyInfResLst
         resTy <- if not (null tyInfResLst)
           then do
