@@ -155,6 +155,7 @@ duplicateExVarExp exp = case exp of
   If l e1 e2 e3  -> If l <$> duplicateExVarExp e1 <*> duplicateExVarExp e2 <*> duplicateExVarExp e3
   Case l e alts  -> Case l <$> duplicateExVarExp e <*> mapM duplicateExVarAlt alts
   Pr l e         -> Pr l <$> duplicateExVarExp e
+  Con l qn       -> return exp
   VRes l label e -> VRes l label <$> duplicateExVarExp e
   VExt l e       -> VExt l <$> duplicateExVarExp e
   
@@ -243,10 +244,13 @@ renameEnvTyWithIdx i et = case et of
 renameTyWithIdx :: Int -> Type -> Type
 renameTyWithIdx i ty = case ty of
   TyVar (T.Ident n) -> TyVar (T.Ident $ newNameOfExTyVar n i)
-  TyCon qn -> ty
-  TyFun t1 t2 -> TyFun (renameTyWithIdx i t1) (renameTyWithIdx i t2)
-  TyBox c t -> TyBox (renameTyWithIdx i c) (renameTyWithIdx i t)
-  TyBottom -> ty
-  TyLabels _ -> ty
+  TyCon qn          -> ty
+  TyFun t1 t2       -> TyFun (renameTyWithIdx i t1) (renameTyWithIdx i t2)
+  TyBox c t         -> TyBox (renameTyWithIdx i c) (renameTyWithIdx i t)
+  TyBottom          -> ty
+  TyLabels _        -> ty
+  TyTuple lst       -> TyTuple $ map (renameTyWithIdx i) lst
+  TyList t          -> TyList (renameTyWithIdx i t)
+  _ -> error $ putDocString $ ppP "renameTyWithIdx" <> ppP ty
   -- CAnd c1 c2 -> CAnd (renameTyWithIdx i c1) (renameTyWithIdx i c2)
   -- COr c1 c2 -> COr (renameTyWithIdx i c1) (renameTyWithIdx i c2)

@@ -47,6 +47,7 @@ main = do
       logP = logPpLn ppP logFilePath
       logPD :: Doc ann -> IO ()
       logPD = logPpLnDoc logFilePath
+  removeFileIfExists logFilePath
 
   -- Parse dependent modules and create dependency graph
   logP "=== Parsing ==="

@@ -115,6 +115,13 @@ instance Show l => Desugaring (AB.Exp l) where
           e2' = desugar e2
       in DS.App l1 (DS.App l2 varOp e1') e2'
 
+    -- ^ desugar (e1 ':' e2) = (':' (desugar e1)) (desugar e2)
+    AB.InfixApp l1 e1 (AB.QConOp l2 qName) e2 ->
+      let conOp = DS.Con l2 qName
+          e1' = desugar e1
+          e2' = desugar e2
+      in DS.App l1 (DS.App l2 conOp e1') e2'
+
     -- ^ desugar (\_ -> e)      = error
     -- ^ desugar (\[p] -> e)    = \p -> e
     -- ^ desugar (\(p:ps) -> e) = \p -> desugar (\ps -> e)

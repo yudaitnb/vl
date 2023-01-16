@@ -53,6 +53,7 @@ data Exp l
     | Tuple l [Exp l]                       -- ^ tuple
     | List l [Exp l]                        -- ^ list
     | If l (Exp l) (Exp l) (Exp l)          -- ^ @if@ /exp/ @then@ /exp/ @else@ /exp/
+    | Con l (QName l)                       -- ^ constructor
     -- | Let l (Pat l) (Exp l) (Exp l)         -- ^ let-binding
     | Case l (Exp l) [Alt l]                -- ^ @case@ /exp/ @of@ /alts/
     -- | Paren l (Exp l)                       -- ^ parenthesised expression
@@ -278,6 +279,7 @@ instance PrettyAST (Exp SrcSpanInfo) where
   ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
   ppP (Case _ e alts) = parens $ ppP "case" <+> ppP e <+> ppP "of" <+> braces (concatWith (surround $ semicolon <> space) (map ppP alts))
   -- ppP (Let _ p e1 e2) = parens $ ppP "Let" <+> ppP p <+> ppP "="  <+> ppP e1 <+> ppP "in" <+> ppP e2
+  ppP (Con _ qn) = ppP qn
   ppP (VRes _ vbs e) = parens $ ppP "version" <+> ppP vbs <+> ppP "of" <+> ppP e
   ppP (VExt _ e) = parens $ ppP "unversion" <+> ppP e
 

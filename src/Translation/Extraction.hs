@@ -21,14 +21,23 @@ extract exVarLabels vldecls = extractExp
     extractExp e = case e of
       Var l qn ->
         case M.lookup (mkVKFromQN qn) exVarLabels of
-          Nothing  -> e
+          Nothing  ->
+            let qn' = case qn of
+                    Qual l' _ n -> UnQual l' n
+                    _           -> qn
+            in Var l qn'
           Just (orig, vlmod, _, label) ->
             let (mn, vers) = head (M.toList label)
                 target = VLMod mn (head vers)
                 subst = fromMaybe
                         (error $ putDocString $ line <> ppP orig <+> ppP "is not included in" <+> ppP (show $ vldecls <!> target)) $
                         M.lookup (getVN orig) (vldecls <!> target)
-            in extractExp subst
+                origid = Ident l $ getVN orig
+                p = PBox l $ PVar l origid
+                e = Var l $ UnQual l origid
+            in App l
+                (Lambda l p e)
+                (Pr l (extractExp subst))
       Lit l lit     -> e
       App l e1 e2   -> App l (extractExp e1) (extractExp e2)
       Lambda l p e  -> Lambda l p (extractExp e)

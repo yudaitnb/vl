@@ -30,6 +30,7 @@ instance GirardFwd (DS.Exp l) where
     -- DS.Tuple l elms -> VL.Tuple l $ map (\e -> VL.Pr (DS.ann e) (girardFwd e)) elms
     DS.Tuple l elms -> VL.Tuple l $ map girardFwd elms
     -- DS.List l elms -> VL.List l $ map (\e -> VL.Pr (DS.ann e) (girardFwd e)) elms
+    DS.Con l qn -> VL.Con l qn
     DS.List l elms -> VL.List l $ map girardFwd elms
     -- DS.Let l binds exp -> Let l (girardFwd binds) (girardFwd exp)
     DS.Case l e alts -> VL.Case l (VL.Pr (DS.ann e) (girardFwd e)) (map girardFwd alts)

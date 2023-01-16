@@ -73,6 +73,7 @@ data Exp l
     | Lambda l (Pat l) (Exp l)              -- ^ lambda expression
     | Tuple l [Exp l]                       -- ^ tuple
     | List l [Exp l]                        -- ^ list
+    | Con l (QName l)                       -- ^ constructor
     -- | Let l (Pat l) (Exp l) (Exp l)         -- ^ contexutual let-binding
     | If l (Exp l) (Exp l) (Exp l)          -- ^ @if@ /exp/ @then@ /exp/ @else@ /exp/
     -- Versioned expressions
@@ -123,6 +124,10 @@ instance HasVar (Exp l) where
       List _ elms   -> concatMap freeVars elms
       Case _ e alts -> freeVars e ++ concatMap freeVars alts
       Pr _ e        -> freeVars e
+      Con _ qn      -> case qn of
+        UnQual _ n  -> [UQVar (getName n)]
+        Qual _ mn n -> [QVar (getName mn) (getName n)]
+        Special _ s -> []
       VRes _ vbs e  -> freeVars e
       VExt _ e      -> freeVars e
   vars exp = case exp of
@@ -138,6 +143,10 @@ instance HasVar (Exp l) where
       List _ elms   -> concatMap vars elms
       Case _ e alts -> vars e ++ concatMap vars alts
       Pr _ e        -> vars e
+      Con _ qn      -> case qn of
+        UnQual _ n  -> [UQVar (getName n)]
+        Qual _ mn n -> [QVar (getName mn) (getName n)]
+        Special _ s -> []
       VRes _ vbs e  -> vars e
       VExt _ e      -> vars e
 
@@ -161,6 +170,10 @@ freeVars' exp =
     List _ elms   -> concatMap freeVars' elms
     Case _ e alts -> freeVars' e ++ concatMap freeVarsAlt' alts
     Pr _ e        -> freeVars' e
+    Con _ qn      -> case qn of
+      UnQual _ n  -> [UQVar $ getName n]
+      Qual _ mn n -> [QVar (getName mn) (getName n)]
+      Special _ s -> []
     VRes _ vbs e  -> freeVars' e
     VExt _ e      -> []
 
@@ -316,6 +329,7 @@ instance PrettyAST (Exp SrcSpanInfo) where
   ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
   ppP (Case _ e alts) = parens $ ppP "case" <+> ppP e <+> ppP "of" <+> braces (concatWith (surround $ semicolon <> space) (map ppP alts))
   ppP (Pr _ e) = brackets $ ppP e
+  ppP (Con _ qn) = ppP qn
   ppP (VRes _ vbs e) = parens $ ppP "version" <+> ppP vbs <+> ppP "of" <+> ppP e
   ppP (VExt _ e) = parens $ ppP "unversion" <+> ppP e
 

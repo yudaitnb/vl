@@ -1,7 +1,13 @@
 module Main where
 
-import A
-import B
+-- import List
+
+-- lst = [1,2]
+
+-- main = tail lst
+
+-- import A
+-- import B
 
 -- Sample programs
 -- main = a + 1 -- OK
@@ -13,10 +19,6 @@ import B
 --   let xx = g a
 --       yy = h a
 --   in xx + yy -- Rejected
-
--- main = let xx = unversion (g (version {A=1.0.0} of a))
---            yy = unversion (h (version {A=1.0.1} of a))
---        in xx + yy -- OK
 
 -- main = let xx = (unversion g) a
 --            yy = (unversion h) a
@@ -42,19 +44,13 @@ import B
 --   let fst x = case x of (x1,x2) -> x1
 --   in fst (y,b2)
 
-main =
-  let sumTpl x = case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b1)
-
 -- main =
---   let lst = [y,b2]
---       n = length lst
---   in head lst
+--   let sumTpl x = case x of (x1,x2) -> x1 + x2
+--   in sumTpl (y,b1)
+import A
+import B
+import List
 
--- head xs = case xs of
---   []     -> 0
---   h:rst -> h
-
--- length xs = case xs of
---   []     -> 0
---   hh:rst -> 1 + length rst
+main =
+  let lst = [y, y]
+  in length lst

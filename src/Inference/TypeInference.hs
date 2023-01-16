@@ -65,10 +65,10 @@ instance Typable (VL.Exp SrcSpanInfo) where
     addLC
     case exp of
       -- ^ ⇒_int, ⇒_char, ⇒_string 
-      VL.Lit _ con -> do
+      VL.Lit _ lit -> do
         gamma <- gets tEnv
         sigma <- gets uEnv
-        let ty = case con of
+        let ty = case lit of
               VL.Char {}   -> tychar
               VL.String {} -> tystring
               VL.Int {}    -> tyint
@@ -81,6 +81,24 @@ instance Typable (VL.Exp SrcSpanInfo) where
               )
         putTyInfLog sigma gamma exp result
         return result
+
+      -- ^ ⇒_con
+      VL.Con _ qn -> do
+        gamma <- gets tEnv
+        sigma <- gets uEnv
+        case qn of
+          Special _ (Cons l) -> do
+            ty <- do
+              alpha <- genNewTyVar TypeKind
+              beta1 <- genNewTyVar LabelsKind
+              beta2 <- genNewTyVar LabelsKind
+              let arg1 = TyBox beta1 alpha
+                  arg2 = TyBox beta2 alpha
+              return $ TyFun arg1 (TyFun arg2 (TyList alpha))
+            let result = (ty, sigma, emptySubst, emptyConstraints)
+            putTyInfLog sigma gamma exp result
+            return result
+          _ -> error $ "\nGiven special constructor is not supported.\n" ++ show exp
 
       -- ^ Variables
       VL.Var _ qName
@@ -230,10 +248,15 @@ instance Typable (VL.Exp SrcSpanInfo) where
         sigma1 <- gets uEnv
         tyInfResLst <- forM elms $ \e -> infer e
         let tys = map (\(t,_,_,_) -> t) tyInfResLst
-            tyFirstCase = head tys
-        unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tys) $
-          error "All list elements must have a same type."
-        let resTy = TyList tyFirstCase
+        resTy <- if not (null tyInfResLst)
+          then do
+            let tyFirstCase = head tys
+            unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tys) $
+              error "All list elements must have a same type."
+            return $ TyList tyFirstCase
+          else do
+            alpha <- genNewTyVar TypeKind
+            return $ TyList alpha
         sigma' <- gets uEnv
         let sigmaLast = if null tyInfResLst
                           then sigma'
@@ -320,10 +343,9 @@ instance Typable (VL.Exp SrcSpanInfo) where
         let gamma' = gradeTEnv (filterEnvBy (VL.freeVars t) gamma)
             gamma'_dont_care_inside_vext = gradeTEnv (filterEnvBy (VL.freeVars' t) gamma)
         -- [TODO] 要検討
-        -- unversion t (vext)のt中の自由変数は下のいずれかで扱うべきか？
-        -- 1. この場の制約生成において無視し、環境中のその変数はgradeしておく or
-        -- 2. この場の環境生成において無視し、環境中のその変数はgradeしない or
-        -- 3. 1,2のどちらでも変わらない？
+        -- unversion t (vext)のt中の自由変は2で扱う
+        -- 1. この場の制約生成において無視し、環境中のその変数はgradeしておく
+        -- 2. この場の環境生成において無視し、環境中のその変数はgradeしない
         setTEnv gamma'
         -- (tya, delta, sigma2, theta, c1) <- infer t
         (tya, sigma2, theta, c1) <- infer t
@@ -345,7 +367,8 @@ instance Typable (VL.Exp SrcSpanInfo) where
         sigma1 <- gets uEnv
         let r = TyLabels ls
         hasLabelsKind r
-        let gamma' = r .** gradeTEnv (filterEnvBy (VL.freeVars t) gamma) -- [TODO] tの型付けでrが使用可能であると見做す？これは何かおかしいような気もする。
+        let -- gamma' = r .** gradeTEnv (filterEnvBy (VL.freeVars t) gamma) -- [TODO] tの型付けでrが使用可能であると見做す？これは何かおかしいような気もする。
+            gamma' = gradeTEnv (filterEnvBy (VL.freeVars t) gamma)
             gamma'_dont_care_inside_vext = gradeTEnv (filterEnvBy (VL.freeVars' t) gamma)
         setTEnv gamma'
         -- (tya, delta, sigma2, theta, c1) <- infer t

@@ -170,6 +170,10 @@ compileConstraints env cs = case cs of
       TyVar v     -> do
         let v2 = labels `lulist` getName coeff2
         subsetOf v1 v2
+      _ -> error $
+        "\nWhile compiling `cs`, got an unexpected pattern `coeff2`." ++
+        "\n    cs: " ++ putDocString (ppP cs) ++
+        "\ncoeff2: " ++ putDocString (ppP coeff2)
   CAnd c1 c2 -> 
     let c1' = compileConstraints env c1
         c2' = compileConstraints env c2
@@ -196,11 +200,14 @@ compileLabels env labels =
 
 subsetOf :: SLabel -> SLabel -> SBool
 subsetOf l1 l2 =
-  foldl1 (.&&) $ zipWith
+  -- foldl1 (.&&) $ zipWith
+  foldl (.&&) sTrue $ zipWith
     -- 以下のいずれか一方
-    -- 1. v2が何らかのバージョンを指定している -> l1も同じバージョンに依存する
+    -- 1. v2が何らかのバージョンを指定している -> v1も同じバージョンに依存する
     -- 2. v2がsTBD, すなわちmnのバージョンについて無制約 -> v1はなんでもよい
-    (\v1 v2 -> (v2 ./= sTBD .&& v2 .== v1) .<+> (v2 .== sTBD))
+    (\v1 v2 ->
+           (v2 ./= sTBD .&& v2 .== v1)
+      .<+> (v2 .== sTBD))
     l1 l2
 
 
@@ -270,5 +277,5 @@ subsetOf l1 l2 =
 
 
 instance PrettyAST (Map VarKey (VarKey, VLMod, Type, Label)) where
-  ppE m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppE vn <+> colon <+> ppE s <+> colon <+> ppE m <+> colon <+> ppE tv <+> colon <+> ppE l) m
-  ppP m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppP vn <+> colon <+> ppP s <+> colon <+> ppP m <+> colon <+> ppP tv <+> colon <+> ppP l) m
+  ppE m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppE vn <+> colon <+> ppE s <> comma <+> ppE m <> comma <+> ppE tv <> comma <+> ppE l) m
+  ppP m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppP vn <+> colon <+> ppP s <> comma <+> ppP m <> comma <+> ppP tv <> comma <+> ppP l) m
