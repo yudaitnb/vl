@@ -100,11 +100,12 @@ genNewVarFrom (Var l1 qn) = case qn of
         newVar = Var l1 (N.Qual l2 mn (N.Ident l3 newVarName))
     addCounterOf vk
     return newVar
-genNewVarFrom e = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
+  _ -> error $ "\ngenNewVarFrom is not defined for a given qn.\n  qn: " ++ putDocString (ppP qn)
+genNewVarFrom e = error $ "\ngenNewVarFrom is not defined for a given expression.\n  exp: " ++ putDocString (ppP e)
   
 isFree :: Exp SrcSpanInfo -> DuplicateEnv Bool
 isFree v@(Var _ qn) = gets $ not . (mkVKFromQN qn `elem`) . boundVars
-isFree e           = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
+isFree e           = error $ "\nThe function genNewVarFrom is not defined for a given expression.\n  exp: " ++ putDocString (ppP e)
 
 addBoundVar :: VarKey -> DuplicateEnv ()
 addBoundVar vn = do
@@ -150,6 +151,13 @@ duplicateExVarExp exp = case exp of
     e' <- duplicateExVarExp e           -- 更新された環境でduplicate
     setBoundVar oldBoundVars         -- 旧テーブルに戻す
     return $ Lambda l p e'           -- duplicate済み式と新しい束縛変数リストを用いてLambdaのduplicate済み式を構成
+  CLet l p e1 e2 -> do
+    oldBoundVars <- gets boundVars   -- 旧テーブルを保存
+    addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
+    e1' <- duplicateExVarExp e1      -- 更新された環境でe1をduplicate
+    setBoundVar oldBoundVars         -- 旧テーブルに戻す
+    e2' <- duplicateExVarExp e2      -- 旧テーブルでe2をduplicate
+    return $ CLet l p e1' e2'        -- duplicate済み式e1',e2'と新しい束縛変数リストを用いてCLetのduplicate済み式を構成
   Tuple l elms   -> Tuple l <$> mapM duplicateExVarExp elms
   List l elms    -> List l <$> mapM duplicateExVarExp elms
   If l e1 e2 e3  -> If l <$> duplicateExVarExp e1 <*> duplicateExVarExp e2 <*> duplicateExVarExp e3

@@ -343,8 +343,12 @@ instance PrettyAST VLModDecls where
       mapWithKey (\vlmod vldecls -> ppE vlmod <+> colon <+> ppE vldecls) m
   ppP m 
     | Data.Map.null m = ppP "{}"
-    | otherwise = concatWith (surround line) $
-      mapWithKey (\vlmod vldecls -> ppP vlmod <+> colon <+> ppP vldecls) m
+    | otherwise = concatWith (surround $ line <> line) $
+      mapWithKey
+        (\vlmod vldecls ->
+          ppP "### module" <+> ppP vlmod <+> ppP "declarations" <> line <>
+          ppP vldecls)
+        m
 
 instance PrettyAST VLDecls where
   ppE m
@@ -353,5 +357,5 @@ instance PrettyAST VLDecls where
       mapWithKey (\vn decls -> ppE vn <+> ppP "=" <+> ppE decls) m
   ppP m 
     | Data.Map.null m = ppP "{}"
-    | otherwise = concatWith (surround $ comma <> space) $
+    | otherwise = concatWith (surround line) $
       mapWithKey (\vn decls -> ppP vn <+> ppP "=" <+> ppP decls) m

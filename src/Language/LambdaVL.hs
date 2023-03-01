@@ -71,7 +71,7 @@ data Exp l
     | App l (Exp l) (Exp l)                 -- ^ ordinary application
     -- | NegApp l (Exp l)                      -- ^ negation expression @-/exp/@ (unary minus)
     | Lambda l (Pat l) (Exp l)              -- ^ lambda expression
-    | CLet l (Pat l) (Exp l)                -- ^ contextual let
+    | CLet l (Pat l) (Exp l) (Exp l)        -- ^ contextual let
     | Tuple l [Exp l]                       -- ^ tuple
     | List l [Exp l]                        -- ^ list
     | Con l (QName l)                       -- ^ constructor
@@ -89,7 +89,7 @@ instance Eq l => Eq (Exp l) where
   Lit _ l1 == Lit _ l2 = l1 == l2
   App _ e1 e2 == App _ e1' e2'= e1 == e1' && e2 == e2'
   Lambda _ p e == Lambda _ p' e' = e == e' && p == p'
-  CLet _ p1 e1 == CLet _ p2 e2 = p1 == p2 && p1 == p2
+  CLet _ p e1 e2 == CLet _ p' e1' e2' = p == p' && e1 == e1' && e2 == e2'
   Tuple _ xs1 == Tuple _ xs2 = and $ zipWith (==) xs1 xs2
   List _ xs1 == List _ xs2 = and $ zipWith (==) xs1 xs2
   Con _ qn1 == Con _ qn2 = qn1 == qn2
@@ -125,7 +125,7 @@ instance HasVar (Exp l) where
       App _ e1 e2   -> freeVars e1 ++ freeVars e2
       If _ e1 e2 e3 -> freeVars e1 ++ freeVars e2 ++ freeVars e3
       Lambda _ p e  -> filter (`notElem` boundVars p) (freeVars e)
-      CLet _ p e    -> filter (`notElem` boundVars p) (freeVars e)
+      CLet _ p e e' -> filter (`notElem` boundVars p) (freeVars e) ++ freeVars e'
       Tuple _ elms  -> concatMap freeVars elms
       List _ elms   -> concatMap freeVars elms
       Case _ e alts -> freeVars e ++ concatMap freeVars alts
@@ -145,7 +145,7 @@ instance HasVar (Exp l) where
       App _ e1 e2   -> vars e1 ++ vars e2
       If _ e1 e2 e3 -> vars e1 ++ vars e2 ++ vars e3
       Lambda _ p e  -> vars e
-      CLet _ p e    -> vars e
+      CLet _ p e e' -> vars e ++ vars e'
       Tuple _ elms  -> concatMap vars elms
       List _ elms   -> concatMap vars elms
       Case _ e alts -> vars e ++ concatMap vars alts
@@ -173,7 +173,7 @@ freeVars' exp =
     App _ e1 e2   -> freeVars' e1 ++ freeVars' e2
     If _ e1 e2 e3 -> freeVars' e1 ++ freeVars' e2 ++ freeVars' e3
     Lambda _ p e  -> freeVars' e \\ boundVars p
-    CLet _ p e    -> freeVars' e \\ boundVars p
+    CLet _ p e e' -> (freeVars' e \\ boundVars p) ++ freeVars' e'
     Tuple _ elms  -> concatMap freeVars' elms
     List _ elms   -> concatMap freeVars' elms
     Case _ e alts -> freeVars' e ++ concatMap freeVarsAlt' alts
@@ -233,7 +233,7 @@ instance Absyn.Annotated Exp where
     App l _ _              -> l
     If l _ _ _             -> l
     Lambda l _ _           -> l
-    CLet l _ _             -> l
+    CLet l _ _ _           -> l
     Tuple l _              -> l
     List l _               -> l
     Case l _ _             -> l
@@ -249,7 +249,7 @@ instance Absyn.Annotated Exp where
     -- NegApp l e      -> NegApp (f l) e
     Lambda l ps e   -> Lambda (f l) ps e
     If l ec et ee   -> If (f l) ec et ee
-    CLet l p e      -> CLet (f l) p e 
+    CLet l p e e'     -> CLet (f l) p e e'
     Tuple l es      -> Tuple (f l) es
     List l es       -> List (f l) es
     Case l e alt    -> Case (f l) e alt
@@ -340,7 +340,7 @@ instance PrettyAST (Exp SrcSpanInfo) where
   ppP (Lit _ literal) = ppP literal
   ppP (App _ e1 e2) = parens $ ppP e1 <+> ppP e2
   ppP (Lambda _ p e) = parens $ backslash <> ppP p <> dot <> ppP e
-  ppP (CLet _ p e) = parens $ ppP "let" <+> ppP p <+> ppP "in" <+> ppP e
+  ppP (CLet _ p e e') = parens $ ppP "let" <+> ppP p <+> ppP "=" <+> ppP e <+> ppP "in" <+> ppP e'
   ppP (If _ e1 e2 e3) = parens $ ppP "If" <+> ppP e1 <+> ppP "then" <+> ppP e2 <+> ppP "else" <+> ppP e3
   ppP (Tuple _ elms) = parens $ concatWith (surround $ comma <> space) $ map ppP elms 
   ppP (List _ elms) = brackets $ concatWith (surround $ comma <> space) $ map ppP elms 

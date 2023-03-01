@@ -46,7 +46,7 @@ lulist map k = fromMaybe
 
 ---
 
-type SVersion = SInt32 -- バージョン番号を表す、各モジュールのバージョンに対してユニークな値
+type SVersion = SInt8-- バージョン番号を表す、各モジュールのバージョンに対してユニークな値
 type SLabel = [SVersion]
 sTBD :: SVersion
 sTBD = 0
@@ -99,7 +99,9 @@ mkEnv em cs =
 solve :: Map String [Version] -> Constraints -> IO SolverResult
 solve em cs = do
   let senv = mkEnv em cs
-  LexicographicResult res <- optimize Lexicographic $ senario senv
+  -- LexicographicResult res <- optimize Lexicographic $ senario senv
+      cfg = defaultSMTCfg {transcript = Just "./examples/SMTlib2script.out"} -- produce SMT-Lib2 file
+  LexicographicResult res <- optimizeWith cfg Lexicographic $ senario senv
   case res of
     Satisfiable _ _ -> do
       let r :: [(String, Int)] 
@@ -136,9 +138,10 @@ senario env = do
       env' = env { variables = labels }
   allSLabelsAreValid env'
   constrain $ compileConstraints env' (constraints env')
+  -- msMinimize purpose $ sTBD
   msMinimize purpose $ sumOfSLabels svars -- 0,TBD > 1,latest > ...
   where
-    sumOfSLabels :: [SLabel] -> SInt32
+    sumOfSLabels :: [SLabel] -> SVersion
     sumOfSLabels = foldr (\label acc -> acc + sum label) 0
 
 mkSLabel :: Env -> String -> Symbolic (String, SLabel)
@@ -146,7 +149,7 @@ mkSLabel env vn = do
   let idxmods = idxMods env
       exmods = versionsOfExternalModules env
   sv <- forM idxmods $ \(mn, mni) -> do
-    sInt32 (putDocString $ ppP vn <> ppP separator <> ppP mn)
+    sInt8 (putDocString $ ppP vn <> ppP separator <> ppP mn)
   return (vn, sv)
 
 allSLabelsAreValid :: Env -> Symbolic ()
@@ -198,6 +201,14 @@ compileLabels env labels =
             else sTBD
     ]
 
+-- a100 <: ?
+-- 0 (sTBD) : そのモジュールのバージョンは決まっていない
+-- 1~ : そのモジュールはInt8値に対応するバージョン
+--     (f x)
+--       _ax _afx
+-- a_fx        a_x
+--  A  B       A   B
+-- [v1] <: [v2]
 subsetOf :: SLabel -> SLabel -> SBool
 subsetOf l1 l2 =
   -- foldl1 (.&&) $ zipWith

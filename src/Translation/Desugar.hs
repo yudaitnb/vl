@@ -150,6 +150,18 @@ instance Show l => Desugaring (AB.Exp l) where
           in DS.App l1 lam yexp
         _                      -> error $ "\nGiven exp is no supported.\n  binds : " ++ show binds
 
+    -- ^ desugar (let [] in exp)          = desugar exp
+    -- ^ desugar $ let (x = y):binds in z = let x = y in desugar (let binds in z)
+    -- AB.Let l1 binds exp ->
+    --   case binds of
+    --     AB.BDecls l2     [] -> desugar exp
+    --     AB.BDecls l2 (b:bs) ->
+    --       let zexp' = desugar $ AB.Let l1 (AB.BDecls l2 bs) exp
+    --           DS.PatBind l1 xpat yexp = desugar b
+    --       in DS.Let l1 xpat yexp zexp'
+    --     _                      -> error $ "\nGiven exp is no supported.\n  binds : " ++ show binds
+
+
     -- ^ desugar (version A = x.y.z in exp)          = desugar exp
     AB.VRes l1 vbs exp -> DS.VRes l1 (vbsToCs vbs) (desugar exp)
     AB.VExt l1 exp -> DS.VExt l1 (desugar exp)

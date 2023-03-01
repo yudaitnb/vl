@@ -23,16 +23,18 @@ instance GirardFwd (DS.Exp l) where
     DS.Lit l literal -> VL.Lit l literal
     DS.App l exp1 exp2 -> VL.App l (girardFwd exp1) (VL.Pr (DS.ann exp2) (girardFwd exp2))
     DS.Lambda l pat exp -> 
-      let src = DS.ann pat
-          pat' = girardFwd pat
-          pbox = VL.PBox src pat'
+      let pat' = girardFwd pat
+          pbox = VL.PBox (DS.ann pat) pat'
       in VL.Lambda l pbox (girardFwd exp)
+    DS.Let l p e e' -> 
+      let p' = girardFwd p
+          pbox = VL.PBox (DS.ann p) p'
+      in  VL.CLet l pbox (VL.Pr (DS.ann e) (girardFwd e)) (girardFwd e')
     -- DS.Tuple l elms -> VL.Tuple l $ map (\e -> VL.Pr (DS.ann e) (girardFwd e)) elms
     DS.Tuple l elms -> VL.Tuple l $ map girardFwd elms
     -- DS.List l elms -> VL.List l $ map (\e -> VL.Pr (DS.ann e) (girardFwd e)) elms
-    DS.Con l qn -> VL.Con l qn
     DS.List l elms -> VL.List l $ map girardFwd elms
-    -- DS.Let l binds exp -> Let l (girardFwd binds) (girardFwd exp)
+    DS.Con l qn -> VL.Con l qn
     DS.Case l e alts -> VL.Case l (VL.Pr (DS.ann e) (girardFwd e)) (map girardFwd alts)
     DS.If l exp1 exp2 exp3 -> VL.If l (girardFwd exp1) (girardFwd exp2) (girardFwd exp3)
     DS.VRes l ls e -> VL.VRes l ls (girardFwd e)
@@ -71,18 +73,24 @@ instance GirardBck (VL.Module l) where
 instance GirardBck (VL.Exp l) where
   type TyGirardBck (VL.Exp l) = (AB.Exp l)
   girardBck exp = case exp of
-    VL.Var l qName -> AB.Var l qName
-    VL.Lit l literal -> AB.Lit l literal
-    VL.App l exp1 exp2 -> AB.App l (girardBck exp1) (girardBck exp2)
-    VL.Lambda l pat exp -> AB.Lambda l [girardBck pat] (girardBck exp)
-    VL.Tuple l elms -> AB.Tuple l AB.Boxed $ map girardBck elms
-    VL.List l elms  -> AB.List l $ map girardBck elms
-    -- VL.Let l binds exp -> AB.Let l (girardBck binds) (girardBck exp)
-    VL.Case l exp alts -> AB.Case l (girardBck exp) (map girardBck alts)
+    VL.Var l qName         -> AB.Var l qName
+    VL.Lit l literal       -> AB.Lit l literal
+    VL.App l exp1 exp2     -> AB.App l (girardBck exp1) (girardBck exp2)
+    VL.Lambda l pat exp    -> AB.Lambda l [girardBck pat] (girardBck exp)
+    VL.CLet l p e e'       -> AB.Let l
+                                (AB.BDecls l
+                                  [AB.PatBind l
+                                    (girardBck p)
+                                    (AB.UnGuardedRhs l (girardBck e)) Nothing])
+                                (girardBck e')
+    VL.Tuple l elms        -> AB.Tuple l AB.Boxed $ map girardBck elms
+    VL.List l elms         -> AB.List l $ map girardBck elms
+    VL.Con l qn            -> AB.Con l qn
+    VL.Case l exp alts     -> AB.Case l (girardBck exp) (map girardBck alts)
     VL.If l exp1 exp2 exp3 -> AB.If l (girardBck exp1) (girardBck exp2) (girardBck exp3)
-    VL.Pr l e -> girardBck e
-    VL.VRes l ls e -> girardBck e
-    VL.VExt l e -> girardBck e
+    VL.Pr l e              -> girardBck e
+    VL.VRes l ls e         -> girardBck e
+    VL.VExt l e            -> girardBck e
 
 instance GirardBck (VL.Pat l) where
   type TyGirardBck (VL.Pat l) = (AB.Pat l)

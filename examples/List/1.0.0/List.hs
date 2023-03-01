@@ -9,7 +9,7 @@ module List where
 -- concat [x1, ..., xm] [y1, ...] == [x1, ..., xm, y1, ...]
 concat xs ys = case xs of
   []   -> ys
-  x:xs -> concat (x : xs)  ys
+  x:xs -> x : (concat xs ys)
 
 -- >>> head [1, 2, 3]
 -- 1
@@ -18,7 +18,6 @@ concat xs ys = case xs of
 -- >>> head []
 -- -1 (exception)
 head xs = case xs of
-  []    -> -1
   h:rst -> h
 
 -- >>> last [1, 2, 3]
@@ -28,7 +27,6 @@ head xs = case xs of
 -- >>> last []
 -- -1 (exception)
 last xs = case xs of
-  []    -> -1
   h:[]  -> h
   h:rst -> last rst
 
@@ -128,12 +126,6 @@ intercalate xs xss = concat (intersperse xs xss)
 
 -- >>> transpose [[1,2,3],[4,5,6]]
 -- [[1,4],[2,5],[3,6]]
--- If some of the rows are shorter than the following rows, their elements are skipped:
--- >>> transpose [[10,11],[20],[],[30,31,32]]
--- [[10,20,30],[11,31],[32]]
--- The following is equivalent to:
--- transpose [xs] = [ [x] | x <- xs ]
--- transpose (xs:xss) = zipWith (:) xs (transpose xss)
 transpose xs = case xs of
   []     -> []
   xs:[]  -> nest xs
@@ -152,16 +144,39 @@ nest xs = case xs of
 -- ["a","b","ab","c","ac","bc","abc"]
 -- nonEmptySubsequences xs = case xs of
 --   []   -> []
---   x:xs -> [x] : foldr f [] (nonEmptySubsequences xs)
---   where f ys r = ys : (x : ys) : r
+--   x:xs -> [x] : foldr (\ys -> (\r -> nes' x ys r)) [] (nonEmptySubsequences xs)
+-- nes' x ys r = ys : (x : ys) : r
 
+-- >>> permutations "abc"
+-- ["abc","bac","cba","bca","cab","acb"]
+permutations xs = case xs of
+  [] -> [[]]
+  _  -> concatMap (\(y, ys) -> map (\xs -> y:xs) (permutations ys)) (select xs)
+-- >>> select [1,2,3]
+-- [(1,[2,3]),(2,[1,3]),(3,[1,2])]
+select xs = case xs of
+  [x]  -> [(x, [])]
+  x:xs -> (x, xs) : (map (\(y, ys) -> (y, x:ys)) (select xs))
+
+-- interleave  xs r = let (_,zs) = interleave' id xs r in zs
+-- interleave' f ys r = case ys of
+--   []   -> (ts, r)
+--   y:ys -> let (us,zs) = interleave' (f . (\xs -> y:xs)) ys r
+--           in  (y:us, f (t:y:us) : zs)
 
 ------------------------------
 --- Reducing lists (folds) ---
 ------------------------------
 
 -- concat
--- concatMap
+
+-- >>> concatMap (take 3) [[1..], [10..], [100..], [1000..]]
+-- [1,2,3,10,11,12,100,101,102,1000,1001,1002]
+concatMap f xss = case xss of
+  []       -> []
+  xs : xss -> concat (f xs) (concatMap f xss)
+
+
 
 -- foldl f z [x1, x2, ..., xn] == (...((z `f` x1) `f` x2) `f`...) `f` xn
 -- >>> foldl (+) 42 [1,2,3,4]
@@ -188,7 +203,7 @@ foldr f z xs = case xs of
 -- >>> foldr1 (+) [1..4]
 -- 10
 -- >>> foldr1 (+) []
--- Exception: Prelude.foldr1: empty list
+-- -1 (no exception)
 foldr1 f xs = case xs of
   []   -> -1
   x:xs -> let xs' = reverse xs in
