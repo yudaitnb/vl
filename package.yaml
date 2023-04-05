@@ -39,6 +39,7 @@ dependencies:
 - regex-posix
 - ghc-paths
 - ghc
+- timeit
 
 library:
   source-dirs: src

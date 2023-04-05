@@ -10,7 +10,7 @@ import B
 
 -- 2-1. "unversion" makes programs that require multiple versions acceptable.
 -- （Identifying the cause of version inconsistencies is currently not implemented）
-main = g a + h a -- Rejected
+-- main = g a + h a -- Rejected
 -- main = (unversion (g y)) + (unversion (h y)) -- OK
 
 -- 2-2. unversion can qualify any value.
@@ -48,9 +48,9 @@ main = g a + h a -- Rejected
 --   let fst x = case x of (x1,x2) -> x1
 --   in fst (y,b2)
 
--- main =
---   let sumTpl x = case x of (x1,x2) -> x1 + x2
---   in sumTpl (y,b1)
+main =
+  let sumTpl x = case x of (x1,x2) -> x1 + x2
+  in sumTpl (y,b1)
 
 -- main =
 --   let lst = [y,b2]

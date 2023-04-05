@@ -25,6 +25,7 @@ import Syntax.Common (Version(..), Label, ParsedAST(..))
 
 import Language.Haskell.Exts.Pretty
 
+import Evaluation
 import Util
 
 -- import qualified Language.Haskell.Interpreter as I
@@ -52,14 +53,14 @@ main = do
   logP "=== Parsing ==="
   logPD $ ppP "[DEBUG] rootDirPath :" <+> ppP rootDirPath
   logPD $ ppP "[DEBUG] validExt    :" <+> ppP validExt
-  (root, sortedVLMods, mapParsedAst) <- parseDependencyGraph fnMain rootDirPath ext logFilePath
+  (timeParsing, (root, sortedVLMods, mapParsedAst)) <- timeItT $ parseDependencyGraph fnMain rootDirPath ext logFilePath
   
   logP "=== Parsed Modules ==="
   logP mapParsedAst
 
   logP "=== Compilation order ==="
   logP sortedVLMods
-  env <- compile sortedVLMods mapParsedAst logFilePath
+  (timeCompiling, env) <- timeItT $ compile sortedVLMods mapParsedAst logFilePath
 
   logP "=== External Variables ==="
   let exVarsRes = duplicatedExVars env
@@ -70,11 +71,10 @@ main = do
   logPD $ ppP cons <> line
 
   logP "=== Solver result ==="
-  solResMap <- Solver.solve (cvtExtMods sortedVLMods) cons >>= \case
+  (timeConstraintResolution, solResMap) <- timeItT $ Solver.solve (cvtExtMods sortedVLMods) cons >>= \case
     Left (h, r) -> do
       logP h
       logPD $ concatWith (surround $ comma <> space) $ map ppP r
-      logP "Whole process finished."
       return Nothing
     Right res -> do
       logPD $ concatWith (surround line) $ mapWithKey (\vn l -> ppP vn <+> colon <+> ppP l) res
@@ -102,6 +102,11 @@ main = do
       logP $ prettyPrint hsCodeBundled
     else
       logP "Whole process finished."
+
+  logPD $ unlineTimes 
+    [ ("Parsing", timeParsing)
+    , ("Compiling", timeCompiling)
+    , ("ConstraintResolution", timeConstraintResolution )]
 
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func
