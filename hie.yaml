@@ -11,3 +11,8 @@ cradle:
 
     - path: "./test"
       component: "vl:test:vl-test"
+
+    - path: "./examples"
+      config:
+        cradle:
+          none:
