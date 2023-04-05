@@ -37,8 +37,35 @@ patternSynthesis :: Pat SrcSpanInfo -> Type -> Env PatSynthRes
 patternSynthesis p tya = do
   addLC
   case p of
-    -- PLit _ sign lit -> 
-    -- PWildCard _     ->  
+    -- pLit, [pLit]
+    PLit _ sign lit -> do
+      renv <- gets rEnv
+      sigma <- gets uEnv
+      -- rがある場合はwell-definedness (1 <= r) を検査すべき
+      -- case renv of
+      --   EmptyREnv -> do
+      --   REnv r -> do
+      let resty = case lit of
+            Char {}   -> tychar
+            String {} -> tystring
+            Int {}    -> tyint
+      theta <- typeUnification resty tya
+      let result = (emptyEnv, sigma, theta)
+      putPatSynthLog sigma renv p result
+      return result 
+
+    -- p_
+    PWildCard _     -> do 
+      renv <- gets rEnv
+      sigma <- gets uEnv
+      -- rがある場合はwell-definedness (0 <= r) を検査すべき
+      -- case renv of
+      --   EmptyREnv -> do
+      --   REnv r -> do
+      hasTypeKind tya
+      let result = (emptyEnv, sigma, emptySubst)
+      putPatSynthLog sigma renv p result
+      return result 
 
     -- pVar_?
     PVar _ name     -> do
@@ -177,8 +204,8 @@ patternSynthesis p tya = do
 
             _ -> error "Pattern inference for PInfixApp is not defined except for Cons."
         _ -> error "Pattern inference for PINfixApp is not defined except for SpecialCon."
-
-    pat -> error $ "May the arguments be PLit or PWildCard?\n" ++ show pat
+      
+    pat -> error $ "patternSynthesis does not support the given pattern:\n" ++ show pat
   
 ------------------------------
 

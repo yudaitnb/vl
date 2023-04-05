@@ -100,11 +100,12 @@ genNewVarFrom (Var l1 qn) = case qn of
         newVar = Var l1 (N.Qual l2 mn (N.Ident l3 newVarName))
     addCounterOf vk
     return newVar
-genNewVarFrom e = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
+  _ -> error $ "\ngenNewVarFrom is not defined for a given qn.\n  qn: " ++ putDocString (ppP qn)
+genNewVarFrom e = error $ "\ngenNewVarFrom is not defined for a given expression.\n  exp: " ++ putDocString (ppP e)
   
 isFree :: Exp SrcSpanInfo -> DuplicateEnv Bool
 isFree v@(Var _ qn) = gets $ not . (mkVKFromQN qn `elem`) . boundVars
-isFree e           = error $ "The function genNewVarFrom is not defined for a given expression: " ++ putDocString (ppP e)
+isFree e           = error $ "\nThe function genNewVarFrom is not defined for a given expression.\n  exp: " ++ putDocString (ppP e)
 
 addBoundVar :: VarKey -> DuplicateEnv ()
 addBoundVar vn = do
@@ -150,11 +151,19 @@ duplicateExVarExp exp = case exp of
     e' <- duplicateExVarExp e           -- 更新された環境でduplicate
     setBoundVar oldBoundVars         -- 旧テーブルに戻す
     return $ Lambda l p e'           -- duplicate済み式と新しい束縛変数リストを用いてLambdaのduplicate済み式を構成
+  CLet l p e1 e2 -> do
+    oldBoundVars <- gets boundVars   -- 旧テーブルを保存
+    addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
+    e1' <- duplicateExVarExp e1      -- 更新された環境でe1をduplicate
+    setBoundVar oldBoundVars         -- 旧テーブルに戻す
+    e2' <- duplicateExVarExp e2      -- 旧テーブルでe2をduplicate
+    return $ CLet l p e1' e2'        -- duplicate済み式e1',e2'と新しい束縛変数リストを用いてCLetのduplicate済み式を構成
   Tuple l elms   -> Tuple l <$> mapM duplicateExVarExp elms
   List l elms    -> List l <$> mapM duplicateExVarExp elms
   If l e1 e2 e3  -> If l <$> duplicateExVarExp e1 <*> duplicateExVarExp e2 <*> duplicateExVarExp e3
   Case l e alts  -> Case l <$> duplicateExVarExp e <*> mapM duplicateExVarAlt alts
   Pr l e         -> Pr l <$> duplicateExVarExp e
+  Con l qn       -> return exp
   VRes l label e -> VRes l label <$> duplicateExVarExp e
   VExt l e       -> VExt l <$> duplicateExVarExp e
   
@@ -243,10 +252,13 @@ renameEnvTyWithIdx i et = case et of
 renameTyWithIdx :: Int -> Type -> Type
 renameTyWithIdx i ty = case ty of
   TyVar (T.Ident n) -> TyVar (T.Ident $ newNameOfExTyVar n i)
-  TyCon qn -> ty
-  TyFun t1 t2 -> TyFun (renameTyWithIdx i t1) (renameTyWithIdx i t2)
-  TyBox c t -> TyBox (renameTyWithIdx i c) (renameTyWithIdx i t)
-  TyBottom -> ty
-  TyLabels _ -> ty
+  TyCon qn          -> ty
+  TyFun t1 t2       -> TyFun (renameTyWithIdx i t1) (renameTyWithIdx i t2)
+  TyBox c t         -> TyBox (renameTyWithIdx i c) (renameTyWithIdx i t)
+  TyBottom          -> ty
+  TyLabels _        -> ty
+  TyTuple lst       -> TyTuple $ map (renameTyWithIdx i) lst
+  TyList t          -> TyList (renameTyWithIdx i t)
+  _ -> error $ putDocString $ ppP "renameTyWithIdx" <> ppP ty
   -- CAnd c1 c2 -> CAnd (renameTyWithIdx i c1) (renameTyWithIdx i c2)
   -- COr c1 c2 -> COr (renameTyWithIdx i c1) (renameTyWithIdx i c2)

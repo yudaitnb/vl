@@ -29,6 +29,7 @@ instance Show l => Desugaring (AB.Pat l) where
     AB.PVar l name          -> DS.PVar l name
     AB.PLit l sign lit      -> DS.PLit l sign lit
     AB.PTuple l _ ps        -> DS.PTuple l (map desugar ps)
+    AB.PParen l pat         -> desugar pat
     AB.PList l ps           -> DS.PList l (map desugar ps)
     AB.PApp l qn ps         -> DS.PApp l qn (map desugar ps)
     AB.PInfixApp l p1 qn p2 -> DS.PInfixApp l (desugar p1) qn (desugar p2)
@@ -90,13 +91,13 @@ instance Show l => Desugaring (AB.Exp l) where
     AB.Paren l e -> desugar e
 
     -- desugar x -> x
-    AB.Var l qName -> DS.Var l qName
+    AB.Var l qn -> DS.Var l qn
 
     -- desugar c -> c
-    AB.Lit l literal -> DS.Lit l literal
+    AB.Lit l lit -> DS.Lit l lit
 
     -- desugar (f ○ x) -> desugar f ○ desugar x
-    AB.App l exp1 exp2 -> DS.App l (desugar exp1) (desugar exp2)
+    AB.App l e1 e2 -> DS.App l (desugar e1) (desugar e2)
 
     -- desugar ('-' e) -> 0 '-' desugar e
     AB.NegApp l exp -> -- DS.NegApp l (desugar exp)
@@ -114,6 +115,13 @@ instance Show l => Desugaring (AB.Exp l) where
           e1' = desugar e1
           e2' = desugar e2
       in DS.App l1 (DS.App l2 varOp e1') e2'
+
+    -- ^ desugar (e1 ':' e2) = (':' (desugar e1)) (desugar e2)
+    AB.InfixApp l1 e1 (AB.QConOp l2 qName) e2 ->
+      let conOp = DS.Con l2 qName
+          e1' = desugar e1
+          e2' = desugar e2
+      in DS.App l1 (DS.App l2 conOp e1') e2'
 
     -- ^ desugar (\_ -> e)      = error
     -- ^ desugar (\[p] -> e)    = \p -> e
@@ -142,6 +150,18 @@ instance Show l => Desugaring (AB.Exp l) where
           in DS.App l1 lam yexp
         _                      -> error $ "\nGiven exp is no supported.\n  binds : " ++ show binds
 
+    -- ^ desugar (let [] in exp)          = desugar exp
+    -- ^ desugar $ let (x = y):binds in z = let x = y in desugar (let binds in z)
+    -- AB.Let l1 binds exp ->
+    --   case binds of
+    --     AB.BDecls l2     [] -> desugar exp
+    --     AB.BDecls l2 (b:bs) ->
+    --       let zexp' = desugar $ AB.Let l1 (AB.BDecls l2 bs) exp
+    --           DS.PatBind l1 xpat yexp = desugar b
+    --       in DS.Let l1 xpat yexp zexp'
+    --     _                      -> error $ "\nGiven exp is no supported.\n  binds : " ++ show binds
+
+
     -- ^ desugar (version A = x.y.z in exp)          = desugar exp
     AB.VRes l1 vbs exp -> DS.VRes l1 (vbsToCs vbs) (desugar exp)
     AB.VExt l1 exp -> DS.VExt l1 (desugar exp)
@@ -155,8 +175,9 @@ instance Show l => Desugaring (AB.Exp l) where
     -- ^ 
     AB.Tuple l boxed elems -> DS.Tuple l $ map desugar elems
     AB.List l elems -> DS.List l $ map desugar elems
+    AB.Con l qn     -> DS.Con l qn
 
-    _              -> error $ "\nGiven exp is no supported.\n  exp : " ++ show exp
+    _              -> error $ "\nGiven exp is not supported.\n  exp : " ++ show exp
 
 vbsToCs :: AB.VBinds l -> Label
 vbsToCs (AB.VBinds _ vbs) = vbsToCs' vbs

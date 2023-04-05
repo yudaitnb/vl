@@ -65,10 +65,10 @@ instance Typable (VL.Exp SrcSpanInfo) where
     addLC
     case exp of
       -- ^ ⇒_int, ⇒_char, ⇒_string 
-      VL.Lit _ con -> do
+      VL.Lit _ lit -> do
         gamma <- gets tEnv
         sigma <- gets uEnv
-        let ty = case con of
+        let ty = case lit of
               VL.Char {}   -> tychar
               VL.String {} -> tystring
               VL.Int {}    -> tyint
@@ -81,6 +81,24 @@ instance Typable (VL.Exp SrcSpanInfo) where
               )
         putTyInfLog sigma gamma exp result
         return result
+
+      -- ^ ⇒_con
+      VL.Con _ qn -> do
+        gamma <- gets tEnv
+        sigma <- gets uEnv
+        case qn of
+          Special _ (Cons l) -> do
+            ty <- do
+              alpha <- genNewTyVar TypeKind
+              beta1 <- genNewTyVar LabelsKind
+              beta2 <- genNewTyVar LabelsKind
+              let arg1 = TyBox beta1 alpha
+                  arg2 = TyBox beta2 (TyList alpha)
+              return $ TyFun arg1 (TyFun arg2 (TyList alpha))
+            let result = (ty, sigma, emptySubst, emptyConstraints)
+            putTyInfLog sigma gamma exp result
+            return result
+          _ -> error $ "\nGiven special constructor is not supported.\n" ++ show exp
 
       -- ^ Variables
       VL.Var _ qName
@@ -202,11 +220,36 @@ instance Typable (VL.Exp SrcSpanInfo) where
         putTyInfLog sigma gamma exp result
         return result
 
+      -- ^ ⇒_clet
+      VL.CLet l p t t' -> do
+        infer (VL.App l (VL.Lambda l p t') t)
+        -- gamma <- gets tEnv
+        -- sigma <- gets uEnv
+        -- alpha <- genNewTyVar TypeKind
+        -- sigma1' <- gets uEnv
+        -- setREnv emptyREnv
+        -- (gamma', sigma2, theta) <- patternSynthesis p alpha
+        -- setUEnv sigma2
+        -- setTEnv $ gamma .+++ gamma' -- シンボルが被った場合は新たに生成した環境で上書き (コア計算とは異なる)
+        -- -- (tyb, delta, sigma3, theta', c1) <- infer t
+        -- (tyb, sigma3, theta', c1) <- infer t
+        -- theta'' <- theta `comp` theta'
+        -- let result =  ( -- typeSubstitution theta (TyFun alpha tyb)
+        --                 typeSubstitution theta'' (TyFun alpha tyb) -- [TODO] ?
+        --               -- , delta `exclude` gamma'
+        --               , insertEnv (getName alpha) TypeKind sigma3
+        --               , theta''
+        --               , c1)
+        -- putTyInfLog sigma gamma exp result
+        -- return result
+
       -- ^ =>_()
       VL.Tuple _ elms -> do
         gamma <- gets tEnv
         sigma1 <- gets uEnv
-        tyInfResLst <- forM elms $ \e -> infer e
+        tyInfResLst <- forM elms $ \e -> do
+          setTEnv gamma
+          infer e
         let resTy = TyTuple $ map (\(t,_,_,_) -> t) tyInfResLst
         sigma' <- gets uEnv
         let sigmaLast = if null tyInfResLst
@@ -228,12 +271,19 @@ instance Typable (VL.Exp SrcSpanInfo) where
       VL.List _ elms -> do
         gamma <- gets tEnv
         sigma1 <- gets uEnv
-        tyInfResLst <- forM elms $ \e -> infer e
+        tyInfResLst <- forM elms $ \e -> do
+          setTEnv gamma
+          infer e
         let tys = map (\(t,_,_,_) -> t) tyInfResLst
-            tyFirstCase = head tys
-        unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tys) $
-          error "All list elements must have a same type."
-        let resTy = TyList tyFirstCase
+        resTy <- if not (null tyInfResLst)
+          then do
+            let tyFirstCase = head tys
+            unless (foldr (\ty acc -> ty `tySym` tyFirstCase && acc) True tys) $
+              error "All list elements must have a same type."
+            return $ TyList tyFirstCase
+          else do
+            alpha <- genNewTyVar TypeKind
+            return $ TyList alpha
         sigma' <- gets uEnv
         let sigmaLast = if null tyInfResLst
                           then sigma'
@@ -278,6 +328,33 @@ instance Typable (VL.Exp SrcSpanInfo) where
         putTyInfLog sigma1 gamma exp result
         return result
 
+      -- ^ ⇒_if
+      VL.If _ t th el -> do
+        gamma <- gets tEnv
+        sigma1 <- gets uEnv
+        (tya, _, theta0, c0) <- infer t
+        resThEl <- forM [th,el] $ \ti -> do
+          setTEnv gamma
+          alpha <- genNewTyVar LabelsKind
+          (tyb, sigmai', thetai', ci') <- infer ti
+          return (tyb, sigmai', thetai', ci')
+        let (_, sigmaLast, _, _) = last resThEl
+            tys = map (\(ty,_,_,_) -> ty) resThEl
+            tyb = head tys
+        -- then節とelse節の型推論結果をunify(caseと同じ)
+        thetaThEl <- foldM (\acc ty -> (acc `comp`) =<< typeUnification ty (head tys)) emptySubst (tail tys)
+        -- unless (foldr (\ty acc -> ty == tyb && acc) True tys) $
+        --   error $ "\nAll case altanatives must have the same type.\n" ++ putDocString (concatWith (surround line) $ map ppP tys)
+        thetaSum <- (thetaThEl `comp`) =<< foldM comp theta0 =<< mapM (\(_,_,thetai,_) -> return thetai) resThEl
+        cSum <- foldM (\a b -> return $ a `landC` b) c0 =<< mapM (\(_,_,_,ci) -> return ci) resThEl
+        let result =  ( typeSubstitution thetaSum tyb
+                      -- , delta `exclude` gamma'
+                      , sigmaLast
+                      , thetaSum
+                      , cSum)
+        putTyInfLog sigma1 gamma exp result
+        return result
+
       -- ^ ⇒_case
       VL.Case _ t alts -> do
         -- print . putDocString . ppP <$> gets tEnv
@@ -297,9 +374,9 @@ instance Typable (VL.Exp SrcSpanInfo) where
           (tyb, sigmai', thetai', ci') <- infer ti
           thetai'' <- thetai `comp` thetai'
           return (tyb, sigmai', thetai'', ci')
-        let (tyb, _, _, _) = head resAlts
-            (_, sigmaLast, _, _) = last resAlts
+        let (_, sigmaLast, _, _) = last resAlts
             tys = map (\(ty,_,_,_) -> ty) resAlts
+            tyb = head tys
         thetaAlts <- foldM (\acc ty -> (acc `comp`) =<< typeUnification ty (head tys)) emptySubst (tail tys)
         -- unless (foldr (\ty acc -> ty == tyb && acc) True tys) $
         --   error $ "\nAll case altanatives must have the same type.\n" ++ putDocString (concatWith (surround line) $ map ppP tys)
@@ -320,10 +397,9 @@ instance Typable (VL.Exp SrcSpanInfo) where
         let gamma' = gradeTEnv (filterEnvBy (VL.freeVars t) gamma)
             gamma'_dont_care_inside_vext = gradeTEnv (filterEnvBy (VL.freeVars' t) gamma)
         -- [TODO] 要検討
-        -- unversion t (vext)のt中の自由変数は下のいずれかで扱うべきか？
-        -- 1. この場の制約生成において無視し、環境中のその変数はgradeしておく or
-        -- 2. この場の環境生成において無視し、環境中のその変数はgradeしない or
-        -- 3. 1,2のどちらでも変わらない？
+        -- unversion t (vext)のt中の自由変は2で扱う
+        -- 1. この場の制約生成において無視し、環境中のその変数はgradeしておく
+        -- 2. この場の環境生成において無視し、環境中のその変数はgradeしない
         setTEnv gamma'
         -- (tya, delta, sigma2, theta, c1) <- infer t
         (tya, sigma2, theta, c1) <- infer t
@@ -345,7 +421,8 @@ instance Typable (VL.Exp SrcSpanInfo) where
         sigma1 <- gets uEnv
         let r = TyLabels ls
         hasLabelsKind r
-        let gamma' = r .** gradeTEnv (filterEnvBy (VL.freeVars t) gamma) -- [TODO] tの型付けでrが使用可能であると見做す？これは何かおかしいような気もする。
+        let -- gamma' = r .** gradeTEnv (filterEnvBy (VL.freeVars t) gamma) -- [TODO] tの型付けでrが使用可能であると見做す？これは何かおかしいような気もする。
+            gamma' = gradeTEnv (filterEnvBy (VL.freeVars t) gamma)
             gamma'_dont_care_inside_vext = gradeTEnv (filterEnvBy (VL.freeVars' t) gamma)
         setTEnv gamma'
         -- (tya, delta, sigma2, theta, c1) <- infer t
@@ -376,7 +453,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
         putTyInfLog sigma gamma exp result
         return result
 
-      _ -> error "The function `infer` is not defined for a given expression."
+      _ -> error $ "\nThe function `infer` is not defined for a given expression.\n  exp:" ++ show exp
 
 data TypedExp = TypedExp
   { name         :: VarKey -- シンボル名

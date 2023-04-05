@@ -29,6 +29,6 @@ instance PrettyAST l => PrettyAST (Literal l) where
     <+> ppE srcLocInfo <> line
     <+> ppE integer
     <+> ppE "\"" <> ppE string <> ppE "\""
-  ppP (Char _ c s) = ppP s
-  ppP (String _ s1 s2) = ppP s2
+  ppP (Char _ c s) = ppP "\'" <> ppP s <> ppP "\'"
+  ppP (String _ s1 s2) = ppP "\"" <> ppP s2 <> ppP "\""
   ppP (Int _ i s) = ppP s

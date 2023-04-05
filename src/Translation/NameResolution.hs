@@ -74,6 +74,7 @@ resolveExp exp = case exp of
       in Var (dsc sl1) (Qual l mn' (fmap dsc name))
     Scoped (ScopeError err) l -> scopeError err
     _                         -> error "UndefinedError occurs in Name resolution"
+  NegApp sl e           -> NegApp (dsc sl) (resolveExp e)
   Var sl1 qn            -> Var (dsc sl1) (fmap dsc qn)
   Lit sl l              -> Lit (dsc sl) (fmap dsc l)
   InfixApp sl e1 qop e2 -> InfixApp (dsc sl) (resolveExp e1) (fmap dsc qop) (resolveExp e2)
@@ -84,6 +85,7 @@ resolveExp exp = case exp of
   Case sl e alts        -> Case (dsc sl) (resolveExp e) (map resolveAlt alts)
   Lambda sl p e         -> Lambda (dsc sl) (map (fmap dsc) p) (resolveExp e)
   Let sl bs e           -> Let (dsc sl) (resolveBinds bs) (resolveExp e)
+  Con sl qn             -> Con (dsc sl) (fmap dsc qn)
   VRes sl vbs e         -> VRes (dsc sl) (fmap dsc vbs) (resolveExp e)
   VExt sl e             -> VExt (dsc sl) (resolveExp e)
   Paren sl e            -> Paren (dsc sl) (resolveExp e)
