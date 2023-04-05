@@ -6,20 +6,10 @@ module Main where
 -- Sample programs
 -- main = a + 1 -- OK
 
-<<<<<<< HEAD
 -- 2-1. "unversion" makes programs that require multiple versions acceptable.
 -- （Identifying the cause of version inconsistencies is currently not implemented）
 -- main = g a + h a -- Rejected
 -- main = (unversion (g y)) + (unversion (h y)) -- OK
-=======
--- main = g a + h a -- Rejected
--- main = (unversion (g y)) + (unversion (h y)) -- RejectedだがOKにしたい
-
--- main =
---   let xx = g a
---       yy = h a
---   in xx + yy -- Rejected
->>>>>>> 9280ce75bbb6d42568f225cc68bb6fe6febee6fc
 
 -- main = let xx = (unversion g) a
 --            yy = (unversion h) a
@@ -52,11 +42,6 @@ main =
 
 -- import Matrix
 
-<<<<<<< HEAD
-main =
-  let sumTpl x = case x of (x1,x2) -> x1 + x2
-  in sumTpl (y,b1)
-=======
 -- main =
 --   let vec = [2, 1]
 --       sorted = sortVector vec
@@ -64,7 +49,6 @@ main =
 --               (singleton sorted)
 --               (singleton vec)
 --   in determinant m22
->>>>>>> 9280ce75bbb6d42568f225cc68bb6fe6febee6fc
 
 -- main =
 --   --determinant [[1,2],[2,1]]
