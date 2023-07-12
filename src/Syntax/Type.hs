@@ -278,9 +278,9 @@ instance PrettyAST Constraints where
     CTop -> ppE "⊤"
     CSubset c1 c2 -> ppE c1 <+> ppE "≤" <+> ppE c2
     CAnd c1 c2 -> ppE c1 <+> ppE "and" <+> ppE c2
-    COr c1 c2 -> parens $ parens (ppE c1) <+> ppE "or" <+> parens (ppE c2)
+    COr c1 c2 -> parens $ ppE "or" <+> parens (ppE c1) <+> parens (ppE c2)
   ppP cs = case cs of
     CTop -> ppP "⊤"
     CSubset c1 c2 -> parens $ ppP c1 <+> ppP "≤" <+> ppP c2
     CAnd c1 c2 -> ppP c1 <+> ppP "and" <+> ppP c2
-    COr c1 c2 -> parens $ parens (ppP c1) <+> ppP "or" <+> parens (ppP c2)
+    COr c1 c2 -> parens $ ppP "or" <+> parens (ppP c1) <+> parens (ppP c2)

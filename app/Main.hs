@@ -15,7 +15,7 @@ import Data.Either (fromRight)
 import Parser ( cvtExtMods, parseDependencyGraph, VLMod(..) )
 import Compile (compile, CompileEnv'(..))
 import Inference.TypeInference (TypedExp(..), aggregateConstraints)
-import Solver ( solve, combineSolRes )
+import SolverZ3 ( solve, combineSolRes )
 import Config ( decodeConfig )
 import Translation.Extraction ( extract )
 import Translation.Girard ( girardBck )
@@ -27,6 +27,8 @@ import Language.Haskell.Exts.Pretty
 
 import Evaluation
 import Util
+
+import Solver
 
 -- import qualified Language.Haskell.Interpreter as I
 
@@ -71,8 +73,12 @@ main = do
   let cons = globalConstraints env
   logPD $ ppP cons <> line
 
+  logP "\n=== Constraints (normalized) ==="
+  logPD $ ppP (mkOrdLstOfAndCs cons)
+
+
   logP "=== Solver result ==="
-  (timeConstraintResolution, solResMap) <- timeItT $ Solver.solve (cvtExtMods sortedVLMods) cons >>= \case
+  (timeConstraintResolution, solResMap) <- timeItT $ SolverZ3.solve (cvtExtMods sortedVLMods) cons >>= \case
     Left (h, r) -> do
       logP h
       logPD $ concatWith (surround $ comma <> space) $ map ppP r

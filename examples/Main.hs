@@ -1,4 +1,4 @@
-module Main where
+-- module Main where
 
 -- import A
 -- import B
@@ -32,11 +32,11 @@ module Main where
 --            yy = (unversion (h (version {A=1.0.1} of a)))
 --        in xx + yy -- Rejected。v1.0.1のaは複数のBのバージョンに依存できないため。
 
-import List
+-- import List
 
-main =
-  let lst = [1, 2]
-  in reverse lst
+-- main =
+--   let lst = [1, 2]
+--   in reverse lst
 
 -- main = 1
 
@@ -55,16 +55,16 @@ main =
 --   let vec = [1,2]
 --   in join [1,2] [2,1]
 
--- module Main where
--- import Matrix
--- import List
+module Main where
+import Matrix
+import List
 
--- main = let vec = [2, 1]
---            sorted = sortVector vec
---            m22 = join -- [[1,2],[2,1]]
---                   (singleton sorted)
---                   (singleton vec)
---        in determinant m22 -- error
+main = let vec = [2, 1]
+           sorted = unversion (sortVector vec)
+           m22 = join -- [[1,2],[2,1]]
+                  (singleton sorted)
+                  (singleton vec)
+       in determinant m22 -- error
 
 -- main = ...
 --     -- sortVector

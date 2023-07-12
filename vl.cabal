@@ -38,6 +38,7 @@ library
       Parser
       Solver
       SolverGT
+      SolverZ3
       Syntax.Common
       Syntax.Common.HasVar
       Syntax.Common.Keys

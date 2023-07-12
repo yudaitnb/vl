@@ -5,7 +5,7 @@ import Prelude
 
 import Syntax.Common hiding (Name(..), QName(..))
 import Syntax.Type
-import Solver
+import SolverZ3
 import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Data.Either
