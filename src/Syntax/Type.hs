@@ -9,6 +9,7 @@ module Syntax.Type (
   (.+), (.*), --(.<),
   HasName(..),
   tySym,
+  sizeCs,
 ) where
 
 import Data.Map ( Map, toList, union, unionWith, null )
@@ -44,7 +45,7 @@ instance HasName QName where
 instance HasName Type where
   getName (TyCon qName) = getName qName
   getName (TyVar name) = getName name
-  getName _ = error "The getName function is not defined for a given expresion."
+  getName ty = error "The getName function is not defined for a given expresion: " ++ putDocString (ppP ty)
 
 type Coeffect = Type
 
@@ -89,6 +90,13 @@ lorC :: Constraints -> Constraints -> Constraints
 lorC CTop _ = CTop
 lorC _ CTop = CTop
 lorC c1 c2  = COr c1 c2
+
+sizeCs :: Constraints -> Int
+sizeCs cs = case cs of
+  CTop        -> 0
+  CSubset _ _ -> 1
+  CAnd c1 c2  -> sizeCs c1 + sizeCs c2
+  COr c1 c2   -> sizeCs c1 + sizeCs c2
 
 instance Eq Type where
   TyVar n1 == TyVar n2 = getName n1 == getName n2

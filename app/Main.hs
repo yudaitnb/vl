@@ -20,7 +20,7 @@ import Config ( decodeConfig )
 import Translation.Extraction ( extract )
 import Translation.Girard ( girardBck )
 
-import Syntax.Type (landC, Constraints(..), Type, HasName (getName))
+import Syntax.Type (landC, Constraints(..), Type, HasName (getName), sizeCs)
 import Syntax.Common (Version(..), Label, ParsedAST(..))
 
 import Language.Haskell.Exts.Pretty
@@ -71,10 +71,16 @@ main = do
 
   logP "\n=== Constraints ==="
   let cons = globalConstraints env
+      sizePre = sizeCs cons
   logPD $ ppP cons <> line
 
   logP "\n=== Constraints (normalized) ==="
-  logPD $ ppP (mkOrdLstOfAndCs cons)
+  let cs = minimizeCs cons
+      sizePro = sizeCs cs
+  logPD $ ppP "Constraint size (pre-shrinking) :" <+> ppP sizePre
+  let persec = 100 * fromIntegral sizePro / fromIntegral sizePre :: Float
+  logPD $ ppP "Constraint size (pro-shrinking) :" <+> ppP sizePro <+> parens (ppP persec <+> ppP "%")
+  logPD $ ppP cs
 
 
   logP "=== Solver result ==="

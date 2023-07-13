@@ -1,16 +1,34 @@
-module SolverSpec (spec) where
+module SolverZ3Spec (spec) where
 
 import Test.Hspec
 import Prelude
 
 import Syntax.Common hiding (Name(..), QName(..))
 import Syntax.Type
-import Solver
+import SolverZ3
 import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Data.Either
 import qualified Data.Bifunctor
 
+
+-- test :: IO ()
+-- test = do
+--   let fvCons = freeVars testConstraints
+--       maxWHeader = maximum $ map length fvCons
+--       maxWItem = 7 -- [TODO]
+--       printResult :: Int -> Int -> [(String, [(String, Version)])] -> IO ()
+--       printResult maxWHeader maxWItem m = do
+--         forM_ m $ \(v, res) -> do
+--           let header = fill maxWHeader (ppP v) <+> ppP ":"
+--               maintxt = concatWith (surround $ comma <> space) $ map (\(mn, v) -> fill maxWItem $ ppP mn <> colon <> ppP v) res
+--               doc = header <+> maintxt
+--           print $ putDocString doc
+--   solve testExtMods testConstraints >>= \case
+--     Left (h,r)   -> do
+--         print h
+--         print $ putDocString $ concatWith (surround $ comma <> space) $ map ppP r
+--     Right res -> printResult maxWHeader maxWItem res
 
 spec :: Spec
 spec = do

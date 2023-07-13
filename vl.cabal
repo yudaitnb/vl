@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -74,6 +74,7 @@ library
       DeriveFunctor
   build-depends:
       aeson
+    , algebraic-graphs
     , base >=4.7 && <5
     , bytestring
     , containers
@@ -108,6 +109,7 @@ executable vl-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , algebraic-graphs
     , base >=4.7 && <5
     , bytestring
     , containers
@@ -131,9 +133,9 @@ test-suite vl-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      RenameExVarSpec
       SolverGTSpec
       SolverSpec
+      SolverZ3Spec
       Paths_vl
   hs-source-dirs:
       test
@@ -147,6 +149,7 @@ test-suite vl-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
+    , algebraic-graphs
     , base >=4.7 && <5
     , bytestring
     , containers

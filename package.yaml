@@ -40,6 +40,7 @@ dependencies:
 - ghc-paths
 - ghc
 - timeit
+- algebraic-graphs
 
 library:
   source-dirs: src

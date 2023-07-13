@@ -108,6 +108,14 @@ instance PrettyAST Int where
   ppE = pretty
   ppP = pretty
 
+instance PrettyAST Float where
+  ppE = pretty
+  ppP = pretty
+
+instance PrettyAST Double where
+  ppE = pretty
+  ppP = pretty
+
 instance PrettyAST Bool where
   ppE = pretty
   ppP = pretty

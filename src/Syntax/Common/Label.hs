@@ -20,6 +20,9 @@ type Label = Map ModName [Version]
 emptyLabels :: Label
 emptyLabels = M.empty
 
+composeLabels :: Label -> Label -> Label
+composeLabels = M.unionWith (\a b -> if a == b then a else error "")
+
 ------------------------
 
 instance PrettyAST Label where
