@@ -76,7 +76,7 @@ data Constraints
   | CAnd Constraints Constraints
   | COr Constraints Constraints
   | CTop
-  deriving (Show)
+  deriving (Eq, Show)
 
 emptyConstraints :: Constraints
 emptyConstraints = CTop

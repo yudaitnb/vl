@@ -5,7 +5,8 @@ module Solver where
 import Prelude
 
 -- import Data.Map
-import Graph
+import GraphTrans
+import Algebra.Graph.ToGraph (topSort)
 import Syntax.Type
 import Syntax.Common hiding (Name(..))
 import Data.Map (Map, empty, fromList, toList, delete, insert, insertWith, size, mapWithKey)
@@ -34,7 +35,7 @@ csToLabels :: [Constraints] -> Map String Label
 csToLabels cs = case cs of
   [] -> empty
   (CSubset (TyVar n1) (TyLabels l2)) : cs -> insert (getName n1) l2 $ csToLabels cs
-  _ -> error ""
+  _ -> error $ putDocString $ ppP cs
 
 solve :: Map String [Version] -> Constraints -> IO SolverResult
 solve em cs = do
@@ -47,11 +48,7 @@ solved = all (\x -> case x of
                 _                              -> False)
 
 solveAnd :: Constraints -> [Constraints]
-solveAnd cs =
-  let
-    ord = mkOrdLstOfAndCs cs
-  in
-    solveAnd' ord
+solveAnd cs = solveAnd' $ mkOrdLstOfAndCs cs
   where
     solveAnd' :: [Constraints] -> [Constraints]
     solveAnd' cs = case cs of
@@ -59,7 +56,7 @@ solveAnd cs =
       c : cs' ->
         if solved cs then cs
         else case c of
-          CSubset _ _ -> solveAnd' (map (composeCs c) cs)
+          CSubset _ _ -> c : solveAnd' (map (composeCs c) cs)
           _           -> error ""
 
     composeCs :: Constraints -> Constraints -> Constraints
@@ -78,52 +75,7 @@ solveAnd cs =
       _ -> error ""
 
 mkOrdLstOfAndCs :: Constraints -> [Constraints]
-mkOrdLstOfAndCs cs =
-  let flattened = cvtAnd cs
-      (varDeps, labelDeps) = spanCsToDeps cs
-      nodes = freeVars cs
-      edges = foldr
-        (\dep acc -> case dep of
-          CSubset tv1@(TyVar _) tv2@(TyVar _) ->
-            (UQVar (getName tv1), UQVar (getName tv2)) : acc)
-        []
-        varDeps
-      g = Graph (nodes, edges)
-      sorted  = reverse $ tsort g
-  in sortCssBy sorted flattened
-  where
-    spanEdges :: VarKey -> [Constraints] -> ([Constraints], [Constraints])
-    spanEdges k = span (\(CSubset c1 c2) -> all (\c -> k `elem` freeVars c) [c1,c2])
-
-    sortCssBy :: [VarKey] -> [Constraints] -> [Constraints]
-    sortCssBy ks css =  case ks of
-      [] -> css
-      k : xs ->
-        let (accumrated, rst) = spanEdges k css
-        in accumrated ++ sortCssBy xs rst
-
-    spanCsToDeps :: Constraints -> ([Constraints], [Constraints])
-    spanCsToDeps cs =
-      let flattened = cvtAnd cs in
-      span
-        (\dep -> case dep of
-          CSubset (TyVar _) (TyVar _) -> True
-          _ -> False)
-        flattened
-
-    andOnly :: Constraints -> Bool
-    andOnly cs = case cs of
-      CTop        -> True
-      CSubset _ _ -> True
-      CAnd c1 c2  -> andOnly c1 && andOnly c2
-      COr  c1 c2  -> False
-
-    cvtAnd :: Constraints -> [Constraints]
-    cvtAnd cs = case cs of
-      CTop        -> []
-      CSubset _ _ -> [cs]
-      CAnd c1 c2  -> cvtAnd c1 ++ cvtAnd c2
-      COr  c1 c2  -> [] -- errorにすべき
+mkOrdLstOfAndCs cs = labelDeps cs ++ sortedVarDeps cs
 
 
 data Env' = Env'

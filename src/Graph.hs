@@ -9,8 +9,6 @@ import Control.Monad.State
 import Data.Maybe (fromMaybe)
 import Prelude hiding (log)
 
-import Algebra.Graph
-
 data Graph a =
     EmptyGraph
   | Graph ([Node a], [Edge a])

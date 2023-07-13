@@ -5,30 +5,30 @@
 
 packages:
 - completed:
+    name: haskell-src-exts
+    pantry-tree:
+      sha256: e26829b78cb5dc33d91084ef0a630bbc446d300bbe4b274e129bfc05246ad392
+      size: 101764
+    sha256: 5445f02d3dc4cb20464dd8b2d7960214536219ca8be7edea800d086271b0fc90
     size: 1264252
     url: https://github.com/yudaitnb/vl-haskell-src-exts/archive/d3591d04110e7c79ac5a42740f3b65935b3b1ae6.tar.gz
-    name: haskell-src-exts
     version: 1.23.1
-    sha256: 5445f02d3dc4cb20464dd8b2d7960214536219ca8be7edea800d086271b0fc90
-    pantry-tree:
-      size: 101764
-      sha256: e26829b78cb5dc33d91084ef0a630bbc446d300bbe4b274e129bfc05246ad392
   original:
     url: https://github.com/yudaitnb/vl-haskell-src-exts/archive/d3591d04110e7c79ac5a42740f3b65935b3b1ae6.tar.gz
 - completed:
+    name: haskell-names
+    pantry-tree:
+      sha256: 3aa5571a48cdde26296f03eb7f79bb5cec4b0f7408e4b48f3b37665206bbb277
+      size: 29549
+    sha256: 842b4c0cc3296260ed8982c12bfede7f4becc6fcd1475b1273a706be10092ba9
     size: 811705
     url: https://github.com/yudaitnb/vl-haskell-names/archive/2ab1d994774646af01d756ddce771fff51558ba7.tar.gz
-    name: haskell-names
     version: 0.9.9
-    sha256: 842b4c0cc3296260ed8982c12bfede7f4becc6fcd1475b1273a706be10092ba9
-    pantry-tree:
-      size: 29549
-      sha256: 3aa5571a48cdde26296f03eb7f79bb5cec4b0f7408e4b48f3b37665206bbb277
   original:
     url: https://github.com/yudaitnb/vl-haskell-names/archive/2ab1d994774646af01d756ddce771fff51558ba7.tar.gz
 snapshots:
 - completed:
-    size: 650475
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/26.yaml
-    sha256: 5a59b2a405b3aba3c00188453be172b85893cab8ebc352b1ef58b0eae5d248a2
-  original: lts-20.26
+    sha256: 895204e9116cba1f32047525ec5bad7423216587706e5df044c4a7c191a5d8cb
+    size: 644482
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/10/18.yaml
+  original: nightly-2022-10-18

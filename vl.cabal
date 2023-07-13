@@ -29,6 +29,7 @@ library
       Config
       Evaluation
       Graph
+      GraphTrans
       Inference.Kinding
       Inference.PatternSynthesis
       Inference.TypeInference
