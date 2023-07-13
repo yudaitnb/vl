@@ -32,11 +32,11 @@
 --            yy = (unversion (h (version {A=1.0.1} of a)))
 --        in xx + yy -- Rejected。v1.0.1のaは複数のBのバージョンに依存できないため。
 
--- import List
+-- -- import List
 
--- main =
---   let lst = [1, 2]
---   in reverse lst
+-- -- main =
+-- --   let lst = [1, 2]
+-- --   in reverse lst
 
 -- main = 1
 
@@ -55,9 +55,9 @@
 --   let vec = [1,2]
 --   in join [1,2] [2,1]
 
-module Main where
-import Matrix
-import List
+-- module Main where
+-- import Matrix
+-- import List
 
 main = let vec = [2, 1]
            sorted = unversion (sortVector vec)
