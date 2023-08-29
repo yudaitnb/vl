@@ -3,5 +3,5 @@
 *.log
 *~
 memo.md
-logdel.sh
-./exmaples/*.out
+*.out
+*.sh
