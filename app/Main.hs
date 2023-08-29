@@ -28,7 +28,7 @@ import Language.Haskell.Exts.Pretty
 import Evaluation
 import Util
 
-import Solver
+import ShrinkCs ( minimizeCs )
 
 -- import qualified Language.Haskell.Interpreter as I
 

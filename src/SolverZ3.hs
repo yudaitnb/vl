@@ -100,11 +100,26 @@ solve :: Map String [Version] -> Constraints -> IO SolverResult
 solve em cs = do
   let senv = mkEnv em cs
   -- LexicographicResult res <- optimize Lexicographic $ senario senv
-      cfg = defaultSMTCfg {transcript = Just "./examples/SMTlib2script.out"} -- produce SMT-Lib2 file
-  LexicographicResult res <- optimizeWith cfg Lexicographic $ senario senv
+      cfg = defaultSMTCfg {
+              transcript = Just "./examples/SMTlib2script.out"
+            } -- produce SMT-Lib2 file
+  -- LexicographicResult res <- optimizeWith cfg Lexicographic $ senario senv
+  -- case res of
+  --   Satisfiable _ _ -> do
+  --     let r :: [(String, Int)] 
+  --         r = toList $ M.map (fromInteger . fromCV) $ delete purpose $ getModelDictionary res
+  --     let idxvers = idxVers senv
+  --         labels = resToLabels idxvers r
+  --     return $ Right labels
+  --   Unsatisfiable _ _ -> return $ Left ("Unsatisfiable", [])
+  --   DeltaSat {}       -> return $ Left ("DeltaSat", [])
+  --   SatExtField _ _   -> return $ Left ("SatExtField", [])
+  --   Unknown _ _       -> return $ Left ("Unknown", [])
+  --   ProofError {}     -> return $ Left ("ProofError",[])
+  SatResult res <- satWith cfg $ senario senv
   case res of
     Satisfiable _ _ -> do
-      let r :: [(String, Int)] 
+      let r :: [(String, Int)]
           r = toList $ M.map (fromInteger . fromCV) $ delete purpose $ getModelDictionary res
       let idxvers = idxVers senv
           labels = resToLabels idxvers r
@@ -139,7 +154,9 @@ senario env = do
   allSLabelsAreValid env'
   constrain $ compileConstraints env' (constraints env')
   -- msMinimize purpose $ sTBD
-  msMinimize purpose $ sumOfSLabels svars -- 0,TBD > 1,latest > ...
+
+  -- 0,TBD > 1,latest > ...
+  -- msMinimize purpose $ sumOfSLabels svars
   where
     sumOfSLabels :: [SLabel] -> SVersion
     sumOfSLabels = foldr (\label acc -> acc + sum label) 0
@@ -154,7 +171,7 @@ mkSLabel env vn = do
 
 allSLabelsAreValid :: Env -> Symbolic ()
 allSLabelsAreValid env = do
-  let possibleElems = map (\(mn, vls) -> (mn, map (\(v, vid) -> vid) vls)) $ idxVers env
+  let possibleElems = map (\(mn, vls) -> (mn, map snd vls)) $ idxVers env
   forM_ (map snd $ variables env) $ \sl -> do
     forM_ (zip sl [0..]) $ \(sv, idOfM) -> do
       let mn = map swap (idxMods env) `lulist` idOfM
@@ -177,7 +194,7 @@ compileConstraints env cs = case cs of
         "\nWhile compiling `cs`, got an unexpected pattern `coeff2`." ++
         "\n    cs: " ++ putDocString (ppP cs) ++
         "\ncoeff2: " ++ putDocString (ppP coeff2)
-  CAnd c1 c2 -> 
+  CAnd c1 c2 ->
     let c1' = compileConstraints env c1
         c2' = compileConstraints env c2
     in (.&&) c1' c2'

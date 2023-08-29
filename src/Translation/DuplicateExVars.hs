@@ -135,7 +135,13 @@ duplicateExVarModule ct mod@(Module l mh pragmas imps decls) =
   in (Module l mh pragmas imps decls', counterTable renv)
 
 duplicateExVarDecl :: Decl SrcSpanInfo -> DuplicateEnv (Decl SrcSpanInfo)
-duplicateExVarDecl pb@(PatBind l p@(PVar _ name) e) = PatBind l p <$> duplicateExVarExp e
+duplicateExVarDecl pb@(PatBind l p@(PVar _ name) e) = do
+  -- oldBoundVars <- gets boundVars   -- 旧テーブルを保存
+  -- addBoundVarFromPat p             -- 束縛変数から新しいテーブルを環境に登録/新しい束縛変数リストを得る
+  -- e' <- duplicateExVarExp e        -- 更新された環境でduplicate
+  -- setBoundVar oldBoundVars         -- 旧テーブルに戻す 
+  -- return $ PatBind l p e'          -- duplicate済み式と新しい束縛変数リストを用いてPatternのduplicate済み式を構成
+  PatBind l p <$> duplicateExVarExp e
 
 duplicateExVarExp :: Exp SrcSpanInfo -> DuplicateEnv (Exp SrcSpanInfo)
 duplicateExVarExp exp = case exp of

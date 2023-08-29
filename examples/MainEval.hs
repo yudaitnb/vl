@@ -1,5 +1,4 @@
 module Main where
-import Matrix
 import List
 
 main = let vec = [2, 1]

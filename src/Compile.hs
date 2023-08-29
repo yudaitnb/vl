@@ -7,7 +7,7 @@ import Control.Monad
 import Control.Monad.State
 
 import qualified Language.Absyn as AB (getImports, Module (..), getTopSyms)
-import qualified Language.LambdaVL as VL (Exp (..), Decl (..), getDecls, splitDeclsToMap)
+import qualified Language.LambdaVL as VL (Exp (..), Module(..), Decl (..), getDecls, splitDeclsToMap, HasVar (freeVars))
 
 import Syntax.Common
 
@@ -26,6 +26,7 @@ import Inference.TypeInference (getInterface, TypedExp (..))
 
 import Parser ( VLMod(..), ParsedAST )
 import Util
+import Graph (tsortBy, distEdges, Graph (Graph))
 
 type BundledTEnv = Map ModName TEnv
 type BundledUEnv = Map ModName UEnv
@@ -91,6 +92,16 @@ addVLDecls vlmod decls = modify $ \env ->
   let oldDeclsOfVlMod = mapVLDecls env
       newDeclsOfVlMod = singleton vlmod (VL.splitDeclsToMap decls) `union` oldDeclsOfVlMod
   in env { mapVLDecls = newDeclsOfVlMod }
+
+tsortDeclsModule :: PrettyAST l => VL.Module l -> VL.Module l
+tsortDeclsModule mod@(VL.Module l mh pragmas imps decls) = VL.Module l mh pragmas imps (tsortDecls decls)
+  where
+    tsortDecls :: PrettyAST l => [VL.Decl l] -> [VL.Decl l]
+    tsortDecls decls = tsortBy g getName decls
+      where
+        nodes = Data.List.map (\(VL.PatBind _ p _) -> getName p) decls
+        edges = distEdges $ Data.List.map (\(VL.PatBind _ pat exp) -> (getName pat, Data.List.map getVN (VL.freeVars exp))) decls
+        g = Graph (nodes, edges)
 
 addGlobalEnv :: VLMod -> [TypedExp] -> CompileEnv ()
 addGlobalEnv vlmod tyexp = modify $ \env -> env { globalEnv = insert vlmod tyexp $ globalEnv env }
@@ -211,7 +222,7 @@ compileVLMod target@(VLMod mn v) = do
 
   logP "\n=== AST (Syntax.VL), after duplicating external variables ==="
   ct <- gets counterTable
-  let (astVLDuplicated, ct') = duplicateExVarModule ct astVL
+  let (astVLDuplicated, ct') = duplicateExVarModule ct (tsortDeclsModule astVL)
       ctdiff = unionWith (-) ct' ct
       ctstart = unionWith min ct' (Data.Map.union ct $ Data.Map.map (const 0) ct') -- ct'のkeyだけ先に入れておく
   logP astVLDuplicated
