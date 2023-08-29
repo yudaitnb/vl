@@ -200,11 +200,10 @@ boundVars p = case p of
 
 instance PrettyAST (Module SrcSpanInfo) where
   ppP (Module srcLocInfo moduleHead pragmas importDecl decl) =
-        -- ppP "module" <+> 
-        ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
+        ppP moduleHead <+> ppP "where" <> line <> line <> concatWith (surround line) (map ppP decl)
 
 instance PrettyAST (Decl SrcSpanInfo) where
-  ppP (PatBind srcLocInfo pat rhd) = ppP pat <+> ppP "=" <+> ppP rhd <> line
+  ppP (PatBind srcLocInfo pat rhd) = ppP pat <+> ppP "=" <+> ppP rhd
 
 instance PrettyAST (Exp SrcSpanInfo) where
   ppP (Var _ qname) = ppP qname

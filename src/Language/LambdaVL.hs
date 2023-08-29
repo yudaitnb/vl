@@ -264,11 +264,10 @@ instance Absyn.Annotated Exp where
 
 instance PrettyAST (Module SrcSpanInfo) where
   ppP (Module srcLocInfo moduleHead pragmas importDecl decl) =
-        -- ppP "module" <+> 
-        ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
+        ppP moduleHead <+> ppP "where" <> line <> line <>concatWith (surround line) (map ppP decl)
 
 instance PrettyAST (Decl SrcSpanInfo) where
-  ppP (PatBind srcLocInfo pat exp) = ppP pat <+> ppP "=" <+> ppP exp <> line
+  ppP (PatBind srcLocInfo pat exp) = ppP pat <+> ppP "=" <+> ppP exp
 
 instance PrettyAST (Exp SrcSpanInfo) where
   ppP (Var _ qname) = ppP qname
