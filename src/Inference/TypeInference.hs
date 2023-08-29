@@ -453,7 +453,7 @@ instance Typable (VL.Exp SrcSpanInfo) where
         putTyInfLog sigma gamma exp result
         return result
 
-      _ -> error $ "\nThe function `infer` is not defined for a given expression.\n  exp:" ++ show exp
+      -- _ -> error $ "\nThe function `infer` is not defined for a given expression.\n  exp:" ++ show exp
 
 data TypedExp = TypedExp
   { name         :: VarKey -- シンボル名
