@@ -37,11 +37,6 @@ decodeConfig = do
 ----------------------
 
 instance PrettyAST VLConfig where
-  ppE (VLConfig r e) =
-      ppE ("VLConfig {" :: String) <>
-      ppE ("root =" :: String) <> ppE r <>
-      ppE ("extension =" :: String) <> ppE e <>
-      ppE ("}" :: String)
   ppP (VLConfig r e) =
       ppP ("VLConfig {" :: String) <>
       ppP ("root =" :: String) <> ppP r <>

@@ -78,9 +78,7 @@ mkOrdLstOfAndCs :: Constraints -> [Constraints]
 mkOrdLstOfAndCs cs = labelDeps cs ++ sortedVarDeps cs
 
 instance PrettyAST [[Constraints]] where
-  ppE cs = brackets $ concatWith (surround $ comma <> line) $ map ppE cs
   ppP cs = brackets $ concatWith (surround $ comma <> line) $ map ppP cs
 
 instance PrettyAST [Constraints] where
-  ppE cs = brackets $ concatWith (surround $ comma <> space) $ map ppE cs
   ppP cs = brackets $ concatWith (surround $ comma <> space) $ map ppP cs

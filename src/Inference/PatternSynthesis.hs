@@ -210,7 +210,6 @@ patternSynthesis p tya = do
 ------------------------------
 
 instance PrettyAST PatSynthRes where
-  ppE (tenv, uenv, subst) = nest 2 $ parens $ ppE tenv <> semicolon <+> ppE uenv <> semicolon <+> ppE subst
   ppP (tenv, uenv, subst) = parens $
     ppP tenv <> semicolon
     -- <+> ppP uenv <> semicolon [UEnv]

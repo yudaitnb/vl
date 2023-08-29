@@ -225,5 +225,4 @@ unify t1 t2 = evalStateT (typeUnification t1 t2) (Env' initCounter emptyEnv empt
 --------------------------
 
 instance PrettyAST Subst where
-  ppE s = parens $ concatWith (surround $ comma <> space) $ map (\(k,v) -> ppE k <> ppE " ↦ " <> ppP v) (subst s) -- [TODO]
   ppP s = parens $ concatWith (surround $ comma <> space) $ map (\(k,v) -> ppP k <> ppP " ↦ " <> ppP v) (subst s)

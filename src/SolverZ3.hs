@@ -305,5 +305,4 @@ subsetOf l1 l2 =
 
 
 instance PrettyAST (Map VarKey (VarKey, VLMod, Type, Label)) where
-  ppE m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppE vn <+> colon <+> ppE s <> comma <+> ppE m <> comma <+> ppE tv <> comma <+> ppE l) m
   ppP m = concatWith (surround line) $ mapWithKey (\vn (s, m, tv, l) -> ppP vn <+> colon <+> ppP s <> comma <+> ppP m <> comma <+> ppP tv <> comma <+> ppP l) m

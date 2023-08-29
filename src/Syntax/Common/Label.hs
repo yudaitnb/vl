@@ -26,5 +26,4 @@ composeLabels = M.unionWith (\a b -> if a == b then a else error "")
 ------------------------
 
 instance PrettyAST Label where
-  ppE labels = braces $ concatWith (surround $ comma <> space) $ L.map (\(mn,vers) -> ppE mn <> colon <> ppE vers) $ M.toList labels
   ppP labels = braces $ concatWith (surround $ comma <> space) $ L.map (\(mn,vers) -> ppP mn <> colon <> ppP vers) $ M.toList labels

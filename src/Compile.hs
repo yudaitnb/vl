@@ -173,11 +173,6 @@ logPD s = do
   logfile <- gets logFilePath
   lift $ logPpLn ppP logfile $ putDocString s
 
-logE :: PrettyAST a => a -> CompileEnv ()
-logE s = do
-  logfile <- gets logFilePath
-  lift $ logPpLn ppE logfile s
-
 --------------
 
 compile :: [VLMod] -> Map VLMod (AB.Module SrcSpanInfo) -> FilePath -> IO CompileEnv'
@@ -312,11 +307,6 @@ compileVLMod target@(VLMod mn v) = do
     Just res -> compileVLMod res
 
 instance PrettyAST BundledTEnv where
-  ppE m
-    | Data.Map.null m = ppE "{}"
-    | otherwise = concatWith (surround $ comma <> space) $
-      Data.List.map (\(k,v) -> parens $ ppE k <> comma <> ppE v) $
-      Data.Map.toList m
   ppP m 
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround $ comma <> space) $
@@ -324,11 +314,6 @@ instance PrettyAST BundledTEnv where
       Data.Map.toList m
 
 instance PrettyAST BundledUEnv where
-  ppE m
-    | Data.Map.null m = ppE "{}"
-    | otherwise = concatWith (surround $ comma <> space) $
-      Data.List.map (\(k,v) -> parens $ ppE k <> comma <> ppE v) $
-      Data.Map.toList m
   ppP m 
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround $ comma <> space) $
@@ -336,11 +321,6 @@ instance PrettyAST BundledUEnv where
       Data.Map.toList m
 
 instance PrettyAST (Map VarName Constraints) where
-  ppE m
-    | Data.Map.null m = ppE "{}"
-    | otherwise = concatWith (surround $ comma <> space) $
-      Data.List.map (\(k,v) -> parens $ ppE k <> comma <> ppE v) $
-      Data.Map.toList m
   ppP m 
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround $ comma <> space) $
@@ -348,10 +328,6 @@ instance PrettyAST (Map VarName Constraints) where
       Data.Map.toList m
 
 instance PrettyAST VLModDecls where
-  ppE m
-    | Data.Map.null m = ppE "{}"
-    | otherwise = concatWith (surround line) $
-      mapWithKey (\vlmod vldecls -> ppE vlmod <+> colon <+> ppE vldecls) m
   ppP m 
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround $ line <> line) $
@@ -362,10 +338,6 @@ instance PrettyAST VLModDecls where
         m
 
 instance PrettyAST VLDecls where
-  ppE m
-    | Data.Map.null m = ppE "{}"
-    | otherwise = concatWith (surround $ comma <> space) $
-      mapWithKey (\vn decls -> ppE vn <+> ppP "=" <+> ppE decls) m
   ppP m 
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround line) $

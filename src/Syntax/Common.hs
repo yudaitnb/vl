@@ -50,23 +50,15 @@ mkQNFromVK qk = case qk of
 ----------------------
 
 instance PrettyAST VLMod where
-  ppE (VLMod mn v) = nest 2 $ parens $ ppE "VLMod" <+> ppE mn <+> ppE v
   ppP (VLMod mn v) = ppP mn <> ppP "-" <> ppP v
 
 instance PrettyAST ParsedAST where
-  ppE m
-    | Data.Map.null m = ppE "{}"
-    | otherwise = concatWith (surround line) $
-      mapWithKey (\vlmod mod -> ppE "===" <+> ppE vlmod <> line <> ppE (exactPrint mod [])) m
   ppP m
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround line) $
       mapWithKey (\vlmod mod -> ppP "===" <+> ppP vlmod <> line <> ppP (exactPrint mod [])) m
 
 instance PrettyAST VarKey where
-  ppE qk = case qk of
-    QVar mn vn -> ppE mn <> dot <> ppE vn
-    UQVar vn  -> ppE vn
   ppP qk = case qk of
     QVar mn vn -> ppP mn <> dot <> ppP vn
     UQVar vn  -> ppP vn

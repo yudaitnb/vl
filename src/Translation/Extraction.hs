@@ -132,5 +132,4 @@ extract' e = do
 --       VExt l e        -> VExt l (extractExp e)
 
 instance PrettyAST (Map VarName (Exp SrcSpanInfo)) where
-  ppE = ppP
   ppP m = concatWith (surround line) $ map (\(vn, e) -> ppP vn <+> ppP "=" <+> ppP e) $ M.toList m

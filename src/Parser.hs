@@ -165,7 +165,5 @@ isValidVersion str = (str =~ "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)") :
 ---------------------
 
 instance PrettyAST [VLMod] where
-  ppE [] = ppE "None"
-  ppE mods = concatWith (surround line) $ Prelude.map ppE mods
   ppP [] = ppP "None"
   ppP mods = concatWith (surround line) $ Prelude.map ppP mods

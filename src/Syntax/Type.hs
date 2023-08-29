@@ -208,37 +208,6 @@ isClosed ty = Data.List.null $ freeVars ty
 -------------------------
 
 instance PrettyAST Type where
-  ppE (TyCon qName) = nest 2 . parens $ ppE "TyCon" <+> ppE qName
-  ppE (TyFun t1 t2) =
-        nest 2 . parens $ ppE "TyFun" <> line
-    <+> ppE t1 <> line
-    <+> ppE t2
-  ppE (TyVar name)  = nest 2 . parens $ ppE "TyVar" <+> ppE name
-  ppE (TyBox c ty)  =
-        nest 2 . parens $ ppE "TyBox" <> line
-    <+> ppE c <> line
-    <+> ppE ty
-  ppE TyBottom      = nest 2 . parens $ ppE "TyBottom"
-  ppE (TyTuple ts) =
-    let pp_ts = concatWith (surround $ comma <+> line) $ Data.List.map ppE ts in
-    nest 2 . parens $ ppE "TyTuple" <> line <+> (nest 2 . parens $ pp_ts)
-  ppE (TyList ty) =
-    nest 2 . parens $ ppE "TyList" <> line <+> ppE ty
-  ppE (TyLabels label) =
-    let pp_path = foldl (\acc p -> acc <+> ppE p) (ppE "") label in
-    nest 2 . parens $ ppE "TyLabels" <> line <+> pp_path
-  ppE (CAdd c1 c2) =
-        nest 2 . parens $ ppE "CAdd" <> line
-    <+> ppE c1 <> line
-    <+> ppE c2
-  ppE (CMul c1 c2) =
-        nest 2 . parens $ ppE "CMul" <> line
-    <+> ppE c1 <> line
-    <+> ppE c2
-  -- ppE (CSubset c1 c2) =
-  --       nest 2 $ ppE "(CSubset" <> line
-  --   <+> ppE c1 <> line
-  --   <+> ppE c2 <> ppE ")"
   -- ^ Types
   ppP (TyCon qName) = ppP qName
   ppP (TyFun t1 t2) = parens $ ppP t1 <+> ppP "->" <+> ppP t2
@@ -257,36 +226,17 @@ instance PrettyAST Type where
   -- ppP (CSubset c1 c2) = ppP c1 <+> ppP "≤" <+> ppP c2
 
 instance PrettyAST QName where
-  ppE (Qual modName qName) =
-        nest 2 . parens $ ppE "Qual" <> line
-    <+> ppE modName <> line
-    <+> ppE qName
-  ppE (UnQual name) = nest 2 . parens $ ppE "UnQual" <+> ppE name
   ppP (Qual modName qName) = ppP modName <> ppP "." <> ppP qName
   ppP (UnQual name) = ppP name
 
 instance PrettyAST Name where
-  ppE (Ident str) = nest 2 . parens $ ppE "Ident" <+> ppE str
-  ppE (Symbol str) = nest 2 . parens $ ppE "Symbol" <+> ppE str
   ppP (Ident str) = ppP str
   ppP (Symbol str) = ppP str
 
 instance PrettyAST ModuleName where
-  ppE (ModuleName str) = nest 2 . parens $ ppE "ModuleName" <+> ppE str
   ppP (ModuleName str) = ppP str
 
--- instance PrettyAST Constraints where
---   ppE [] = ppE "⊤" -- [TODO]
---   ppE cs = concatWith (surround $ comma <> space) $ Data.List.map ppP cs
---   ppP [] = ppP "⊤"
---   ppP cs = concatWith (surround $ comma <> space) $ Data.List.map ppP cs
-
 instance PrettyAST Constraints where
-  ppE cs = case cs of
-    CTop -> ppE "⊤"
-    CSubset c1 c2 -> ppE c1 <+> ppE "≤" <+> ppE c2
-    CAnd c1 c2 -> ppE c1 <+> ppE "and" <+> ppE c2
-    COr c1 c2 -> parens $ ppE "or" <+> parens (ppE c1) <+> parens (ppE c2)
   ppP cs = case cs of
     CTop -> ppP "⊤"
     CSubset c1 c2 -> parens $ ppP c1 <+> ppP "≤" <+> ppP c2

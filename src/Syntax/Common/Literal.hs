@@ -14,21 +14,6 @@ instance HasName (Literal l) where
   getName _ = error "getName function is not defined for a given expresion." 
 
 instance PrettyAST l => PrettyAST (Literal l) where
-  ppE (Char srcLocInfo char string) =
-        nest 2 $ parens $ ppE "Char" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE "\'" <> ppE char
-    <+> ppE "\"" <> ppE string <> ppE "\""
-  ppE (String srcLocInfo string1 string2) =
-        nest 2 $ parens $ ppE "String" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE "\"" <> ppE string1 <> ppE "\""
-    <+> ppE "\"" <> ppE string2 <> ppE "\""
-  ppE (Int srcLocInfo integer string) =
-        nest 2 $ parens $ ppE "Int" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE integer
-    <+> ppE "\"" <> ppE string <> ppE "\""
   ppP (Char _ c s) = ppP "\'" <> ppP s <> ppP "\'"
   ppP (String _ s1 s2) = ppP "\"" <> ppP s2 <> ppP "\""
   ppP (Int _ i s) = ppP s

@@ -1,7 +1,7 @@
 {-# LANGUAGE DefaultSignatures #-}
 module Util (
   Extension(..), mkPath,
-  pp, logPpLn, logPpLnDoc,
+  logPpLn, logPpLnDoc,
   module Prettyprinter,
   module Prettyprinter.Render.Text,
   removeFileIfExists, createDirectoryIfMissing,
@@ -30,9 +30,6 @@ mkPath :: FilePath -> FilePath -> Extension -> FilePath
 mkPath p mn ext = p ++ mn ++ ext
 
 --------------
-
-pp :: PrettyAST a => a -> IO ()
-pp ast = putDoc $ ppE ast <+> line
 
 logPpLn :: (PrettyAST a) => (a -> Doc ann) -> FilePath -> a -> IO ()
 logPpLn pp logFilePath ast = do
@@ -85,47 +82,35 @@ m <!> k = fromMaybe
 ------------------------
 
 class PrettyAST a where
-  ppE :: a -> Doc ann
   ppP :: a -> Doc ann
-  default ppE :: Show a => a -> Doc ann
   default ppP :: Show a => a -> Doc ann
-  ppE = viaShow
   ppP = viaShow
 
 instance PrettyAST Char where
-  ppE = pretty
   ppP = pretty
 
 instance PrettyAST String where
-  ppE = pretty
   ppP = pretty
 
 instance PrettyAST Integer where
-  ppE = pretty
   ppP = pretty
 
 instance PrettyAST Int where
-  ppE = pretty
   ppP = pretty
 
 instance PrettyAST Float where
-  ppE = pretty
   ppP = pretty
 
 instance PrettyAST Double where
-  ppE = pretty
   ppP = pretty
 
 instance PrettyAST Bool where
-  ppE = pretty
   ppP = pretty
 
 instance (PrettyAST a, PrettyAST b) => PrettyAST (a, b) where
-  ppE (a,b) = vsep [ppE a, ppE b] 
   ppP (a,b) = vsep [ppP a, ppP b] 
 
 instance PrettyAST a => PrettyAST (Maybe a) where
-  ppE = maybe mempty ppE
   ppP = maybe mempty ppP
 
 pplist :: (a -> Doc ann) -> [a] -> Doc ann

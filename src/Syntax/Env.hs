@@ -8,7 +8,7 @@ module Syntax.Env (
   REnv(..), setREnv, initializeREnv, mulREnv, emptyREnv,
   ExVarResources(..),
   -- setCEnv, initializeCEnv, putCEnv,
-  setLogs, initializeLogs, putLog, debugE, debugP, debug,
+  setLogs, initializeLogs, putLog, debugP, debug,
   addLC, subLC, initializeLC, initLC,
   initializeEnv, initEnv,
   (.++), (.++.), (.+++), (.**),
@@ -260,9 +260,6 @@ emptyLogs = Logs []
 debug :: Doc ann ->Env ()
 debug p = putLog $ putDocString p
 
-debugE :: (PrettyAST a) => a ->Env ()
-debugE p = putLog $ putDocString $ ppE p
-
 debugP :: (PrettyAST a) => a ->Env ()
 debugP p = putLog $ putDocString $ ppP p
 
@@ -332,44 +329,27 @@ intToIntToInt = TyFun bxIntTy2 intToInt
 ------------------------------
 
 instance PrettyAST EnvType where
-  ppE (NType _ ty) = ppE ty
-  ppE (GrType _ c ty) = brackets (ppE ty) <> ppE "_" <> parens (ppE c)
   ppP (NType _ ty) = ppP ty
   ppP (GrType _ ty c) = brackets (ppP ty) <> ppP "_" <> parens (ppP c)
 
 instance PrettyAST TEnv where
-  ppE = foldlWithKey
-    (\acc k v -> acc <+>
-      ppE k <> comma <> ppE v)
-    emptyDoc
   ppP m
     | m == empty = emptyset
     | otherwise  = concatWith (surround $ comma <> space) $ Prelude.map (\(k,v) -> ppP k <> colon <> ppP v) (toList m)
 
 instance PrettyAST UEnv where
-  ppE = foldlWithKey
-    (\acc k v -> acc <+>
-      ppE k <> comma <> ppE v)
-    emptyDoc
   ppP m
     | m == empty = emptyset
     | otherwise  = concatWith (surround $ comma <> space) $ Prelude.map (\(k,v) -> ppP k <> colon <> ppP v) (toList m)
 
 instance PrettyAST REnv where
-  ppE EmptyREnv = ppE "-"
-  ppE (REnv c) = ppE c
   ppP EmptyREnv = ppP "-"
   ppP (REnv c) = ppP c
 
 instance PrettyAST ExVarResources where
-  ppE = foldlWithKey
-    (\acc k v -> acc <+>
-      ppE k <> comma <> ppE v)
-    emptyDoc
   ppP m
     | m == empty = emptyset
     | otherwise  = concatWith (surround $ comma <> line) $ Prelude.map (\(k,v) -> ppP k <+> ppP "->" <+> ppP v) (toList m)
 
 instance PrettyAST Logs where
-  ppE (Logs l) = concatWith (surround line) $ Prelude.map ppE l
   ppP (Logs l) = concatWith (surround line) $ Prelude.map ppP l

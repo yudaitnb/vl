@@ -263,79 +263,14 @@ instance Absyn.Annotated Exp where
 ---------------------
 
 instance PrettyAST (Module SrcSpanInfo) where
-  ppE (Module srcLocInfo moduleHead pragmas importDecl decl) =
-        nest 2 $ parens $ ppE "Module" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE moduleHead <> line
-    <+> pplist ppE importDecl <> line
-    <+> pplist ppE decl
   ppP (Module srcLocInfo moduleHead pragmas importDecl decl) =
         -- ppP "module" <+> 
         ppP moduleHead <+> ppP "where" <> line <> concatWith (surround line) (map ppP decl)
 
 instance PrettyAST (Decl SrcSpanInfo) where
-  ppE (PatBind srcLocInfo pat exp) =
-        nest 2 $ parens $ ppE "PatBind" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE pat <> line
-    <+> ppE exp
   ppP (PatBind srcLocInfo pat exp) = ppP pat <+> ppP "=" <+> ppP exp <> line
 
 instance PrettyAST (Exp SrcSpanInfo) where
-  ppE (Var srcLocInfo qname) =
-        nest 2 $ parens $ ppE "Var" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE qname
-  ppE (Lit srcLocInfo literal) =
-        nest 2 $ parens $ ppE "Lit" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE literal
-  ppE (App srcLocInfo exp1 exp2) =
-        nest 2 $ parens $ ppE "App" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE exp1 <> line
-    <+> ppE exp2
-  -- ppE (NegApp srcLocInfo exp) =
-  --       nest 2 $ parens $ ppE "NegApp" <> line
-  --   <+> ppE srcLocInfo <> line
-  --   <+> ppE exp
-  ppE (If srcLocInfo exp1 exp2 exp3) =
-        nest 2 $ parens $ ppE "If" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE exp1 <> line
-    <+> ppE exp2 <> line
-    <+> ppE exp3
-  ppE (Tuple srcLocInfo elms) = 
-        nest 2 $ parens $ ppE "Tuple" <> line
-    <+> ppE srcLocInfo <> line
-    <+> parens (concatWith (surround $ comma <> space) $ map ppE elms)
-  ppE (List srcLocInfo elms) =
-        nest 2 $ parens $ ppE "List" <> line
-    <+> ppE srcLocInfo <> line
-    <+> brackets (concatWith (surround $ comma <> space) $ map ppE elms)
-  ppE (Lambda srcLocInfo pat exp) =
-        nest 2 $ parens $ ppE "Lambda" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE pat <> line
-    <+> ppE exp
-  ppE (Case srcLocInfo exp alts) =
-        nest 2 $ parens $ ppE "Case" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE exp <> line
-    <+> concatWith (surround $ line <+> comma) (map ppE alts)
-  ppE (Pr srcLocInfo exp) =
-        nest 2 $ parens $ ppE "Pr" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE exp
-  ppE (VRes srcLocInfo vbs e) = 
-        nest 2 $ parens $ ppE "VRes" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE vbs <> line
-    <+> ppE e
-  ppE (VExt srcLocInfo e) = 
-        nest 2 $ parens $ ppE "VExt" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE e
   ppP (Var _ qname) = ppP qname
   ppP (Lit _ literal) = ppP literal
   ppP (App _ e1 e2) = parens $ ppP e1 <+> ppP e2
@@ -351,49 +286,9 @@ instance PrettyAST (Exp SrcSpanInfo) where
   ppP (VExt _ e) = parens $ ppP "unversion" <+> ppP e
 
 instance PrettyAST (Alt SrcSpanInfo) where
-  ppE (Alt srcLocInfo p e) =
-        nest 2 $ parens $ ppE "Alt" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE p <> line
-    <+> ppE e <> line
   ppP (Alt _ p e) = ppP p <+> ppP "->" <+> ppP e
 
 instance PrettyAST (Pat SrcSpanInfo) where
-  ppE (PVar srcLocInfo name) =
-        nest 2 $ parens $ ppE "PVar" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE name
-  ppE (PLit srcLocInfo sign literal) =
-        nest 2 $ parens $ ppE "PLit" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE sign <> line
-    <+> ppE literal
-  ppE (PWildCard srcLocInfo) =
-        nest 2 $ parens $ ppE "PWildCard" <> line
-    <+> ppE srcLocInfo
-  ppE (PTuple srcLocInfo pats) =
-        nest 2 $ parens $ ppE "PTuple" <> line
-    <+> ppE srcLocInfo
-    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
-  ppE (PBox srcLocInfo pat) =
-        nest 2 $ parens $ ppE "PBox" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE pat
-  ppE (PList srcLocInfo pats) =
-        nest 2 $ parens $ ppE "PList" <> line
-    <+> ppE srcLocInfo
-    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
-  ppE (PApp srcLocInfo qn pats) =
-        nest 2 $ parens $ ppE "PApp" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE qn <> line
-    <+> brackets (concatWith (surround $ line <> comma <> space) (map ppE pats))
-  ppE (PInfixApp srcLocInfo p1 qn p2) =
-        nest 2 $ parens $ ppE "PInfixApp" <> line
-    <+> ppE srcLocInfo <> line
-    <+> ppE p1 <> line
-    <+> ppE qn <> line
-    <+> ppE p2
   ppP (PVar _ name) = ppP name
   ppP (PLit _ sign literal) = ppP sign <> ppP literal
   ppP (PWildCard _) = ppP "_"

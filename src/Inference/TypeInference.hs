@@ -525,16 +525,6 @@ aggregateConstraints ((TypedExp _ _ c _) : rst) = CAnd c $ aggregateConstraints 
 ------------------------------
 
 instance PrettyAST TyInfRes where
-  -- ppE (ty, tenv, uenv, subst, c) = let sep = ppE "; " in
-  --   ppE ty
-  --     <> sep <> ppE tenv
-  --     -- <> sep <> ppE uenv -- [UEnv]
-  --     <> sep <> ppE subst
-  --     <> sep <> ppE c
-  ppE (ty, uenv, subst, c) = let sep = ppE "; " in
-    ppE ty
-      <> sep <> ppE subst
-      <> sep <> ppE c
   -- ppP (ty, tenv, uenv, subst, c) = parens $
   --   ppP ty
   --     <> semicolon <+> ppP tenv
@@ -547,15 +537,10 @@ instance PrettyAST TyInfRes where
       <> semicolon <+> ppP c
 
 instance PrettyAST TypedExp where
-  ppE (TypedExp s ty c uenv) =
-        ppE s <+> colon <+> ppE ty
-    -- <+> ppE "|" <+> ppE c
-    -- <+> ppE "|" <+> ppE uenv
   ppP (TypedExp s ty c uenv) =
         ppP s <+> colon <+> ppP ty
     -- <+> ppP "|" <+> ppP c
     -- <+> ppP "|" <+> ppP uenv
 
 instance PrettyAST [TypedExp] where
-  ppE lst = concatWith (surround line) $ map ppE lst
   ppP lst = concatWith (surround line) $ map ppP lst

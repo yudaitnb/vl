@@ -32,14 +32,6 @@ vnToV :: VersionNumber l -> Version
 vnToV (VersionNumber _ major minor patch) = Version major minor patch 
 
 instance PrettyAST Version where
-  ppE v = case v of
-    Root -> ppE "Root"
-    TBD -> ppE "TBD"
-    Version major minor patch ->
-          nest 2 $ parens $ ppE "Version" <> line
-      <+> ppE major <> line
-      <+> ppE minor <> line
-      <+> ppE patch
   ppP v = case v of
     Root -> ppP "Root"
     TBD -> ppP "TBD"
@@ -47,5 +39,4 @@ instance PrettyAST Version where
       ppP major <> ppP "." <> ppP minor <> ppP "."  <> ppP patch 
 
 instance PrettyAST [Version] where
-  ppE v = brackets $ concatWith (surround $ comma <> space) $ map ppE v
   ppP v = brackets $ concatWith (surround $ comma <> space) $ map ppP v
