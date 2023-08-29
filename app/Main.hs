@@ -99,11 +99,6 @@ main = do
       let exVarLabels = combineSolRes exVarsRes $ fromMaybe empty solResMap
       logPD $ ppP exVarLabels
 
-      -- logP "\n=== Prettyprint ==="
-      -- forM_ (toList $ mapParsedAST env) $ \(VLMod a v, ast) -> do
-      --   logPD $ ppP "\n--" <+> ppP a <+> ppP "v" <> ppP v
-      --   logP $ prettyPrint ast
-
       logP "\n=== VLDecls ==="
       let vldecls = mapVLDecls env
       logP vldecls

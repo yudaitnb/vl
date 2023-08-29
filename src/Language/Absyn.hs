@@ -3,17 +3,17 @@ module Language.Absyn (
   module Syntax.Common,
   HasName(..),
   HasWhere(..),
-  -- PrettyAST(..),
   decomposeDecl,
   getImports, getDepEdge, getDecls, getTopSyms,
 ) where
 
 import Language.Haskell.Exts.Syntax hiding (Name, QName, ModuleName, Literal)
+import Language.Haskell.Exts.Pretty
 
 import Syntax.Common
 
 import Util
-    ( exactPrint, line, (<+>), nest, parens, pplist, PrettyAST(..), emptyDoc )
+    ( exactPrint, line, (<+>), nest, parens, pplist, PrettyAST(..), emptyDoc, pretty, putDocString )
 import Language.Haskell.Exts (exactPrint)
 
 getImports :: Module l -> [ModName]
@@ -118,43 +118,55 @@ decomposeDecl = concatMap decompose
 ---------------------
 
 instance PrettyAST (Module SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (ModuleHead SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (ExportSpecList SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (ExportSpec SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (ImportDecl SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (ImportSpecList SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (ImportSpec SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (Namespace SrcSpanInfo)  where
   ppP ns = ppP $ exactPrint ns []
 
 instance PrettyAST (Decl SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (Pat SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (Match SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (Rhs SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (Binds SrcSpanInfo) where
   ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ prettyPrint m
 
 instance (PrettyAST l) => PrettyAST (VBinds l) where
   ppP (VBinds srcLocInfo lst) = ppP "VBinds" <+> pplist ppP lst
@@ -170,7 +182,9 @@ instance (PrettyAST l) => PrettyAST (Sign l) where
   ppP (Negative _) = ppP "-"
 
 instance PrettyAST (Exp SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m
 
 instance PrettyAST (QOp SrcSpanInfo) where
-  ppP m = ppP $ exactPrint m []
+  -- ppP m = ppP $ exactPrint m []
+  ppP m = ppP $ prettyPrint m

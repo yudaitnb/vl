@@ -43,11 +43,6 @@ logPpLnDoc logFilePath ast = do
   putDoc doc
   appendFile logFilePath (renderString $ layoutPretty defaultLayoutOptions doc)
 
--- logStrLn :: Show a => FilePath -> a -> IO ()
--- logStrLn filename str = do
---   print str
---   appendFile filename $ show str ++ "\n"
-
 removeFileIfExists :: FilePath -> IO ()
 removeFileIfExists path = do
   exists <- doesFileExist path
