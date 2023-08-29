@@ -14,15 +14,20 @@ import qualified Data.Bifunctor
 
 spec :: Spec
 spec = do
+  describe "mkOrdLstOfAndCs" $ do
+    it "a0 <= a100" $ do
+      let cs = cand [ mkGtLabels "a0" a100 ]
+          res = mkOrdLstOfAndCs cs
+      res `shouldBe` [ mkGtLabels "a0" a100 ]
+    it "a0 <= a1, a1 <= a100" $ do
+      let cs = cand [ mkGtVar "a0" "a1", mkGtLabels "a1" a100 ]
+          res = mkOrdLstOfAndCs cs
+      res `shouldBe` [ mkGtLabels "a1" a100, mkGtVar "a0" "a1" ]
   describe "Satisfiable" $ do
     it "a0 <= a100" $ do
       let cs = cand [ mkGtLabels "a0" a100 ]
       res <- Data.Either.fromRight (error "") <$> solve em1 cs
       res `shouldBe` mkLabels [("a0", [("A", [v100])])]
-    it "a0 <= a100 or a0 <= 101" $ do
-      let cs = cand [ mkGtLabels "a0" a100 `COr` mkGtLabels "a0" a101 ]
-      res <- Data.Either.fromRight (error "") <$> solve em1 cs
-      res `shouldBe` mkLabels [("a0", [("A", [v101])])]
     it "a0 <= a100, a1 <= a100" $ do
       let cs = cand [ mkGtLabels "a0" a100, mkGtLabels "a1" a100 ]
       res <- Data.Either.fromRight (error "") <$> solve em1 cs
@@ -35,6 +40,10 @@ spec = do
       res `shouldBe` mkLabels 
         [ ("a0", [("A", [v100])])
         , ("a1", [("A", [v100])]) ]
+    it "a0 <= a100 or a0 <= 101" $ do
+      let cs = cand [ mkGtLabels "a0" a100 `COr` mkGtLabels "a0" a101 ]
+      res <- Data.Either.fromRight (error "") <$> solve em1 cs
+      res `shouldBe` mkLabels [("a0", [("A", [v101])])]
     it "a0 <= a1, a1 <= a100101, a2 <= a100101" $ do
       let cs = cand [
               mkGtVar "a0" "a1"
