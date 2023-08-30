@@ -53,13 +53,13 @@ main = do
 
   -- [Phase] Compilation
   (timeCompiling, env) <- timeItT $ compile sortedVLMods mapParsedAst logFilePath
+  let cs = globalConstraints env
 
   -- [Phase] Constraints Minimization
-  let cons = globalConstraints env -- 後で消したい
-  (timeMinimizeCs, cs) <- timeItT $ minimizeCs cons logFilePath
+  (timeMinimizeCs, cs') <- timeItT $ minimizeCs cs logFilePath
 
   -- [Phase] Constaints Resolution
-  (timeConstraintResolution, solResMap) <- timeItT $ solve (cvtExtMods sortedVLMods) logFilePath cons
+  (timeConstraintResolution, solResMap) <- timeItT $ solve (cvtExtMods sortedVLMods) logFilePath cs'
 
   -- [Phase] Extraction
   (timeExtraction, hsCodeBundled) <- timeItT $ extract env logFilePath solResMap
