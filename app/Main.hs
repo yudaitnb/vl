@@ -15,20 +15,20 @@ import Data.Either (fromRight)
 import Parser ( cvtExtMods, parseDependencyGraph, VLMod(..) )
 import Compile (compile, CompileEnv'(..))
 import Inference.TypeInference (TypedExp(..), aggregateConstraints)
-import SolverZ3 ( solve, combineSolRes )
 import Config ( decodeConfig )
 import Translation.Extraction ( extract )
-import Translation.Girard ( girardBck )
 
 import Syntax.Type (landC, Constraints(..), Type, HasName (getName), sizeCs)
 import Syntax.Common (Version(..), Label, ParsedAST(..))
+
+import Solver.Solver ( solve )
 
 import Language.Haskell.Exts.Pretty
 
 import Evaluation
 import Util
 
-import ShrinkCs ( minimizeCs )
+import Solver.ShrinkCs ( minimizeCs )
 
 -- import qualified Language.Haskell.Interpreter as I
 
@@ -46,76 +46,33 @@ main = do
 
   -- Logger utility
   let logFilePath = rootDirPath ++ fnMain ++ ".log"
-      logP :: PrettyAST a => a -> IO ()
-      logP = logPpLn ppP logFilePath
-      logPD :: Doc ann -> IO ()
-      logPD = logPpLnDoc logFilePath
   removeFileIfExists logFilePath
 
-  -- Parse dependent modules and create dependency graph
-  logP "=== Parsing ==="
-  logPD $ ppP "[DEBUG] rootDirPath :" <+> ppP rootDirPath
-  logPD $ ppP "[DEBUG] validExt    :" <+> ppP validExt
+  -- [Phase] Parsing along with creating dependency graph
   (timeParsing, (root, sortedVLMods, mapParsedAst)) <- timeItT $ parseDependencyGraph fnMain rootDirPath ext logFilePath
-  
-  logP "=== Parsed Modules ==="
-  logP mapParsedAst
 
-  logP "=== Compilation order ==="
-  logP sortedVLMods
+  -- [Phase] Compilation
   (timeCompiling, env) <- timeItT $ compile sortedVLMods mapParsedAst logFilePath
 
-  logP "=== External Variables ==="
-  let exVarsRes = duplicatedExVars env
-  logPD $ concatWith (surround line) $ mapWithKey (\k (orig, m, ty) -> ppP k <+> ppP m <+> ppP ty) exVarsRes
+  -- [Phase] Constraints Minimization
+  let cons = globalConstraints env -- 後で消したい
+  (timeMinimizeCs, cs) <- timeItT $ minimizeCs cons logFilePath
 
-  logP "\n=== Constraints ==="
-  let cons = globalConstraints env
-      sizePre = sizeCs cons
-  logPD $ ppP cons <> line
+  -- [Phase] Constaints Resolution
+  (timeConstraintResolution, solResMap) <- timeItT $ solve (cvtExtMods sortedVLMods) logFilePath cons
 
-  logP "\n=== Constraints (normalized) ==="
-  let cs = minimizeCs cons
-      sizePro = sizeCs cs
-  logPD $ ppP "Constraint size (pre-shrinking) :" <+> ppP sizePre
-  let persec = 100 * fromIntegral sizePro / fromIntegral sizePre :: Float
-  logPD $ ppP "Constraint size (pro-shrinking) :" <+> ppP sizePro <+> parens (ppP persec <+> ppP "%")
-  logPD $ ppP cs
+  -- [Phase] Extraction
+  (timeExtraction, hsCodeBundled) <- timeItT $ extract env logFilePath solResMap
 
-
-  logP "=== Solver result ==="
-  (timeConstraintResolution, solResMap) <- timeItT $ SolverZ3.solve (cvtExtMods sortedVLMods) cons >>= \case
-    Left (h, r) -> do
-      logP h
-      logPD $ concatWith (surround $ comma <> space) $ map ppP r
-      return Nothing
-    Right res -> do
-      logPD $ concatWith (surround line) $ mapWithKey (\vn l -> ppP vn <+> colon <+> ppP l) res
-      return $ Just res
-
-  if isJust solResMap
-    then do
-      logP "\n=== Labels of External Variables ==="
-      let exVarLabels = combineSolRes exVarsRes $ fromMaybe empty solResMap
-      logPD $ ppP exVarLabels
-
-      logP "\n=== VLDecls ==="
-      let vldecls = mapVLDecls env
-      logP vldecls
-
-      logP "\n=== Extraction ==="
-      let expMain = vldecls <!> VLMod "Main" Root <!> "main"
-          extracted = extract exVarLabels vldecls expMain
-          hsCodeBundled = girardBck extracted
-      logP $ prettyPrint hsCodeBundled
-    else
-      logP "Whole process finished."
-
-  logPD $ unlineTimes 
+  -- [Phase] Result
+  logPpLnDoc logFilePath $ unlineTimes 
     [ ("Parsing", timeParsing)
     , ("Compiling", timeCompiling)
-    , ("ConstraintResolution", timeConstraintResolution )]
+    , ("Minimize", timeMinimizeCs)
+    , ("ConstraintResolution", timeConstraintResolution )
+    , ("Extraction", timeExtraction)]
 
+-- [Phase 5] Interpret
   -- putStrLn "=== Standard output ==="
   -- res <- H.runInterpreter $ interp tmpfn func
   -- putStrLn "=== Result value ( expects () ) ==="
@@ -139,4 +96,3 @@ main = do
 --   H.setTopLevelModules [mod]
 --   H.setImportsQ [("Prelude", Nothing)]
 
--- A -> [ (f -> "a?")]

@@ -12,7 +12,7 @@ import qualified Language.LambdaVL as VL (Exp (..), Module(..), Decl (..), getDe
 import Syntax.Common
 
 import Syntax.Env hiding (setCounter, counter)
-import Syntax.Type (Type(..), Constraints(..), landC)
+import Syntax.Type (Type(..), Constraints(..), landC, sizeCs)
 
 import Translation.NameResolution ( nameResolve, duplicatedTopSyms )
 import Translation.Desugar (desugarAST)
@@ -184,7 +184,23 @@ compile sortedVLMods mapParsedAst logFilePath = do
                     , mapParsedAST = mapParsedAst
                     , logFilePath = logFilePath
                     }
-  execStateT (compileVLMod headVLMod) initCompEnv
+  env <- execStateT (compileVLMod headVLMod) initCompEnv
+
+  logP "=== External Variables ==="
+  let exVarsRes = duplicatedExVars env
+  logPD $ concatWith (surround line) $ mapWithKey (\k (orig, m, ty) -> ppP k <+> ppP m <+> ppP ty) exVarsRes
+
+  logP "\n=== Constraints ==="
+  let cons = globalConstraints env
+      sizePre = sizeCs cons
+  logPD $ ppP cons <> line
+  
+  return env
+  where
+    logP :: PrettyAST a => a -> IO ()
+    logP = logPpLn ppP logFilePath
+    logPD :: Doc ann -> IO ()
+    logPD = logPpLnDoc logFilePath
 
 compileVLMod :: VLMod -> CompileEnv ()
 compileVLMod target@(VLMod mn v) = do
@@ -197,7 +213,7 @@ compileVLMod target@(VLMod mn v) = do
   logP "\n=== AST (Syntax.Absyn) ==="
   logP ast
 
-  logP "=== Name resolution ==="
+  logP "\n=== Name resolution ==="
   liftIO $ duplicatedTopSyms ast
   importedSymbols <- getImportedSymbols importMods
   let ast_resolved = nameResolve importedSymbols ast
@@ -239,7 +255,7 @@ compileVLMod target@(VLMod mn v) = do
   logPD $ ppP "[DEBUG] Imported TEnv      :" <+> ppP importedTEnv    -- import宣言から得られた型環境
   logPD $ ppP "[DEBUG] Imported UEnv      :" <+> ppP importedUEnv    -- import宣言から得られた型変数環境
 
-  logP "=== Duplicate External Symbols (Syntax.VL) ==="
+  logP "\n=== Duplicate External Symbols (Syntax.VL) ==="
   let (tenvDuplicated, uenvDuplicated, consDuplicated, exVarResourcesDuplicated) = duplicateEnvs ctdiff ctstart (importedTEnv, importedUEnv, consSchemes)
   logPD $ ppP "[DEBUG] Duplicated Imported TEnv        :" <+> ppP tenvDuplicated
   logPD $ ppP "[DEBUG] Duplicated Imported UEnv        :" <+> ppP uenvDuplicated
@@ -252,13 +268,13 @@ compileVLMod target@(VLMod mn v) = do
   initCounter <- gets counter
   logPD $ ppP "[DEBUG] Initial Counter     :" <+> ppP initCounter <> line    -- 型変数生成用の通し番号
 
-  logP "=== Type Inference (Syntax.VL) ==="
+  logP "\n=== Type Inference (Syntax.VL) ==="
   (typedExpsWithLogs, c) <- liftIO $ getInterface tenvDuplicated uenvDuplicated initCounter astVLDuplicated -- 型推論
   setCounter c
   forM_ typedExpsWithLogs logP -- 型推論木付き
   logP ""
 
-  logP "=== Inferred Types (Syntax.VL) ==="
+  logP "\n=== Inferred Types (Syntax.VL) ==="
   let typedExps = Data.List.map fst typedExpsWithLogs
       consOfTarget = foldl1 landC $ Prelude.map (\(TypedExp _ _ con _)  -> con) typedExps
   forM_ typedExps logP -- 型推論の結果のみ

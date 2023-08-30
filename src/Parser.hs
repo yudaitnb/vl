@@ -86,9 +86,23 @@ deleteTBDNode mod = modify $ \env -> env { dependency = deleteNode mod $ depende
 
 parseDependencyGraph :: ModName -> FilePath -> Extension -> FilePath -> IO (VLMod, [VLMod], ParsedAST)
 parseDependencyGraph entry dirpath extension logFilePath = do
+  logP "=== Parsing ==="
+  logPD $ ppP "[DEBUG] dirPath :" <+> ppP dirpath
+  logPD $ ppP "[DEBUG] validExt    :" <+> ppP extension
+
   let vlModEntry = VLMod entry Root
   state <- execStateT makeDepGraph (Env' EmptyGraph [vlModEntry] empty)
-  return (vlModEntry, reverse $ tsort $ dependency state, finished state)
+
+  let root = vlModEntry
+      sortedVLMods = reverse $ tsort $ dependency state
+      mapParsedAST = finished state
+
+  logP "=== Parsed Modules ==="
+  logP mapParsedAST
+  logP "=== Compilation order ==="
+  logP sortedVLMods
+
+  return (root, sortedVLMods, mapParsedAST)
   where
     logP :: PrettyAST a => a -> IO ()
     logP = logPpLn ppP logFilePath
@@ -102,6 +116,7 @@ parseDependencyGraph entry dirpath extension logFilePath = do
         target@(VLMod mn ver):rst -> do
           liftIO $ logPD $ ppP "[DEBUG] Start parsing" <+> ppP target
           case ver of
+
             -- parse root module
             Root -> do
               let pathTarget = mkPath dirpath mn extension
@@ -117,6 +132,7 @@ parseDependencyGraph entry dirpath extension logFilePath = do
               finish target
               insertFinished target parsed
               makeDepGraph
+
             -- parse external modules
             TBD -> do
               -- ./examples/A/

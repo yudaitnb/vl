@@ -5,7 +5,8 @@ import Prelude
 
 import Syntax.Common hiding (Name(..), QName(..))
 import Syntax.Type
-import Solver
+    ( Constraints(..), Type(TyVar, TyLabels), Name(Ident) )
+import Solver.SolverZ3
 import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Data.Either

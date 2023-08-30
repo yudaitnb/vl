@@ -37,10 +37,11 @@ library
       Language.Desugared
       Language.LambdaVL
       Parser
-      ShrinkCs
-      Solver
-      SolverGT
-      SolverZ3
+      Solver.Engine.SolverGraph
+      Solver.Engine.SolverGT
+      Solver.Engine.SolverZ3
+      Solver.ShrinkCs
+      Solver.Solver
       Syntax.Common
       Syntax.Common.HasVar
       Syntax.Common.Keys

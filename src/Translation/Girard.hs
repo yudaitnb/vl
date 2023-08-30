@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 module Translation.Girard (
   girardFwd
 , girardBck
@@ -72,6 +73,7 @@ instance GirardBck (VL.Module l) where
 
 instance GirardBck (VL.Exp l) where
   type TyGirardBck (VL.Exp l) = (AB.Exp l)
+  girardBck :: VL.Exp l -> TyGirardBck (VL.Exp l)
   girardBck exp = case exp of
     VL.Var l qName         -> AB.Var l qName
     VL.Lit l literal       -> AB.Lit l literal
@@ -94,6 +96,7 @@ instance GirardBck (VL.Exp l) where
 
 instance GirardBck (VL.Pat l) where
   type TyGirardBck (VL.Pat l) = (AB.Pat l)
+  girardBck :: VL.Pat l -> TyGirardBck (VL.Pat l)
   girardBck (VL.PVar l name) =  AB.PVar l name
   girardBck (VL.PLit l sign literal) = AB.PLit l sign literal
   girardBck (VL.PWildCard l) = AB.PWildCard l
@@ -105,9 +108,11 @@ instance GirardBck (VL.Pat l) where
 
 instance GirardBck (VL.Decl l) where
   type TyGirardBck (VL.Decl l) = (AB.Decl l)
+  girardBck :: VL.Decl l -> TyGirardBck (VL.Decl l)
   girardBck (VL.PatBind l pat exp) = AB.PatBind l (girardBck pat) (AB.UnGuardedRhs l $ girardBck exp) Nothing
 
 instance GirardBck (VL.Alt l) where
   type TyGirardBck (VL.Alt l) = (AB.Alt l)
+  girardBck :: VL.Alt l -> TyGirardBck (VL.Alt l)
   girardBck (VL.Alt l p e) = AB.Alt l (girardBck p) (AB.UnGuardedRhs l (girardBck e)) Nothing
   -- [TODO] 位置情報はlではない
