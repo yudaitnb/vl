@@ -13,13 +13,13 @@ import Syntax.Common (VarName(..), ModName(..), reservedOps)
 import Util hiding (annotate)
 import Control.Monad (when)
 
-nameResolve :: Map ModName [VarName] -> Module SrcSpanInfo -> Module SrcSpanInfo
-nameResolve importedSymbols mod =
+nameResolve :: Map ModName [VarName] -> Module SrcSpanInfo -> IO (Module SrcSpanInfo)
+nameResolve importedSymbols mod = do
   let env :: Environment
       env = mkEnv importedSymbols
       scoped = annotate env mod
       resolved = resolveModule scoped
-  in resolved
+  return resolved
   where
     mkEnv :: Map ModName [VarName] -> Environment
     mkEnv importedSymbols = fromList $ map
@@ -36,11 +36,32 @@ nameResolve importedSymbols mod =
     --     [("Base", reservedOps)]
 
 dsc :: Scoped SrcSpanInfo -> SrcSpanInfo
-dsc (Scoped _ loc) = loc
+dsc (Scoped nameinfo loc) = case nameinfo of
+  -- GlobalSymbol s qn -> error $ "GlobalSymbol : " ++ show qn
+  -- LocalValue loc    -> error $ "LocalValue : " ++ show loc
+  -- TypeVar loc       -> error $ "TypeVar"
+  -- ValueBinder       -> error $ "ValueBinder"
+  -- TypeBinder        -> error $ "TypeBinder"
+  -- Import m          -> error $ "Import"
+  -- ImportPart ss     -> error $ "ImportPart"
+  -- Export ss         -> error $ "Export"
+  -- RecPatWildcard ss -> error $ "RecPatWildcard"
+  -- RecExpWildcard ss -> error $ "RecExpWildcard"
+  -- ScopeError err -> case err of
+  --   EAmbiguous qn ss -> error $ show qn ++ " : " ++ unlines (map show ss)
+  --   _ -> error "dsc : other error"
+  -- None -> error "None"
+  -- _ -> loc
+  _ -> error ""
 
 resolveModule :: Module (Scoped SrcSpanInfo) -> Module SrcSpanInfo
 resolveModule (Module l mmh pragmas imps decls) =
-  Module (dsc l) (fmap (fmap dsc) mmh) (map (fmap dsc) pragmas) (map (fmap dsc) imps) (map resolveDecl decls)
+  Module
+    (dsc l)
+    (fmap (fmap dsc) mmh)
+    (map (fmap dsc) pragmas)
+    (map (fmap dsc) imps)
+    (map resolveDecl decls)
 
 resolveDecl :: Decl (Scoped SrcSpanInfo) -> Decl SrcSpanInfo
 resolveDecl decl = case decl of
@@ -64,18 +85,25 @@ resolveMatch m = case m of
 resolveExp :: Exp (Scoped SrcSpanInfo) -> Exp SrcSpanInfo
 resolveExp exp = case exp of
   -- UnQualの変数のみをQualに解決する。SpecialConはScopeErrorでも無視
-  Var sl1 (UnQual (Scoped (GlobalSymbol sym _) l) name) -> 
-    let mn = ModuleName l (getName $ symbolModule sym)
-    in Var (dsc sl1) (Qual l mn (fmap dsc name))
+  Var sl1 (UnQual (Scoped (GlobalSymbol sym qn) l) name) -> 
+    let ModuleName _ mns = symbolModule sym
+        mn = ModuleName l mns in
+    if mns /= "List"
+      then error ""
+      else Var (dsc sl1) (Qual l mn (fmap dsc name))
+    -- let Qual _ (ModuleName _ mns) _ = qn
+    -- in Var (dsc sl1) (Qual l (ModuleName l mns) (fmap dsc name))
+
   -- Qualはスコープ内そのシンボルが存在するかチェックする
-  Var sl1 (Qual sc mn name) -> case sc of
-    Scoped (GlobalSymbol sym _) l ->
-      let mn' = ModuleName l (getName $ symbolModule sym)
-      in Var (dsc sl1) (Qual l mn' (fmap dsc name))
-    Scoped (ScopeError err) l -> scopeError err
-    _                         -> error "UndefinedError occurs in Name resolution"
+  -- Var sl1 (Qual sc mn name) -> case sc of
+  --   Scoped (GlobalSymbol sym _) l ->
+  --     let mn' = ModuleName l (getName $ symbolModule sym)
+  --     in Var (dsc sl1) (Qual l mn' (fmap dsc name))
+  --   Scoped (ScopeError err) l -> scopeError err
+  --   _                         -> error "UndefinedError occurs in Name resolution"
+
   NegApp sl e           -> NegApp (dsc sl) (resolveExp e)
-  Var sl1 qn            -> Var (dsc sl1) (fmap dsc qn)
+  Var sl1 qn            -> Var (dsc sl1) (fmap dsc qn) -- あやしい
   Lit sl l              -> Lit (dsc sl) (fmap dsc l)
   InfixApp sl e1 qop e2 -> InfixApp (dsc sl) (resolveExp e1) (fmap dsc qop) (resolveExp e2)
   App sl e1 e2          -> App (dsc sl) (resolveExp e1) (resolveExp e2)

@@ -216,7 +216,7 @@ compileVLMod target@(VLMod mn v) = do
   logP "\n=== Name resolution ==="
   liftIO $ duplicatedTopSyms ast
   importedSymbols <- getImportedSymbols importMods
-  let ast_resolved = nameResolve importedSymbols ast
+  ast_resolved <- liftIO $ nameResolve importedSymbols ast
   logP ast_resolved
 
   logP "\n=== Desugared AST (Syntax.Desugared) ==="
@@ -358,3 +358,13 @@ instance PrettyAST VLDecls where
     | Data.Map.null m = ppP "{}"
     | otherwise = concatWith (surround line) $
       mapWithKey (\vn decls -> ppP vn <+> ppP "=" <+> ppP decls) m
+
+instance PrettyAST (Map ModName [VarName]) where
+  ppP m
+    | Data.Map.null m = ppP "{}"
+    | otherwise = concatWith (surround line) $
+      mapWithKey
+        (\mn vns ->
+          ppP mn <> line <>
+          concatWith (surround $ comma <> space) (Data.List.map ppP vns))
+        m
