@@ -12,9 +12,11 @@ import Syntax.Common (VarName(..), ModName(..), reservedOps)
 
 import Util hiding (annotate)
 import Control.Monad (when)
+import Data.Maybe (fromMaybe)
 
 nameResolve :: Map ModName [VarName] -> Module SrcSpanInfo -> IO (Module SrcSpanInfo)
 nameResolve importedSymbols mod = do
+  -- mod' <- qualifyRecursive mod
   let env :: Environment
       env = mkEnv importedSymbols
       scoped = annotate env mod
@@ -36,23 +38,8 @@ nameResolve importedSymbols mod = do
     --     [("Base", reservedOps)]
 
 dsc :: Scoped SrcSpanInfo -> SrcSpanInfo
-dsc (Scoped nameinfo loc) = case nameinfo of
-  -- GlobalSymbol s qn -> error $ "GlobalSymbol : " ++ show qn
-  -- LocalValue loc    -> error $ "LocalValue : " ++ show loc
-  -- TypeVar loc       -> error $ "TypeVar"
-  -- ValueBinder       -> error $ "ValueBinder"
-  -- TypeBinder        -> error $ "TypeBinder"
-  -- Import m          -> error $ "Import"
-  -- ImportPart ss     -> error $ "ImportPart"
-  -- Export ss         -> error $ "Export"
-  -- RecPatWildcard ss -> error $ "RecPatWildcard"
-  -- RecExpWildcard ss -> error $ "RecExpWildcard"
-  -- ScopeError err -> case err of
-  --   EAmbiguous qn ss -> error $ show qn ++ " : " ++ unlines (map show ss)
-  --   _ -> error "dsc : other error"
-  -- None -> error "None"
-  -- _ -> loc
-  _ -> error ""
+dsc (Scoped _ loc) = loc
+  -- _ -> error ""
 
 resolveModule :: Module (Scoped SrcSpanInfo) -> Module SrcSpanInfo
 resolveModule (Module l mmh pragmas imps decls) =
@@ -85,14 +72,20 @@ resolveMatch m = case m of
 resolveExp :: Exp (Scoped SrcSpanInfo) -> Exp SrcSpanInfo
 resolveExp exp = case exp of
   -- UnQualの変数のみをQualに解決する。SpecialConはScopeErrorでも無視
-  Var sl1 (UnQual (Scoped (GlobalSymbol sym qn) l) name) -> 
-    let ModuleName _ mns = symbolModule sym
-        mn = ModuleName l mns in
-    if mns /= "List"
-      then error ""
-      else Var (dsc sl1) (Qual l mn (fmap dsc name))
+  Var sl1 qn -> case qn of
+    UnQual (Scoped nameInfo l) n -> case nameInfo of
+      GlobalSymbol sym qn ->
+        let ModuleName _ mns = symbolModule sym
+            mn = ModuleName l mns in
+        Var (dsc sl1) (Qual l mn (fmap dsc n))
+      LocalValue loc -> Var (dsc sl1) (UnQual l (fmap dsc n))
+      ScopeError err -> error $ "ScopeError : " ++ show err
+      None           -> error "NameInfo : None"
+      _              -> error "NameInfo : uncatched error"
+    Qual (Scoped nameInfo l) mn name -> case nameInfo of
+      _ -> Var (dsc sl1) $ Qual l (fmap dsc mn) (fmap dsc name)
     -- let Qual _ (ModuleName _ mns) _ = qn
-    -- in Var (dsc sl1) (Qual l (ModuleName l mns) (fmap dsc name))
+    -- in Var (dsc sl1) (Qual l (ModuleName l mns) (fmap dsc n))
 
   -- Qualはスコープ内そのシンボルが存在するかチェックする
   -- Var sl1 (Qual sc mn name) -> case sc of
@@ -103,7 +96,6 @@ resolveExp exp = case exp of
   --   _                         -> error "UndefinedError occurs in Name resolution"
 
   NegApp sl e           -> NegApp (dsc sl) (resolveExp e)
-  Var sl1 qn            -> Var (dsc sl1) (fmap dsc qn) -- あやしい
   Lit sl l              -> Lit (dsc sl) (fmap dsc l)
   InfixApp sl e1 qop e2 -> InfixApp (dsc sl) (resolveExp e1) (fmap dsc qop) (resolveExp e2)
   App sl e1 e2          -> App (dsc sl) (resolveExp e1) (resolveExp e2)
@@ -128,9 +120,10 @@ scopeError err = case err of
   EInternal str   -> error str
   _               -> error "scopeError: Undefined error occurs in nameresolution"
 
-duplicatedTopSyms :: Module l -> IO ()
-duplicatedTopSyms mod =
-  let ss = getTopSyms mod in
+-- トップレベルシンボルに重複がないかを検査する
+duplicatedTopSyms ::  Module l -> IO ()
+duplicatedTopSyms mod = do
+  let ss = getTopSyms mod
   duplicatedTopSyms' (getDecls mod) []
   where
     duplicatedTopSyms' :: [Decl l] -> [VarName] -> IO ()
@@ -139,3 +132,80 @@ duplicatedTopSyms mod =
       let n = getName d
       when (n `elem` found) $ error $ "Duplicated symbols found : " ++ n
       duplicatedTopSyms' ds found
+
+-- qualifyRecursive :: (PrettyAST l, Show l) => Module l -> IO (Module l)
+-- qualifyRecursive (Module l mmh pragmas imps decls) = do
+--   let mn = getName $ fromMaybe (error "No module name") mmh
+--   decls' <- mapM (qualifyRecursiveDecl mn []) decls
+--   let m' = Module l mmh pragmas imps decls'
+--   return m'
+--   where
+--     qualifyRecursiveDecl :: (PrettyAST l, Show l) => String -> [String] -> Decl l -> IO (Decl l)
+--     qualifyRecursiveDecl mn pns decl = case decl of
+--       FunBind l ms        -> FunBind l <$> mapM (qualifyRecursiveMatch mn pns) ms
+--       PatBind l p rhs mbs -> do let pn = case p of
+--                                           PVar _ n -> getName p
+--                                           p        -> error $ unlines [
+--                                                         "Unexpected pattern."
+--                                                       , "pattern : " ++ show p
+--                                                       , "rhs     : " ++ show rhs 
+--                                                       , "mbs     : " ++ show mbs
+--                                                       ]
+--                                 PatBind l p
+--                                   <$> qualifyRecursiveRhs mn (pn:pns) rhs
+--                                   <*> mapM (qualifyRecursiveBinds mn (pn:pns)) mbs
+ 
+
+--     qualifyRecursiveMatch mn pns m = case m of
+--       Match l n ps rhs mbs        -> do let pns' = getName n : pns
+--                                         Match l n ps
+--                                           <$> qualifyRecursiveRhs mn pns' rhs
+--                                           <*> mapM (qualifyRecursiveBinds mn pns') mbs
+--       InfixMatch l p n ps rhs mbs -> do let pns' = getName n : pns
+--                                         InfixMatch l p n ps
+--                                           <$> qualifyRecursiveRhs mn pns' rhs
+--                                           <*> mapM (qualifyRecursiveBinds mn pns') mbs
+
+--     qualifyRecursiveBinds mn pns (BDecls l decls) = BDecls l <$> mapM (qualifyRecursiveDecl mn pns) decls
+
+--     qualifyRecursiveRhs mn pns (UnGuardedRhs l exp) = UnGuardedRhs l <$> qualifyRecursiveExp mn pns exp
+
+--     qualifyRecursiveAlt mn pns (Alt l p rhs mbs) = Alt l p
+--                                                     <$> qualifyRecursiveRhs mn pns rhs
+--                                                     <*> mapM (qualifyRecursiveBinds mn pns) mbs
+
+--     qualifyRecursiveExp :: (PrettyAST l, Show l) => String -> [String] -> Exp l -> IO (Exp l)
+--     qualifyRecursiveExp mn pns exp = case exp of
+--       Var l qn             -> let qn' = case qn of
+--                                     UnQual l n  -> if getName n `elem` pns
+--                                                     then Qual l (ModuleName l mn) n
+--                                                     else UnQual l n
+--                                     Qual l mn n -> Qual l mn n in
+--                               return $ Var l qn'
+--       NegApp l e           -> NegApp l <$> qualifyRecursiveExp mn pns e
+--       Lit l lit            -> return $ Lit l lit
+--       InfixApp l e1 qop e2 -> InfixApp l
+--                                 <$> qualifyRecursiveExp mn pns e1
+--                                 <*> return qop
+--                                 <*> qualifyRecursiveExp mn pns e2
+--       App l e1 e2          -> App l
+--                                 <$> qualifyRecursiveExp mn pns e1
+--                                 <*> qualifyRecursiveExp mn pns e2
+--       Tuple l b lst        -> Tuple l b <$> mapM (qualifyRecursiveExp mn pns) lst
+--       List l lst           -> List l <$> mapM (qualifyRecursiveExp mn pns) lst
+--       If l e1 e2 e3        -> If l
+--                                 <$> qualifyRecursiveExp mn pns e1
+--                                 <*> qualifyRecursiveExp mn pns e2
+--                                 <*> qualifyRecursiveExp mn pns e3
+--       Case l e alts        -> Case l
+--                                 <$> qualifyRecursiveExp mn pns e
+--                                 <*> mapM (qualifyRecursiveAlt mn pns) alts
+--       Lambda l p e         -> Lambda l p <$> qualifyRecursiveExp mn pns e
+--       Let l bs e           -> Let l
+--                                 <$> qualifyRecursiveBinds mn pns bs
+--                                 <*> qualifyRecursiveExp mn pns e
+--       Con l qn             -> return $ Con l qn
+--       VRes l vbs e         -> VRes l vbs <$> qualifyRecursiveExp mn pns e
+--       VExt l e             -> VExt l <$> qualifyRecursiveExp mn pns e
+--       Paren l e            -> Paren l <$> qualifyRecursiveExp mn pns e
+--       _                    -> error $ "\nUnsupported exp in resolveExp\n" ++ show exp

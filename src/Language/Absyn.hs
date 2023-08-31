@@ -43,7 +43,7 @@ instance HasName (Exp l) where
 
 instance HasName (Pat l) where
   getName (PVar _ name) = getName name
-  getName _             = error "Patterns without PVar do not have a name field."
+  getName p             = error "Patterns without PVar do not have a name field."
 
 instance HasName (Decl l) where
   getName decl = case decl of
