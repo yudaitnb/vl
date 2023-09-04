@@ -11,6 +11,7 @@ import Data.Map (Map, fromList, toList, delete, keys, insert, insertWith, size, 
 import Data.Tuple (swap)
 import Data.Maybe (fromMaybe)
 import Data.List.Split ( splitOn )
+import Data.IORef ( newIORef )
 
 import Data.SBV.Trans
 import qualified Data.SBV.List as SL
@@ -23,6 +24,8 @@ import Compile (DuplicatedExVars(..))
 import Parser (VLMod(..))
 
 import Util
+import GHC.IORef (readIORef)
+import Data.SBV.Internals (showTDiff)
 
 -- やること
 -- 1. トップレベル宣言が不要になるように書き直す
@@ -96,13 +99,17 @@ mkEnv em cs =
 -- e.g.)
 --  em = [("A", [v100,v101]), ("B", [v100,v101])]
 --  cs = CSubset (TyVar $ Ident "a0") (TyLabels fromList [("A",[v100,v101])])
-solveCs :: Map String [Version] -> Constraints -> IO SolverResult
-solveCs em cs = do
+solveCs :: FilePath -> Map String [Version] -> Constraints -> IO SolverResult
+solveCs logFilePath em cs = do
+  timing <- Data.IORef.newIORef 0
   let senv = mkEnv em cs
   -- LexicographicResult res <- optimize Lexicographic $ senario senv
       cfg = defaultSMTCfg {
-              transcript = Just "./examples/SMTlib2script.out"
-            } -- produce SMT-Lib2 file
+              transcript = Just "./examples/SMTlib2script.out" -- produce SMT-Lib2 file
+            , timing = SaveTiming timing
+            -- , verbose = True
+            -- , redirectVerbose = Just "./examples/verbose.out"
+            }
   -- LexicographicResult res <- optimizeWith cfg Lexicographic $ senario senv
   -- case res of
   --   Satisfiable _ _ -> do
@@ -117,6 +124,8 @@ solveCs em cs = do
   --   Unknown _ _       -> return $ Left ("Unknown", [])
   --   ProofError {}     -> return $ Left ("ProofError",[])
   SatResult res <- satWith cfg $ senario senv
+  tdiff <- readIORef timing
+  logPpLn ppP logFilePath $ "SBV Elapsed time : " ++ showTDiff tdiff
   case res of
     Satisfiable _ _ -> do
       let r :: [(String, Int)]

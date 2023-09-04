@@ -6,9 +6,9 @@ name="Test"
 ext=".hs"
 
 ##### SETTING #####
-nmodlim=3
-nverlim=3
-iteration=10
+nmodlim=1
+nverlim=1
+iteration=1
 ###################
 
 function count_SMTLib2script_command () {
@@ -64,6 +64,7 @@ for nver in `seq 1 ${nverlim}` ; do
 
       echo "+++ nmod=${nmod}, nver=${nver} +++" >> $resultpath
       tail -n 7 $logpath >> $resultpath
+      cat $logpath | grep "SBV Elapsed time" >> $resultpath
       count_SMTLib2script_command "(set-option"
       count_SMTLib2script_command "(declare-fun"
       count_SMTLib2script_command "(assert"

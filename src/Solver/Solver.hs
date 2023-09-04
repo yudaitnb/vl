@@ -18,7 +18,7 @@ import Util
 solve :: Map String [Version] -> FilePath -> Constraints -> IO SRSuccess
 solve m logFilePath cs = do
   logP "=== Solver result ==="
-  solveCs m cs >>= \case
+  solveCs logFilePath m cs >>= \case
     Left (h, r) -> do
       logP h
       logPD $ concatWith (surround $ comma <> space) $ map ppP r
