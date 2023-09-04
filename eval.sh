@@ -1,5 +1,5 @@
 #!/bin/bash
-expath="/home/yudaitnb/vl/examples"
+expath="examples"
 resultpath="${expath}/evaluation.txt" 
 logpath="${expath}/Main.log"
 name="Test"
@@ -9,6 +9,11 @@ ext=".hs"
 nmodlim=5
 nverlim=5
 ###################
+
+function count_SMTLib2script_command () {
+  arg=$1
+  grep -o -i $1 examples/SMTlib2script.out | wc -l | awk '{printf "%12s : %s\n", "'"$arg"'", $0}' >> $resultpath
+}
 
 # ゴミ掃除
 rm -rf $resultpath
@@ -32,7 +37,7 @@ for nver in `seq 1 ${nverlim}` ; do
       # Main.hsは一つ目のモジュールのみに依存
       if [ $i = 1 ]
       then
-      cat "/home/yudaitnb/vl/examples/MainEval.hs" | sed "1,2d" | sed "1imodule Main where" | sed "2iimport $namei" > "$expath/Main.hs"
+      cat "examples/MainEval.hs" | sed "1,2d" | sed "1imodule Main where" | sed "2iimport $namei" > "$expath/Main.hs"
       fi
 
       for v in `seq 1 ${nver}` ; do
@@ -43,10 +48,10 @@ for nver in `seq 1 ${nverlim}` ; do
         if [ $i = $nmod ]
         then 
           # 依存グラフ葉モジュールの場合はmodule名のみを追加(import宣言無し)
-          cat "/home/yudaitnb/vl/examples/Test.hs" | sed "1,3d" | sed "1imodule $namei where" > $filepath
+          cat "examples/Test.hs" | sed "1,3d" | sed "1imodule $namei where" > $filepath
         else
           # 依存グラフ内部モジュールの場合はmodule名とimport宣言を追加
-          cat "/home/yudaitnb/vl/examples/Test.hs" | sed "1,3d" | sed "1imodule $namei where" | sed "2iimport $nameis" > $filepath
+          cat "examples/Test.hs" | sed "1,3d" | sed "1imodule $namei where" | sed "2iimport $nameis" > $filepath
         fi
         str="_n${i}_v${v}00"
         sed -i "s/@/${str}/g" $filepath
@@ -56,7 +61,12 @@ for nver in `seq 1 ${nverlim}` ; do
     stack run "Main.hs"
 
     echo "+++ nmod=${nmod}, nver=${nver} +++" >> $resultpath
-    tail -n 6 $logpath >> $resultpath
+    tail -n 7 $logpath >> $resultpath
+    count_SMTLib2script_command "(set-option"
+    count_SMTLib2script_command "(declare-fun"
+    count_SMTLib2script_command "(assert"
+    count_SMTLib2script_command "(check-sat"
+    count_SMTLib2script_command "(get-value"
 
     # ゴミ掃除
     for i in `seq 1 ${nmod}` ; do

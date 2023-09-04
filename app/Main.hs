@@ -49,28 +49,29 @@ main = do
   removeFileIfExists logFilePath
 
   -- [Phase] Parsing along with creating dependency graph
-  (timeParsing, (root, sortedVLMods, mapParsedAst)) <- timeItT $ parseDependencyGraph fnMain rootDirPath ext logFilePath
+  (timeParsing, (root, sortedVLMods, mapParsedAst)) <- timeOfT $ parseDependencyGraph fnMain rootDirPath ext logFilePath
 
   -- [Phase] Compilation
-  (timeCompiling, env) <- timeItT $ compile sortedVLMods mapParsedAst logFilePath
+  (timeCompiling, env) <- timeOfT $ compile sortedVLMods mapParsedAst logFilePath
   let cs = globalConstraints env
 
   -- [Phase] Constraints Minimization
-  (timeMinimizeCs, cs') <- timeItT $ minimizeCs cs logFilePath
+  (timeMinimizeCs, cs') <- timeOfT $ minimizeCs cs logFilePath
 
   -- [Phase] Constaints Resolution
-  (timeConstraintResolution, solResMap) <- timeItT $ solve (cvtExtMods sortedVLMods) logFilePath cs'
+  (timeRealConsRes, timeCPUConsRes, solResMap) <- timeOfWFFI $ solve (cvtExtMods sortedVLMods) logFilePath cs'
 
   -- [Phase] Extraction
-  (timeExtraction, hsCodeBundled) <- timeItT $ extract env logFilePath solResMap
+  (timeExtraction, hsCodeBundled) <- timeOfT $ extract env logFilePath solResMap
 
   -- [Phase] Result
   logPpLnDoc logFilePath $ unlineTimes 
-    [ ("Parsing", timeParsing)
-    , ("Compiling", timeCompiling)
-    , ("Minimize", timeMinimizeCs)
-    , ("ConstraintResolution", timeConstraintResolution )
-    , ("Extraction", timeExtraction)]
+    [ ("Parsing (Real)", timeParsing)
+    , ("Compiling (Real)", timeCompiling)
+    , ("Minimize (Real)", timeMinimizeCs)
+    , ("ConsRes (CPU)", timeCPUConsRes )
+    , ("ConsRes (Real)", timeRealConsRes)
+    , ("Extraction (Real)", timeExtraction)]
 
 -- [Phase 5] Interpret
   -- putStrLn "=== Standard output ==="
