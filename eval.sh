@@ -6,8 +6,8 @@ name="Test"
 ext=".hs"
 
 ##### SETTING #####
-nmodlim=1
-nverlim=1
+nmodlim=2
+nverlim=2
 iteration=1
 ###################
 
@@ -19,8 +19,8 @@ function count_SMTLib2script_command () {
 # ゴミ掃除
 rm -rf $resultpath
 
-for nver in `seq 1 ${nverlim}` ; do
-  for nmod in `seq 1 ${nmodlim}` ; do
+for nver in `seq 2 ${nverlim}` ; do
+  for nmod in `seq 2 ${nmodlim}` ; do
     for iter in `seq 1 ${iteration}` ; do
       # ゴミ掃除
       for i in `seq 1 ${nmod}` ; do
