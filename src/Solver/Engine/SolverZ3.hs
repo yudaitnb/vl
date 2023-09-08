@@ -107,7 +107,7 @@ solveCs logFilePath em cs = do
       cfg = defaultSMTCfg {
               transcript = Just "./examples/SMTlib2script.out" -- produce SMT-Lib2 file
             , timing = SaveTiming timing
-            , extraArgs = ["parallel.enable=true"]
+            -- , extraArgs = ["parallel.enable=true"]
             -- , verbose = True
             -- , redirectVerbose = Just "./examples/verbose.out"
             }
