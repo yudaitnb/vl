@@ -111,20 +111,8 @@ solveCs logFilePath em cs = do
             -- , verbose = True
             -- , redirectVerbose = Just "./examples/verbose.out"
             }
-  -- LexicographicResult res <- optimizeWith cfg Lexicographic $ senario senv
-  -- case res of
-  --   Satisfiable _ _ -> do
-  --     let r :: [(String, Int)] 
-  --         r = toList $ M.map (fromInteger . fromCV) $ delete purpose $ getModelDictionary res
-  --     let idxvers = idxVers senv
-  --         labels = resToLabels idxvers r
-  --     return $ Right labels
-  --   Unsatisfiable _ _ -> return $ Left ("Unsatisfiable", [])
-  --   DeltaSat {}       -> return $ Left ("DeltaSat", [])
-  --   SatExtField _ _   -> return $ Left ("SatExtField", [])
-  --   Unknown _ _       -> return $ Left ("Unknown", [])
-  --   ProofError {}     -> return $ Left ("ProofError",[])
-  SatResult res <- satWith cfg $ senario senv
+  LexicographicResult res <- optimizeWith cfg Lexicographic $ senario senv
+  -- SatResult res <- satWith cfg $ senario senv
   tdiff <- readIORef timing
   logPpLn ppP logFilePath $ "SBV Elapsed time : " ++ showTDiff tdiff
   case res of
@@ -163,13 +151,12 @@ senario env = do
       env' = env { variables = labels }
   allSLabelsAreValid env'
   constrain $ compileConstraints env' (constraints env')
-  -- msMinimize purpose $ sTBD
 
   -- 0,TBD > 1,latest > ...
-  -- msMinimize purpose $ sumOfSLabels svars
+  msMinimize purpose $ sumOfSLabels svars
   where
     sumOfSLabels :: [SLabel] -> SVersion
-    sumOfSLabels = foldr (\label acc -> acc + sum label) 0
+    sumOfSLabels = sum . concat
 
 mkSLabel :: Env -> String -> Symbolic (String, SLabel)
 mkSLabel env vn = do
@@ -211,7 +198,8 @@ compileConstraints env cs = case cs of
   COr c1 c2 ->
     let c1' = compileConstraints env c1
         c2' = compileConstraints env c2
-    in (.<+>) c1' c2'
+    -- in (.<+>) c1' c2'
+    in (.||) c1' c2'
 
 -- [("A", [v100,v101]), ("B", [v101])]
 -- -> [[sMayDep,sMayDep], [sNotDep,sMayDep]]
@@ -240,13 +228,17 @@ subsetOf :: SLabel -> SLabel -> SBool
 subsetOf l1 l2 =
   -- foldl1 (.&&) $ zipWith
   foldl (.&&) sTrue $ zipWith
+    -- l1 = [..., M=v1, ...],
+    -- l2 = [..., M=v2, ...]
     -- 以下のいずれか一方
-    -- 1. v2が何らかのバージョンを指定している -> v1も同じバージョンに依存する
-    -- 2. v2がsTBD, すなわちmnのバージョンについて無制約 -> v1はなんでもよい
+    -- 1. v2が特定のバージョンを指定 -> v1も同じバージョンに依存する
+    -- 2. v2がバージョン無制約(sTBD) -> v1はなんでもよい
     (\v1 v2 ->
-           (v2 ./= sTBD .&& v2 .== v1)
-      .<+> (v2 .== sTBD))
+      (v2 .== sTBD) .|| (v1 .== v2)
+      --  (v2 ./= sTBD .&& v1 .== v2) .<+> (v2 .== sTBD)
+    )
     l1 l2
+
 
 
 -- test :: Symbolic ()
