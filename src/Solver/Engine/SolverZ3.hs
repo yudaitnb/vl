@@ -118,9 +118,11 @@ solveCs logFilePath em cs = do
   case res of
     Satisfiable _ _ -> do
       let r :: [(String, Int)]
-          r = toList $ M.map (fromInteger . fromCV) $ delete purpose $ getModelDictionary res
+          r = toList $ M.map (fromInteger . fromCV) $ M.filterWithKey (\s _ -> head s == 'a') $ delete purpose $ getModelDictionary res
       let idxvers = idxVers senv
-          labels = resToLabels idxvers r
+      print idxvers
+      print r
+      let labels = resToLabels idxvers r
       return $ Right labels
     Unsatisfiable _ _ -> return $ Left ("Unsatisfiable", [])
     DeltaSat {}       -> return $ Left ("DeltaSat", [])
@@ -130,7 +132,11 @@ solveCs logFilePath em cs = do
 
   where
     parseVarName :: String -> (String, String)
-    parseVarName str = let [vn,mn] = splitOn separator str in (vn, mn)
+    parseVarName str =
+      let [vn,mn] = case splitOn separator str of
+                      [vn,mn] -> [vn,mn]
+                      x -> error $ "parseVarName : " ++ show x
+      in (vn, mn)
     -- [("a0_A_1.0.0", [0,1])] -> fromList [("a0", fromList [("A",[v100,v101])])]
     resToLabels :: [(String, [(Version, Int)])] -> [(String, Int)] -> Map String Label
     resToLabels _       []              = mempty
@@ -153,7 +159,11 @@ senario env = do
   constrain $ compileConstraints env' (constraints env')
 
   -- 0,TBD > 1,latest > ...
-  msMinimize purpose $ sumOfSLabels svars
+  -- msMinimize purpose $ sumOfSLabels svars
+  -- 最小化問題を解く代わりに、0出なかった場合にペナルティをつける
+  forM_ svars $ \lbl ->
+    forM_ lbl $ \ver ->
+      assertWithPenalty (show ver) (ver .== 0) DefaultPenalty
   where
     sumOfSLabels :: [SLabel] -> SVersion
     sumOfSLabels = sum . concat
@@ -172,8 +182,9 @@ allSLabelsAreValid env = do
   forM_ (map snd $ variables env) $ \sl -> do
     forM_ (zip sl [0..]) $ \(sv, idOfM) -> do
       let mn = map swap (idxMods env) `lulist` idOfM
-          possibleElemsOfMn = SL.implode $ map fromIntegral $ possibleElems `lulist` mn
-      constrain $ sv `SL.elem` possibleElemsOfMn
+          possibleElemsOfMn = map fromIntegral $ possibleElems `lulist` mn
+      constrain $ sv `SL.elem` (SL.implode possibleElemsOfMn)
+      -- constrain $ sOr $ map (sv .==) possibleElemsOfMn
 
 compileConstraints :: Env -> Constraints -> SBool
 compileConstraints env cs = case cs of
@@ -235,7 +246,6 @@ subsetOf l1 l2 =
     -- 2. v2がバージョン無制約(sTBD) -> v1はなんでもよい
     (\v1 v2 ->
       (v2 .== sTBD) .|| (v1 .== v2)
-      --  (v2 ./= sTBD .&& v1 .== v2) .<+> (v2 .== sTBD)
     )
     l1 l2
 

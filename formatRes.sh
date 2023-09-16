@@ -6,7 +6,7 @@ input="examples/evaluation.txt"
 output="output.csv"
 
 # ヘッダーを出力ファイルに書き込む
-echo "nmod,nver,Parsing,Compiling,Minimize,ConsRes_CPU,ConsRes_Real,ConsRes_sbv_elapsed,Extraction,set-option,define-fun,assert,minimize,check-sat,get-objectives,get-value" > "$output"
+echo "nmod,nver,Parsing,Compiling,Minimize,ConsRes_CPU,ConsRes_Real,Extraction,set-option,define-fun,assert,minimize,check-sat,get-objectives,get-value" > "$output"
 
 
 # function parse_timestamp () {
@@ -29,6 +29,7 @@ echo "nmod,nver,Parsing,Compiling,Minimize,ConsRes_CPU,ConsRes_Real,ConsRes_sbv_
 # 初期カウントをセット
 set_option_count=0
 define_fun_count=0
+# declare_fun_count=0
 assert_count=0
 minimize_count=0
 check_sat_count=0
@@ -44,6 +45,7 @@ while IFS= read -r line; do
         # カウントをリセット
         set_option_count=0
         define_fun_count=0
+        # declare_fun_count=0
         assert_count=0
         minimize_count=0
         check_sat_count=0
@@ -60,30 +62,17 @@ while IFS= read -r line; do
         *"Minimize"* ) minimize=$value ;;
         *"ConsRes (CPU)"* ) consres_cpu=$(echo "$line" | awk '{print $4}' | sed 's/s//') ;;
         *"ConsRes (Real)"* ) consres_real=$value ;;
-        # *"SBV Elapsed time"* ) consres_sbv_elapsed=$(echo "$line" | awk -F":" '{print $2":"$3}' | awk -F"[ms:.]" '{min=($2=="" ? $1 : 0); sec=($2=="" ? $3 : $1); subsec=($2=="" ? $4 : $2); printf "%.3f\n", (min*60 + sec + subsec*0.001)}' ) ;;
-        *"SBV Elapsed time"* ) consres_sbv_elapsed=$(echo "$line" | awk -F"[hms:.]" '{
-              hr=0; min=0; sec=0; subsec=0;
-
-              if (NF == 7) {
-                  hr = $1; min = $3; sec = $5; subsec = $6;
-              } else if (NF == 5) {
-                  min = $1; sec = $3; subsec = $4;S
-              } else {
-                  sec = $1; subsec = $2;
-              }
-
-              printf "%.3f\n", (hr*3600 + min*60 + sec + subsec*0.001);
-          }' ) ;;
         *"Extraction"* ) extraction=$value ;;
         *"set-option"* ) set_option_count=$value ;;
         *"define-fun"* ) define_fun_count=$value ;;
+        # *"declare-fun"* ) declare_fun_count=$value ;;
         *"assert"* ) assert_count=$value ;;
         *"minimize"* ) minimize_count=$value ;;
         *"check-sat"* ) check_sat_count=$value ;;
         *"get-objectives"* ) get_objectives_count=$value ;;
         *"get-value"* ) get_value_count=$value
             # csvの行を出力ファイルに追加
-            echo "$nmod,$nver,$parsing,$compiling,$minimize,$consres_cpu,$consres_real,$consres_sbv_elapsed,$extraction,$set_option_count,$define_fun_count,$assert_count,$minimize_count,$check_sat_count,$get_objectives_count,$get_value_count" >> "$output"
+            echo "$nmod,$nver,$parsing,$compiling,$minimize,$consres_cpu,$consres_real,$extraction,$set_option_count,$define_fun_count,$assert_count,$minimize_count,$check_sat_count,$get_objectives_count,$get_value_count" >> "$output"
             ;;
     esac
 done < "$input"
